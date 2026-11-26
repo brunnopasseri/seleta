@@ -7,8 +7,8 @@ window.SELETA = {
   qualidade: 0.82,
   // Links de assinatura (Mercado Pago ou outro). Deixe "" enquanto não estiver configurado.
   pagamento: {
-    essencial: { mensal: "", anual: "" },
-    profissional: { mensal: "", anual: "" },
+    essencial: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/i0SoWK9m5p", anual: "" },
+    profissional: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/cDSZLZaCDh", anual: "" },
     estudio: { mensal: "", anual: "" }
   }
 };
