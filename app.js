@@ -1207,13 +1207,15 @@ let cicloPlano = "mensal", planoSel = "profissional";
 ROTAS.plano = async () => {
   const atual = estudio.plano && estudio.plano !== "teste" ? PLANOS.find(p => p.id === estudio.plano) : null;
   const d = diasTeste();
+  const temAnual = Object.values(SELETA.pagamento || {}).some(x => x.anual);
+  if (!temAnual) cicloPlano = "mensal";
   const preco = p => cicloPlano === "anual" ? p.m * 10 / 12 : p.m;
   const pintar = () => {
     const p = PLANOS.find(x => x.id === planoSel);
     C().innerHTML = `<a class="volta" href="#/config">← Configurações</a><div class="planosApp">
       <h1>${atual ? "Seu plano" : d > 0 ? "Escolha seu plano" : "Seu teste terminou"}</h1>
       <p class="mute" style="margin:10px 0 26px;font-size:16px">${atual ? `Você está no plano <strong style="font-weight:500">${esc(atual.nome)}</strong>.` : d > 0 ? `Seu teste grátis vai até ${esc(dataBR(estudio.teste_ate))} (${d} ${d === 1 ? "dia" : "dias"}). Assine quando quiser: nada do que você já fez se perde.` : `Seu teste terminou em ${esc(dataBR(estudio.teste_ate))}. Tudo foi mantido; escolha um plano para continuar.`}</p>
-      <div class="ciclo" role="group" aria-label="Cobrança"><button data-c="mensal" aria-pressed="${cicloPlano === "mensal"}">Mensal</button><button data-c="anual" aria-pressed="${cicloPlano === "anual"}">Anual</button></div>
+      <div class="ciclo${temAnual ? "" : " hide"}" role="group" aria-label="Cobrança"><button data-c="mensal" aria-pressed="${cicloPlano === "mensal"}">Mensal</button><button data-c="anual" aria-pressed="${cicloPlano === "anual"}">Anual</button></div>
       <p class="mute small" style="margin-bottom:16px">Todos os planos incluem galerias com seleção do cliente, comentários por foto, marca d'água e lista pro Lightroom.</p>
       ${PLANOS.map(x => `<label class="opPlano${x.id === planoSel ? " sel" : ""}"><div class="lin"><input type="radio" name="plano" value="${x.id}" ${x.id === planoSel ? "checked" : ""}><div style="flex:1;min-width:0"><span class="nome">${x.nome}</span>${x.rec ? '<span class="rec">Recomendado</span>' : ""}<p>${x.desc}</p><details><summary>Ver detalhes</summary><ul>${x.itens.map(i => `<li>${i}</li>`).join("")}</ul></details></div><span class="pr">${brl(preco(x))}/mês${cicloPlano === "anual" ? `<br><span class="small">${brl(x.m * 10)} por ano</span>` : ""}</span></div></label>`).join("")}
       <p class="miudo">No plano anual você paga 10 meses e usa 12 (economia de cerca de 17%).</p>

@@ -9,7 +9,7 @@ window.SELETA = {
   pagamento: {
     essencial: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/i0SoWK9m5p", anual: "" },
     profissional: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/cDSZLZaCDh", anual: "" },
-    estudio: { mensal: "", anual: "" }
+    estudio: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/kmtkPTSOrv", anual: "" }
   }
 };
 window.sb = window.supabase.createClient(SELETA.url, SELETA.chave);
