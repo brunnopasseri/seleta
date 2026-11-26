@@ -21,11 +21,21 @@ body{background:#fafaf8}
 .rodS .lk{display:flex;gap:22px;flex-wrap:wrap}
 </style>
 <style>
-.capaS{position:relative;min-height:56vh;display:grid;place-items:center;text-align:center;color:#fff;background:#111 url('https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1800&q=72&auto=format&fit=crop') center 40%/cover}
-.capaS::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.6))}
-.capaS>div{position:relative;z-index:1;padding:80px 16px}
-.capaS h1{font-weight:300;font-size:clamp(34px,6vw,64px);letter-spacing:.18em;text-transform:uppercase}
-.capaS p{margin-top:14px;font-size:clamp(15px,2vw,18px);opacity:.9}
+.capaS{position:relative;min-height:min(92vh,860px);display:flex;align-items:flex-end;color:#fff;background:#0b0b0b;overflow:hidden}
+.capaS .fundo{position:absolute;inset:0;background:url('brunno.jpg') 72% 30%/cover;transform:scale(1.08);animation:zoomS 20s ease-out forwards}
+@keyframes zoomS{to{transform:scale(1)}}
+.capaS::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,8,8,.92) 0%,rgba(8,8,8,.6) 45%,rgba(8,8,8,.1) 100%),linear-gradient(0deg,rgba(8,8,8,.95),transparent 45%)}
+.capaS .cont{position:relative;z-index:1;width:100%;max-width:1180px;margin:0 auto;padding:0 max(4vw,16px) clamp(56px,9vh,100px)}
+.capaS .ol{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;display:flex;align-items:center;gap:12px;margin-bottom:22px}.capaS .ol::before{content:"";width:28px;height:1px;background:currentColor}
+.capaS h1{font-weight:300;font-size:clamp(40px,6.4vw,92px);line-height:1.02;letter-spacing:-.02em;max-width:11em}
+.capaS h1 b{font-weight:500}
+.capaS .quem{margin-top:28px;display:flex;align-items:center;gap:14px;font-size:15px;color:rgba(255,255,255,.78)}.capaS .quem strong{color:#fff;font-weight:500}
+.capaS .quem::before{content:"";width:44px;height:1px;background:rgba(255,255,255,.5)}
+.rvS{display:block;overflow:hidden}.rvS>span{display:inline-block;transform:translateY(110%);animation:sobeS 1s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes sobeS{to{transform:none}}
+.entraS{opacity:0;animation:entraS 1s .8s ease forwards}@keyframes entraS{to{opacity:1}}
+@media(max-width:700px){.capaS .fundo{background-position:68% 20%}.capaS::after{background:linear-gradient(0deg,rgba(8,8,8,.95) 15%,rgba(8,8,8,.35) 70%,rgba(8,8,8,.2))}}
+@media (prefers-reduced-motion:reduce){.capaS .fundo,.rvS>span,.entraS{animation:none;transform:none;opacity:1}}
 [hidden]{display:none!important}
 .historia{max-width:780px;margin:0 auto;padding:72px max(4vw,16px) 20px}
 .frase{text-align:center;font-size:clamp(20px,3vw,30px);font-weight:500;letter-spacing:.12em;text-transform:uppercase;line-height:1.35;margin-bottom:56px}
@@ -35,6 +45,7 @@ body{background:#fafaf8}
 .autor strong{display:block;font-size:20px;font-weight:500}.autor div span{color:var(--mute);font-size:14px}
 .retrato{float:right;width:min(42%,340px);margin:6px 0 22px 34px;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.45)}.retrato img{display:block;width:100%;height:auto}
 @media(max-width:640px){.retrato{float:none;width:100%;margin:0 0 24px}}
+.historia>div>p:first-child{font-size:clamp(20px,2.2vw,24px);line-height:1.6;color:#111;margin-bottom:28px}
 .historia p{font-size:17px;line-height:1.85;color:#2b2b2b;margin:0 0 18px}
 .valores{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:980px;margin:40px auto 0;padding:0 max(4vw,16px)}
 .valores div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px}
@@ -48,11 +59,11 @@ body{background:#fafaf8}
 <header class="topoS"><div class="wrap"><a class="logo" href="./"><svg><use href="#s"/></svg>SELETA</a><nav aria-label="Menu principal"><a href="./">Início</a><a href="./#como">Como funciona</a><a href="precos.html">Preços</a><a href="sobre.html" aria-current="page">Sobre</a><a href="blog.html">Blog</a></nav>
 <div class="dir"><span data-seletor-lang></span><a class="entrar" href="app.html">Entrar</a><a class="btn sm fill" href="app.html?criar">Começar grátis</a></div></div></header>
 
-<section class="capaS"><div><h1>A Seleta</h1><p>Uma ideia que nasceu atrás da câmera.</p></div></section>
+<section class="capaS"><div class="fundo" role="img" aria-label="Brunno Passeri fotografando com uma câmera Canon"></div><div class="cont">
+<div data-lang="pt"><p class="ol">Sobre a Seleta</p><h1><span class="rvS"><span>Feita por quem</span></span><span class="rvS"><span style="animation-delay:.12s">fotografa, para</span></span><span class="rvS"><span style="animation-delay:.24s"><b>quem fotografa.</b></span></span></h1><p class="quem entraS"><span><strong>Brunno Passeri</strong> · fotógrafo em Formosa, Goiás, e criador da Seleta</span></p></div>
+<div data-lang="en" hidden><p class="ol">About Seleta</p><h1><span class="rvS"><span>Made by someone</span></span><span class="rvS"><span style="animation-delay:.12s">who shoots, for</span></span><span class="rvS"><span style="animation-delay:.24s"><b>those who shoot.</b></span></span></h1><p class="quem entraS"><span><strong>Brunno Passeri</strong> · photographer in Formosa, Goiás, Brazil, and creator of Seleta</span></p></div>
+</div></section>
 <main><article class="historia"><div data-lang="pt">
-<p class="frase">“Feita por quem fotografa, para quem fotografa”</p>
-<div class="autor"><span class="mono"><img src="brunno-avatar.jpg" alt="Brunno Passeri" width="84" height="84"></span><div><strong>Brunno Passeri</strong><span>Fotógrafo em Formosa, Goiás · criador da Seleta</span></div></div>
-<figure class="retrato"><img src="brunno.jpg" alt="Brunno Passeri fotografando com uma câmera Canon" loading="lazy"></figure>
 <p>Oi, eu sou o Brunno. Sou fotógrafo de ensaios, eventos e casamentos, e foi justamente no dia a dia do meu trabalho que a Seleta começou.</p>
 <p>Durante muito tempo, a parte mais cansativa da fotografia não era fotografar. Era tudo o que vinha depois: mandar link do Drive, receber a escolha do cliente em print no WhatsApp, conferir o número de cada arquivo, lembrar quem já tinha pagado o sinal, quem ainda não tinha escolhido e qual ensaio era no sábado.</p>
 <p>Testei várias ferramentas. Algumas eram caras demais para quem está crescendo, outras resolviam só um pedaço do problema. Então resolvi construir a minha.</p>
@@ -60,9 +71,6 @@ body{background:#fafaf8}
 <p>Cada recurso aqui saiu de uma necessidade real, minha ou de colegas. E vai continuar assim: quem usa a Seleta ajuda a decidir o que vem a seguir.</p>
 <p class="assina">Brunno Passeri · Fundador da Seleta</p>
 </div><div data-lang="en" hidden>
-<p class="frase">“Made by a photographer, for photographers”</p>
-<div class="autor"><span class="mono"><img src="brunno-avatar.jpg" alt="Brunno Passeri" width="84" height="84"></span><div><strong>Brunno Passeri</strong><span>Photographer in Formosa, Goiás, Brazil · creator of Seleta</span></div></div>
-<figure class="retrato"><img src="brunno.jpg" alt="Brunno Passeri taking a photo with a Canon camera" loading="lazy"></figure>
 <p>Hi, I'm Brunno. I photograph portraits, events and weddings, and Seleta was born right out of my day-to-day work.</p>
 <p>For a long time, the most tiring part of photography wasn't shooting. It was everything that came after: sending Drive links, getting the client's picks as WhatsApp screenshots, checking every file number, remembering who had paid the deposit, who hadn't chosen yet and which session was on Saturday.</p>
 <p>I tried many tools. Some were too expensive for a growing business, others only solved part of the problem. So I decided to build my own.</p>

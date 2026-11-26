@@ -84,6 +84,16 @@ nav .btn{min-height:42px;padding:0 18px;font-size:14px}
 .janela .corpo{padding:16px}
 .janela .leg{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:14px}
 
+
+/* aparecer ao rolar */
+{
+  const alvos = document.querySelectorAll(".secao .olho,.secao h2,.secao p.txt,.secao .passos li,.secao .recursos li,.secao .janela,.secao .estilos3,.escura h2,.escura p.txt,.escura .lista-grande li");
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    alvos.forEach((el, i) => { el.classList.add("rv"); const irmaos = el.parentElement ? [...el.parentElement.children].indexOf(el) : 0; el.style.transitionDelay = Math.min(irmaos, 5) * 70 + "ms"; io.observe(el); });
+  }
+}
+
 /* demo de seleção */
 .demo-topo{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;margin-bottom:12px}
 .demo-topo b{font-weight:500}
@@ -270,6 +280,41 @@ nav.sobreFoto:not(.rolou) .links a,nav.sobreFoto:not(.rolou) .entrar{color:rgba(
 nav.sobreFoto:not(.rolou) .btn.fill{background:#fff;color:#111;border-color:#fff}
 @media(max-width:900px){.heroGrid{padding-top:40px}.vidroD,.rolaD{display:none}}
 @media (prefers-reduced-motion:reduce){.rev>span,.entra,.vidroD{animation:none;transform:none;opacity:1}.heroBg,.brilho,.rolaD{animation:none}}
+
+/* ===== estilo cinema nas seções ===== */
+nav.rolou{background:rgba(13,13,13,.84);border-color:#222;color:#fff}
+nav.rolou .links a,nav.rolou .entrar{color:rgba(255,255,255,.82)}nav.rolou .links a:hover{color:#fff}
+nav.rolou .btn.fill{background:#fff;color:#111;border-color:#fff}
+body{counter-reset:sec}
+.escura{background:#0b0b0b}
+.secao:not(#modulos):not(#planos):not(#duvidas){position:relative;overflow:hidden;background:#0d0d0d;color:#f2f1ee;border-top:1px solid #1c1c1c;counter-increment:sec}
+.secao.alt:not(#modulos):not(#planos):not(#duvidas){background:#121212}
+.secao:not(#modulos):not(#planos):not(#duvidas)::before{content:counter(sec,decimal-leading-zero);position:absolute;top:clamp(20px,4vw,48px);right:max(4vw,16px);font-size:clamp(110px,17vw,240px);font-weight:200;line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.09);pointer-events:none;letter-spacing:-.04em}
+.secao.alt:not(#modulos):not(#planos):not(#duvidas)::before{right:auto;left:max(4vw,16px)}
+.secao:not(#modulos):not(#planos):not(#duvidas)::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 45% 55% at 78% 55%,rgba(255,255,255,.07),transparent 70%)}
+.secao.alt:not(#modulos):not(#planos):not(#duvidas)::after{background:radial-gradient(ellipse 45% 55% at 22% 55%,rgba(255,255,255,.07),transparent 70%)}
+.secao:not(#modulos):not(#planos):not(#duvidas) .wrap{position:relative;z-index:1}
+.secao:not(#modulos):not(#planos):not(#duvidas) h2{font-size:clamp(30px,3.6vw,50px);font-weight:300;letter-spacing:-.015em;line-height:1.08;color:#fff}
+.secao:not(#modulos):not(#planos):not(#duvidas) .olho{color:#a9a7a2;display:flex;align-items:center;gap:12px}
+.secao:not(#modulos):not(#planos):not(#duvidas) .olho::before,.escura .olho::before{content:"";width:28px;height:1px;background:currentColor;opacity:.6}
+.escura .olho{display:flex;align-items:center;gap:12px}
+.secao:not(#modulos):not(#planos):not(#duvidas) p.txt{color:#b6b4af}
+.secao:not(#modulos):not(#planos):not(#duvidas) .passos li,.secao:not(#modulos):not(#planos):not(#duvidas) .recursos li{border-color:#262626;transition:border-color .3s,padding-left .3s}
+.secao:not(#modulos):not(#planos):not(#duvidas) .recursos li:hover,.secao:not(#modulos):not(#planos):not(#duvidas) .passos li:hover{border-color:#5a5a5a}
+.secao:not(#modulos):not(#planos):not(#duvidas) .passos li::before{color:#fff;font-size:13px;font-weight:500}
+.secao:not(#modulos):not(#planos):not(#duvidas) .passos p,.secao:not(#modulos):not(#planos):not(#duvidas) .recursos li p{color:#8f8d88}
+.secao:not(#modulos):not(#planos):not(#duvidas) h3{color:#f2f1ee;font-weight:400}
+.secao:not(#modulos):not(#planos):not(#duvidas) .janela,.secao:not(#modulos):not(#planos):not(#duvidas) .estilos3{color:var(--ink);border-color:#2a2a2a;box-shadow:0 60px 120px -50px #000,0 0 0 1px rgba(255,255,255,.05);transform:perspective(1400px) rotateY(-5deg) rotateX(2deg);transition:transform .8s cubic-bezier(.2,.8,.2,1),box-shadow .8s}
+.secao.alt:not(#modulos):not(#planos):not(#duvidas) .janela{transform:perspective(1400px) rotateY(5deg) rotateX(2deg)}
+.secao:not(#modulos):not(#planos):not(#duvidas) .janela:hover,.secao:not(#modulos):not(#planos):not(#duvidas) .estilos3:hover{transform:none}
+.secao .estilos3{box-shadow:none!important}
+.secao .est{border-color:#2a2a2a}
+/* aparecer ao rolar */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+.rv.on{opacity:1;transform:none}
+.secao .janela.rv:not(.on),.secao .estilos3.rv:not(.on){transform:perspective(1400px) rotateY(-12deg) translateY(40px)}
+@media(max-width:900px){.secao .janela,.secao .estilos3{transform:none!important}.secao:not(#modulos):not(#planos):not(#duvidas)::before{font-size:96px;opacity:.7}}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
 </style>
 </head>
 <body>
