@@ -23,7 +23,7 @@ window.POSTS = [
 },
 {
   slug: "quantas-fotos-no-pacote",
-  data: "2026-11-24", min: 4, img: "1554048612-b6a482b224b8",
+  data: "2026-11-24", min: 4, img: "1612821996907-d3710d7f1351",
   cat: { pt: "Negócio", en: "Business" },
   titulo: { pt: "Quantas fotos colocar no pacote de ensaio?", en: "How many photos should a session package include?" },
   resumo: { pt: "Nem pouco a ponto de frustrar, nem tanto a ponto de desvalorizar o seu trabalho. Como chegar no número certo.", en: "Not so few that it disappoints, not so many that it devalues your work. How to find the right number." },
