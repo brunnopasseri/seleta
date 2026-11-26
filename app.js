@@ -14,6 +14,12 @@ const raizSite = () => new URL("./", location.href).href;
 const TIPOS = ["ensaio", "casamento", "evento", "aniversário", "estúdio", "corporativo", "outro"];
 const STATUS_T = { orcamento: "Orçamento", confirmado: "Confirmado", realizado: "Realizado", entregue: "Entregue", cancelado: "Cancelado" };
 const STATUS_G = { aberta: "Aguardando cliente", enviada: "Seleção recebida", encerrada: "Encerrada" };
+const ICO_G = {
+  aberta: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  enviada: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  encerrada: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+};
+const tagG = st => `<span class="tag stG ${st}">${ICO_G[st] || ""}${STATUS_G[st] || st}</span>`;
 let user = null, estudio = null, modoCriar = false;
 
 function toast(t) { const el = $("toast"); el.textContent = t; show("toast", true); clearTimeout(toast.t); toast.t = setTimeout(() => show("toast", false), 2400); }
@@ -291,7 +297,7 @@ ROTAS.inicio = async () => {
           <div class="txt"><strong>${esc(t.titulo)}</strong><span>${[t.clientes?.nome, t.hora?.slice(0, 5), t.local].filter(Boolean).map(esc).join(" · ")}</span></div><span class="st">${STATUS_T[t.status]}</span></a>`).join("") : `<p class="vazioP">Nada marcado. Que tal cadastrar o próximo ensaio?</p>`}
       </div>
       <div class="bloco"><h2>Galerias <a href="#/galerias">Ver todas</a></h2>
-        ${[...recebidas, ...aguardando].slice(0, 6).map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "Sem cliente")}</span></div><span class="tag ${g.status}">${STATUS_G[g.status]}</span></a>`).join("") || `<p class="vazioP">Nenhuma galeria aberta.</p>`}
+        ${[...recebidas, ...aguardando].slice(0, 6).map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "Sem cliente")}</span></div>${tagG(g.status)}</a>`).join("") || `<p class="vazioP">Nenhuma galeria aberta.</p>`}
       </div>
     </div>
     <div class="bloco" style="margin-top:18px"><h2>Tarefas <span class="acoes"><button class="btn sm ghost" id="aTar">Nova tarefa</button><a href="#/tarefas">Ver todas</a></span></h2>
@@ -308,8 +314,8 @@ ROTAS.galerias = async () => {
   const pintar = () => {
     const lista = gs.filter(f[filtroGal]);
     $("gLista").innerHTML = lista.length ? lista.map(g => `
-      <a class="gcard" href="#/galeria/${esc(g.slug)}">
-        <div class="capa" style="${g.capa?.caminho ? `background-image:url('${esc(urlFoto(g.capa.caminho))}')` : ""}"><span class="tag ${g.status}">${STATUS_G[g.status]}</span></div>
+      <a class="gcard st-${g.status}" href="#/galeria/${esc(g.slug)}">
+        <div class="capa" style="${g.capa?.caminho ? `background-image:url('${esc(urlFoto(g.capa.caminho))}')` : ""}">${tagG(g.status)}</div>
         <div class="info"><h3>${esc(g.titulo)}</h3><span class="small mute">${esc(g.cliente_nome || "Sem cliente")} · ${g.qtd?.[0]?.count || 0} fotos · ${new Date(g.criado_em).toLocaleDateString("pt-BR")}</span></div>
       </a>`).join("") : `<div class="vazio" style="grid-column:1/-1">Nenhuma galeria aqui.</div>`;
     document.querySelectorAll(".chip[data-f]").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filtroGal));
@@ -416,7 +422,7 @@ function pintarGaleria() {
   C().innerHTML = `
     <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="${G.so_entrega ? "#/entregas" : "#/galerias"}" style="margin:0">← ${G.so_entrega ? "Entregas" : "Galerias"}</a><button class="btn sm ghost" id="excluirAlbum">Excluir galeria</button></div>
     <div class="banner" style="${capaUrl ? `background-image:url('${esc(capaUrl)}')` : ""}">
-      <div class="sobre"><div><h1>${esc(G.so_entrega ? G.entrega_titulo || G.titulo : G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${sub.filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${G.so_entrega ? (G.entrega_liberada ? "Entregue" : "Rascunho") : STATUS_G[G.status]}</span></div>
+      <div class="sobre"><div><h1>${esc(G.so_entrega ? G.entrega_titulo || G.titulo : G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${sub.filter(Boolean).map(esc).join(" · ")}</p></div>${G.so_entrega ? `<span class="tag">${G.entrega_liberada ? "Entregue" : "Rascunho"}</span>` : tagG(G.status)}</div>
     </div>
     <div class="bloco compart">
       <div><span class="small mute">Link do cliente</span><br><code>${esc(linkCliente())}</code><div style="margin-top:8px"><span class="small mute">Código</span> <span class="codigo">${esc(G.codigo_acesso)}</span></div></div>
@@ -804,7 +810,7 @@ ROTAS.cliente = async id => {
     ${c.observacoes ? `<div class="bloco" style="margin-top:18px"><h2>Observações</h2><p style="white-space:pre-line">${esc(c.observacoes)}</p></div>` : ""}
     <div class="duas">
       <div class="bloco"><h2>Trabalhos</h2>${ts.length ? ts.map(t => `<button class="item" data-t="${t.id}"><div class="txt"><strong>${esc(t.titulo)}</strong><span>${[t.data && dataBR(t.data), t.tipo, brl(t.valor)].filter(Boolean).map(esc).join(" · ")}</span></div><span class="st">${STATUS_T[t.status]}</span></button>`).join("") : `<p class="vazioP">Nenhum trabalho.</p>`}</div>
-      <div class="bloco"><h2>Galerias <button class="btn sm ghost" id="ng">Nova galeria</button></h2>${gs.length ? gs.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${new Date(g.criado_em).toLocaleDateString("pt-BR")}</span></div><span class="tag ${g.status}">${STATUS_G[g.status]}</span></a>`).join("") : `<p class="vazioP">Nenhuma galeria.</p>`}</div>
+      <div class="bloco"><h2>Galerias <button class="btn sm ghost" id="ng">Nova galeria</button></h2>${gs.length ? gs.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${new Date(g.criado_em).toLocaleDateString("pt-BR")}</span></div>${tagG(g.status)}</a>`).join("") : `<p class="vazioP">Nenhuma galeria.</p>`}</div>
     </div>`;
   $("ed").onclick = () => editarCliente(c);
   $("nt").onclick = () => editarTrabalho({ cliente_id: c.id }, () => rota());

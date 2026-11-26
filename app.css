@@ -402,3 +402,17 @@ button.num:hover{border-color:var(--ink)}
 .aviso.alerta{border-color:#e7b3ad;background:#fbefed}
 [data-theme=dark] .aviso.alerta{background:#3a1f1c;border-color:#6b2f28}
 .cupomBox{margin:28px 0 18px}
+
+/* status das galerias: cinza aguardando, verde recebida, vermelho encerrada */
+.tag.stG{display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.tag.stG svg{width:14px;height:14px;flex:none}
+.tag.stG.aberta{background:#efeeea;color:#5f5d58}
+.tag.stG.enviada{background:#e3f5e8;color:#1c7a3c}
+.tag.stG.encerrada{background:#fde8e6;color:#b3261e}
+.banner .tag.stG.aberta{background:#efeeea}.banner .tag.stG.enviada{background:#e3f5e8;color:#1c7a3c}.banner .tag.stG.encerrada{background:#fde8e6;color:#b3261e}
+.gcard{border-width:2px}
+.gcard.st-aberta{border-color:#e3e1dc}
+.gcard.st-enviada{border-color:#3fae62;box-shadow:0 10px 28px -18px rgba(28,122,60,.55)}
+.gcard.st-encerrada{border-color:#e0574d}
+.gcard.st-aberta:hover{border-color:#c9c6bf}.gcard.st-enviada:hover{border-color:#2f9a52}.gcard.st-encerrada:hover{border-color:#cc4237}
+[data-theme=dark] .tag.stG.aberta{background:#2a2a2a;color:#c9c7c2}[data-theme=dark] .tag.stG.enviada{background:#183d24;color:#8fe0a8}[data-theme=dark] .tag.stG.encerrada{background:#45201c;color:#ffaba3}[data-theme=dark] .gcard.st-aberta{border-color:#2e2e2d}
