@@ -16,8 +16,9 @@
     ".gavetaMenu .fecha{position:absolute;top:18px;right:6vw;width:44px;height:44px;border:0;background:transparent;color:#fff;font-size:30px;font-weight:200;cursor:pointer}" +
     ".menuAberto .gavetaMenu{opacity:1;pointer-events:auto}.menuAberto .gavetaMenu a{transform:none}" +
     ".menuAberto{overflow:hidden}" +
+    ".logo,.logo svg{flex:none!important}" +
     "@media(max-width:980px){.burger{display:inline-flex}}" +
-    "@media(max-width:560px){nav .entrar,.topoS .entrar{display:none}}";
+    "@media(max-width:560px){nav .entrar,.topoS .entrar{display:none}nav .wrap{gap:14px!important}nav .btn,.topoS .btn{padding:0 14px!important;font-size:13px!important;min-height:38px!important}}";
   document.head.appendChild(css);
 
   var btn = document.createElement("button");
