@@ -102,7 +102,7 @@ $("fSenha").onsubmit = async e => {
 $("sair").onclick = () => sb.auth.signOut();
 
 /* ============ moldura do painel ============ */
-const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança" };
+const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", entregas: "Entregas", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança" };
 const celular = () => matchMedia("(max-width:860px)").matches;
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -220,7 +220,7 @@ ROTAS.inicio = async () => {
   const d0 = new Date(), ini = ymd(new Date(d0.getFullYear(), d0.getMonth(), 1)), fim = ymd(new Date(d0.getFullYear(), d0.getMonth() + 1, 0));
   const [prox, gals, pagMes, atras, tars] = await Promise.all([
     q(sb.from("trabalhos").select("id,titulo,data,hora,local,status,clientes(nome)").gte("data", hoje()).neq("status", "cancelado").order("data").order("hora").limit(6)),
-    q(sb.from("galerias").select("id,slug,titulo,cliente_nome,status,enviada_em").neq("status", "encerrada").order("criado_em", { ascending: false })),
+    q(sb.from("galerias").select("id,slug,titulo,cliente_nome,status,enviada_em").eq("so_entrega", false).neq("status", "encerrada").order("criado_em", { ascending: false })),
     q(sb.from("pagamentos").select("valor,pago_em,vencimento").gte("vencimento", ini).lte("vencimento", fim)),
     q(sb.from("pagamentos").select("valor").is("pago_em", null).lt("vencimento", hoje())),
     q(sb.from("tarefas").select("*, clientes(nome), trabalhos(titulo)").eq("feita", false).order("vencimento", { nullsFirst: false }).limit(6))
@@ -259,7 +259,7 @@ ROTAS.inicio = async () => {
 /* ============ GALERIAS ============ */
 let filtroGal = "todas";
 ROTAS.galerias = async () => {
-  const gs = await q(sb.from("galerias").select("id,slug,titulo,cliente_nome,status,criado_em,capa:fotos!galerias_capa_foto_id_fkey(caminho),qtd:fotos!fotos_galeria_id_fkey(count)").order("criado_em", { ascending: false }));
+  const gs = await q(sb.from("galerias").select("id,slug,titulo,cliente_nome,status,criado_em,capa:fotos!galerias_capa_foto_id_fkey(caminho),qtd:fotos!fotos_galeria_id_fkey(count)").eq("so_entrega", false).order("criado_em", { ascending: false }));
   const f = { todas: () => true, aberta: g => g.status === "aberta", enviada: g => g.status === "enviada", encerrada: g => g.status === "encerrada" };
   const pintar = () => {
     const lista = gs.filter(f[filtroGal]);
@@ -278,6 +278,40 @@ ROTAS.galerias = async () => {
   $("aGal").onclick = novaGaleria;
   pintar();
 };
+
+/* ============ ENTREGAS (fotos tratadas) ============ */
+ROTAS.entregas = async () => {
+  const gs = await q(sb.from("galerias").select("id,slug,titulo,entrega_titulo,cliente_nome,status,so_entrega,entrega_liberada,entrega_capa,criado_em,qtd:entregas(count)").order("criado_em", { ascending: false }));
+  const lista = gs.filter(g => g.so_entrega || g.entrega_liberada || g.qtd?.[0]?.count || g.status === "enviada");
+  const est = g => g.entrega_liberada ? ["Entregue", "encerrada"] : g.qtd?.[0]?.count ? ["Rascunho", "aberta"] : ["Aguardando fotos tratadas", "enviada"];
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Entregas</h1><p class="mute">Fotos prontas e tratadas, com capa e título, para o cliente baixar.</p></div><button class="btn fill" id="aEnt">Nova entrega</button></div>
+    <div class="galerias">${lista.length ? lista.map(g => `
+      <a class="gcard" href="#/galeria/${esc(g.slug)}" data-ent="1">
+        <div class="capa" style="${g.entrega_capa ? `background-image:url('${esc(urlEntrega(g.entrega_capa))}')` : ""}"><span class="tag ${est(g)[1]}">${est(g)[0]}</span></div>
+        <div class="info"><h3>${esc(g.entrega_titulo || g.titulo)}</h3><span class="small mute">${esc(g.cliente_nome || "Sem cliente")} · ${g.qtd?.[0]?.count || 0} fotos${g.so_entrega ? "" : " · veio da seleção"}</span></div>
+      </a>`).join("") : `<div class="vazio" style="grid-column:1/-1">Nenhuma entrega ainda. Crie uma entrega direta ou finalize uma seleção para enviar as fotos tratadas.</div>`}</div>`;
+  document.querySelectorAll("[data-ent]").forEach(a => a.onclick = () => { abaG = "entrega"; pintarGaleria.ultima = null; });
+  $("aEnt").onclick = novaEntrega;
+};
+async function novaEntrega() {
+  const [cs, ts] = await Promise.all([listaClientes(), listaTrabalhos()]);
+  formulario({
+    titulo: "Nova entrega", botao: "Criar entrega",
+    campos: [
+      { id: "titulo", rotulo: "Título que o cliente vai ver", req: true, ph: "Ensaio Sophia · Novembro" },
+      { id: "cliente_id", rotulo: "Cliente", tipo: "select", opcoes: opcClientes(cs) },
+      { id: "trabalho_id", rotulo: "Trabalho da agenda", tipo: "select", opcoes: opcTrabalhos(ts) },
+      { id: "mensagem", rotulo: "Recado para o cliente (opcional)", tipo: "area", largo: true, ph: "Foi um prazer fotografar vocês 🤍" }
+    ],
+    aoSalvar: async v => {
+      const cli = cs.find(c => c.id === v.cliente_id);
+      const g = await q(sb.from("galerias").insert({ slug: await slugAlbumLivre(v.titulo), titulo: v.titulo, entrega_titulo: v.titulo, so_entrega: true, cliente_id: v.cliente_id || null, cliente_nome: cli?.nome || null,
+        trabalho_id: v.trabalho_id || null, fotos_incluidas: 0, permitir_extras: false, mostrar_pacote: false, mensagem: v.mensagem || null }).select("slug").single());
+      abaG = "entrega"; pintarGaleria.ultima = null; ir("#/galeria/" + g.slug);
+    }
+  });
+}
 
 async function novaGaleria(pre = {}) {
   const [cs, ts] = await Promise.all([listaClientes(), listaTrabalhos()]);
@@ -315,29 +349,37 @@ ROTAS.galeria = async slug => {
   ]);
   fotos = f; marcadas = new Set(s.map(x => x.foto_id)); coments = Object.fromEntries(c.map(x => [x.foto_id, x.texto]));
   if (!G.capa_foto_id && fotos[0]) { G.capa_foto_id = fotos[0].id; sb.from("galerias").update({ capa_foto_id: fotos[0].id }).eq("id", G.id).then(() => {}); }
-  if (G.status === "enviada" && abaG === "fotos" && pintarGaleria.ultima !== G.id) abaG = "selecao";
+  if (G.so_entrega && !["entrega", "ajustes"].includes(abaG)) abaG = "entrega";
+  if (!G.so_entrega && G.status === "enviada" && abaG === "fotos" && pintarGaleria.ultima !== G.id) abaG = "selecao";
   pintarGaleria.ultima = G.id;
   pintarGaleria();
 };
 const linkCliente = () => raizSite() + (estudio.slug ? estudio.slug + "/" : "g.html?g=") + G.slug;
-const msgCliente = () => `Oi${G.cliente_nome ? ", " + G.cliente_nome.split(" ")[0] : ""}! Suas fotos estão prontas 📸\n\n${linkCliente()}\nCódigo: ${G.codigo_acesso}`;
+const msgCliente = () => `Oi${G.cliente_nome ? ", " + G.cliente_nome.split(" ")[0] : ""}! ${G.so_entrega || G.entrega_liberada ? "Suas fotos finais estão prontas pra baixar 🤍" : "Suas fotos estão prontas 📸"}\n\n${linkCliente()}\nCódigo: ${G.codigo_acesso}`;
 function pintarGaleria() {
-  const capa = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
-  const abas = [["fotos", `Fotos (${fotos.length})`], ["selecao", `Seleção (${marcadas.size})`], ["entrega", "Entrega"], ["ajustes", "Ajustes"]];
+  const capaP = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
+  const capaUrl = G.so_entrega ? (G.entrega_capa ? urlEntrega(G.entrega_capa) : "") : capaP ? urlFoto(capaP.caminho) : "";
+  const abas = G.so_entrega ? [["entrega", "Fotos tratadas"], ["ajustes", "Ajustes"]]
+    : [["fotos", `Prévias (${fotos.length})`], ["selecao", `Seleção (${marcadas.size})`], ["entrega", "Fotos tratadas"], ["ajustes", "Ajustes"]];
+  const pronta = !G.so_entrega && G.status === "enviada" && !G.entrega_liberada && abaG !== "entrega";
+  const sub = G.so_entrega ? [G.cliente_nome, "entrega de fotos tratadas", G.entrega_liberada ? "liberada" : "rascunho"]
+    : [G.cliente_nome, `${G.fotos_incluidas} no pacote`, G.permitir_extras === false ? "sem extras" : `extra ${brl(G.preco_extra)}`, G.prazo && "prazo " + dataBR(G.prazo)];
   C().innerHTML = `
-    <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="#/galerias" style="margin:0">← Álbuns</a><button class="btn sm ghost" id="excluirAlbum">Excluir álbum</button></div>
-    <div class="banner" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}">
-      <div class="sobre"><div><h1>${esc(G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${[G.cliente_nome, `${G.fotos_incluidas} no pacote`, G.permitir_extras === false ? "sem extras" : `extra ${brl(G.preco_extra)}`, G.prazo && "prazo " + dataBR(G.prazo)].filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${STATUS_G[G.status]}</span></div>
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="${G.so_entrega ? "#/entregas" : "#/galerias"}" style="margin:0">← ${G.so_entrega ? "Entregas" : "Álbuns"}</a><button class="btn sm ghost" id="excluirAlbum">Excluir álbum</button></div>
+    <div class="banner" style="${capaUrl ? `background-image:url('${esc(capaUrl)}')` : ""}">
+      <div class="sobre"><div><h1>${esc(G.so_entrega ? G.entrega_titulo || G.titulo : G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${sub.filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${G.so_entrega ? (G.entrega_liberada ? "Entregue" : "Rascunho") : STATUS_G[G.status]}</span></div>
     </div>
     <div class="bloco compart">
       <div><span class="small mute">Link do cliente</span><br><code>${esc(linkCliente())}</code><div style="margin-top:8px"><span class="small mute">Código</span> <span class="codigo">${esc(G.codigo_acesso)}</span></div></div>
       <div class="acoes"><button class="btn ghost" id="copMsg">Copiar mensagem</button><a class="btn fill" target="_blank" rel="noopener" href="https://wa.me/${fone(G.clientes?.whatsapp)}?text=${encodeURIComponent(msgCliente())}">Enviar no WhatsApp</a><a class="btn ghost" target="_blank" rel="noopener" href="${esc(linkCliente())}">Ver como cliente</a></div>
     </div>
+    ${pronta ? `<div class="bloco avisoPronta"><div><strong>Seleção finalizada pelo cliente</strong><br><span class="small mute">${marcadas.size} fotos escolhidas. Depois de editar, suba as fotos tratadas para ele baixar.</span></div><button class="btn fill" id="irEntrega">Enviar fotos tratadas</button></div>` : ""}
     <div class="abasG" role="tablist">${abas.map(([k, t]) => `<button role="tab" data-a="${k}" aria-selected="${abaG === k}">${t}</button>`).join("")}</div>
     <div id="abaConteudo"></div>`;
   $("copMsg").onclick = async () => { try { await navigator.clipboard.writeText(msgCliente()); toast("Mensagem copiada"); } catch { prompt("Copie a mensagem:", msgCliente()); } };
   document.querySelectorAll(".abasG button").forEach(b => b.onclick = () => { abaG = b.dataset.a; pintarGaleria(); });
   $("excluirAlbum").onclick = excluirAlbum;
+  if ($("irEntrega")) $("irEntrega").onclick = () => { abaG = "entrega"; pintarGaleria(); };
   ({ fotos: abaFotos, selecao: abaSelecao, entrega: abaEntrega, ajustes: abaAjustes })[abaG]();
 }
 
@@ -392,12 +434,14 @@ function abaSelecao() {
       <div class="acoes" style="margin-top:12px">
         <button class="btn fill sm" id="copLr" ${n ? "" : "disabled"}>Copiar lista</button>
         ${ex > 0 ? `<button class="btn ghost sm" id="lancar">Lançar ${brl(ex * G.preco_extra)} de extras no financeiro</button>` : ""}
+        ${G.status === "enviada" ? `<button class="btn fill sm" id="irEnt2">Enviar fotos tratadas</button>` : ""}
         ${G.status === "enviada" ? `<button class="btn ghost sm" id="reabrir">Reabrir para o cliente</button>` : ""}
       </div>
       ${comLista.length ? `<div class="coms"><h2>Comentários do cliente (${comLista.length})</h2><ul>${comLista.map(f => `<li><strong>${esc(semExtensao(f.nome_arquivo))}:</strong> ${esc(coments[f.id])}</li>`).join("")}</ul></div>` : ""}
     </div>
     ${sel.length ? `<div class="fotos" style="margin-top:18px">${sel.map(f => `<div class="tile on"><img src="${esc(urlFoto(f.caminho))}" alt="" loading="lazy"><span class="marca"></span>${coments[f.id] ? `<span class="com"><svg><use href="#i-coment"/></svg></span>` : ""}<span class="nome">${esc(f.nome_arquivo)}</span></div>`).join("")}</div>` : ""}`;
   if ($("copLr")) $("copLr").onclick = async () => { try { await navigator.clipboard.writeText($("lr").value); toast("Lista copiada"); } catch { $("lr").select(); } };
+  if ($("irEnt2")) $("irEnt2").onclick = () => { abaG = "entrega"; pintarGaleria(); };
   if ($("reabrir")) $("reabrir").onclick = async () => { try { await q(sb.from("galerias").update({ status: "aberta", enviada_em: null }).eq("id", G.id)); G.status = "aberta"; toast("Galeria reaberta para o cliente"); pintarGaleria(); } catch (e) { erro(e); } };
   if ($("lancar")) $("lancar").onclick = async () => {
     try { await q(sb.from("pagamentos").insert({ trabalho_id: G.trabalho_id, descricao: `${ex} fotos extras · ${G.titulo}`, valor: ex * G.preco_extra, vencimento: hoje() })); toast("Lançado no financeiro"); }
@@ -527,11 +571,11 @@ async function abaAjustes() {
         <div class="field"><label for="aSlug">Endereço do álbum</label><input id="aSlug" value="${esc(G.slug)}" pattern="[a-z0-9-]+" title="Só letras minúsculas, números e hífen"></div>
         <div class="field"><label for="aC">Cliente</label>${sel("aC", opcClientes(cs), G.cliente_id)}</div>
         <div class="field"><label for="aTr">Trabalho da agenda</label>${sel("aTr", opcTrabalhos(ts), G.trabalho_id)}</div>
-        <div class="field"><label for="aP">Prazo para escolher</label><input id="aP" type="date" value="${esc(G.prazo || "")}"></div>
-        <div class="field"><label for="aI">Fotos incluídas</label><input id="aI" type="number" min="0" value="${G.fotos_incluidas}"></div>
-        <div class="field"><label for="aE">Valor da foto extra (R$)</label><input id="aE" type="number" min="0" step="0.01" value="${G.preco_extra}"></div>
-        <div class="field" style="grid-column:1/-1"><label class="switch"><input type="checkbox" id="aMost" ${G.mostrar_pacote !== false ? "checked" : ""}> Mostrar ao cliente quantas fotos o pacote inclui</label></div>
-        <div class="field" style="grid-column:1/-1"><label class="switch"><input type="checkbox" id="aExt" ${G.permitir_extras !== false ? "checked" : ""}> Permitir que o cliente escolha fotos extras (pagas)</label><span class="small mute" style="display:block;margin-left:32px">Desligado: o cliente não consegue passar do número do pacote.</span></div>
+        <div class="field${G.so_entrega ? ' hide' : ''}"><label for="aP">Prazo para escolher</label><input id="aP" type="date" value="${esc(G.prazo || "")}"></div>
+        <div class="field${G.so_entrega ? ' hide' : ''}"><label for="aI">Fotos incluídas</label><input id="aI" type="number" min="0" value="${G.fotos_incluidas}"></div>
+        <div class="field${G.so_entrega ? ' hide' : ''}"><label for="aE">Valor da foto extra (R$)</label><input id="aE" type="number" min="0" step="0.01" value="${G.preco_extra}"></div>
+        <div class="field${G.so_entrega ? ' hide' : ''}" style="grid-column:1/-1"><label class="switch"><input type="checkbox" id="aMost" ${G.mostrar_pacote !== false ? "checked" : ""}> Mostrar ao cliente quantas fotos o pacote inclui</label></div>
+        <div class="field${G.so_entrega ? ' hide' : ''}" style="grid-column:1/-1"><label class="switch"><input type="checkbox" id="aExt" ${G.permitir_extras !== false ? "checked" : ""}> Permitir que o cliente escolha fotos extras (pagas)</label><span class="small mute" style="display:block;margin-left:32px">Desligado: o cliente não consegue passar do número do pacote.</span></div>
         <div class="field" style="grid-column:1/-1"><label for="aM">Recado para o cliente</label><textarea id="aM" style="font-family:Montserrat;min-height:80px">${esc(G.mensagem || "")}</textarea></div>
       </div>
       <div class="acoes"><button class="btn fill">Salvar</button><button type="button" class="btn ghost" id="novoCod">Gerar novo código</button><span class="grow"></span><button type="button" class="link-btn" id="apagar">Excluir galeria</button></div>

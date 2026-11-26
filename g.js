@@ -16,6 +16,12 @@ async function abrir(codigo) {
   cod = codigo; gravarCod(codigo); g = data; marc = new Set(g.marcadas || []); coms = g.comentarios || {};
   show("vCodigo", false);
   if (g.entrega_liberada && (g.entrega_fotos || []).length) return abrirEntrega();
+  if (!g.fotos.length && !g.entrega) {
+    document.title = g.titulo; $("hTopo").innerHTML = marcaEstudio(g.estudio); $("hTitulo").textContent = g.titulo;
+    $("hSub").textContent = "Suas fotos estão sendo finalizadas. Assim que estiverem prontas, elas aparecem aqui para baixar.";
+    $("hBtn").classList.add("hide"); show("selecao", false); $("recado").textContent = g.mensagem || ""; show("recado", !!g.mensagem);
+    show("vGal", true); return;
+  }
   document.title = g.titulo + (g.estudio?.nome ? " · " + g.estudio.nome : "");
   const capa = g.capa || g.fotos[0]?.caminho; capaAtual = capa;
   if (capa) $("hero").style.backgroundImage = `url('${urlFoto(capa)}')`;

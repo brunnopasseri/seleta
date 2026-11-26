@@ -257,3 +257,5 @@ input[type=range]{accent-color:var(--ink)}
 .quadroMarca img{max-width:70%;max-height:70px}
 .quadroMarca span{color:#bbb}
 @media(max-width:860px){.marcaGrid{grid-template-columns:minmax(0,1fr)}}
+
+.avisoPronta{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;border-left:3px solid var(--ink)}
