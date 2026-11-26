@@ -3,255 +3,398 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Seleta — seleção de fotos</title>
+<title>Seleta · Sistema para fotógrafos: galeria, seleção, clientes, agenda e financeiro</title>
+<meta name="description" content="Galeria de seleção de fotos, clientes, agenda e financeiro do estúdio num só lugar. Teste grátis por 14 dias.">
+<link rel="icon" href="icone.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 88 88%27%3E%3Crect width=%2788%27 height=%2788%27 rx=%2720%27 fill=%27%23111%27/%3E%3Cpath d=%27M60 27H28v17h32v17H28%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%277%27/%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* VOICE: calmo, sofisticado, de fotógrafo para fotógrafo — pouco texto, muito ar
-   IDEA: uma folha de contato de laboratório: fotos numeradas, marcações, a escolha do cliente
-   PICTURE: a própria galeria de seleção funcionando, com contador e marcação ao vivo
-   COLOUR and TYPE: preto, branco, cinza-escuro nos destaques; Montserrat light/regular/bold
-   LAYOUT: faixas cheias alternando branco e preto; demo grande no centro; planos em três colunas */
-:root{color-scheme:light dark;
---bg:light-dark(#ffffff,#0e0e0e);--ink:light-dark(#111111,#f2f2f2);
---soft:light-dark(#f3f3f2,#181818);--line:light-dark(#e2e2e0,#2a2a2a);
---mute:light-dark(#6b6b6b,#9a9a9a);--dark:#151515;--darkink:#f4f4f4;--gray:#3a3a3a}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+:root{--bg:#f6f5f2;--bg2:#eeece7;--ink:#141414;--mute:#6a6863;--line:#e1ded8;--dark:#141414;--dink:#f2f1ee;--dmute:#9d9b96}
 *{box-sizing:border-box;min-width:0}
-html{scroll-padding-top:72px;scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
 body{margin:0;background:var(--bg);color:var(--ink);font:300 16px/1.6 Montserrat,system-ui,sans-serif;overflow-x:clip}
 a{color:inherit}
-h1,h2,h3{font-weight:500;line-height:1.08;text-wrap:balance;margin:0}
-h1{font-size:clamp(34px,5vw,52px);font-weight:300}
-h1 b{font-weight:700}
-h2{font-size:clamp(28px,3.6vw,40px);font-weight:300}
-h3{font-size:18px;font-weight:500}
-p{margin:0}
-.wrap{max-width:1240px;margin:0 auto}
-.band{padding:clamp(40px,6vw,88px) max(5vw,16px)}
-.dark{background:var(--dark);color:var(--darkink)}
-.dark .mute{color:#a3a3a3}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(40px,5.6vw,68px);font-weight:300;line-height:1.04;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:clamp(30px,3.8vw,46px);font-weight:300;line-height:1.1;text-wrap:balance}
+h3{font-size:19px;font-weight:500;line-height:1.3}
+.wrap{max-width:1200px;margin:0 auto;padding:0 max(5vw,18px)}
+.band{padding:clamp(64px,9vw,120px) 0}
+.olho{font-size:12px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:18px}
 .mute{color:var(--mute)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 22px;border-radius:999px;border:1px solid currentColor;font:500 15px Montserrat,sans-serif;text-decoration:none;cursor:pointer;background:transparent;color:inherit;transition:background .2s,color .2s}
-.btn.fill{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.dark .btn.fill{background:#f4f4f4;color:#111;border-color:#f4f4f4}
-.btn:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #888;outline-offset:3px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border-radius:999px;border:1px solid var(--ink);font:500 15px Montserrat,sans-serif;text-decoration:none;cursor:pointer;background:transparent;color:var(--ink);white-space:nowrap}
+.btn.fill{background:var(--ink);color:#fff}
+.btn.claro{background:#fff;color:var(--ink);border-color:#fff}
+.lnk{font-weight:500;text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:2px}
+.btn:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid #888;outline-offset:3px}
+
 /* nav */
-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-nav .wrap{display:flex;align-items:center;gap:24px;padding:12px max(5vw,16px);flex-wrap:wrap}
+nav{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s}
+nav.rolou{border-color:var(--line)}
+nav .wrap{display:flex;align-items:center;gap:28px;min-height:70px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:500;letter-spacing:.26em;font-size:15px}
-.logo svg{width:24px;height:24px}
-nav .links{display:flex;gap:22px;margin-left:auto;font-size:14px;flex-wrap:wrap}
-nav .links a{text-decoration:none;color:var(--mute)}nav .links a:hover{color:var(--ink)}
+.logo svg{width:22px;height:22px}
+nav .links{display:flex;gap:26px;font-size:14px;margin:0 auto}
+nav .links a{text-decoration:none;color:#3c3b38}
+nav .links a:hover{color:var(--ink)}
+nav .entrar{font-size:14px;font-weight:500;text-decoration:none}
+nav .btn{min-height:42px;padding:0 18px;font-size:14px}
+
 /* hero */
-.hero .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(28px,5vw,72px);align-items:center}
-.hero p.lead{font-size:18px;margin:20px 0 28px;max-width:34em}
-.hero .ctas{display:flex;gap:12px;flex-wrap:wrap}
-.note{font-size:13px;margin-top:14px}
-.sheet{background:var(--dark);border-radius:14px;padding:16px;box-shadow:0 30px 60px -30px rgba(0,0,0,.5)}
-.sheet .top{display:flex;justify-content:space-between;color:#bdbdbd;font-size:13px;margin-bottom:12px}
-.sheet .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.sheet .ph{aspect-ratio:3/4;border-radius:4px;position:relative}
-.sheet .ph.on::after{content:"";position:absolute;inset:0;border:2px solid #fff;border-radius:4px}
-.sheet .ph.on::before{content:"✓";position:absolute;top:5px;right:6px;width:20px;height:20px;border-radius:50%;background:#fff;color:#111;font:700 12px/20px Montserrat;text-align:center;z-index:1}
-/* passos */
-.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin-top:40px}
-.step .n{font-size:44px;font-weight:300;line-height:1;color:var(--mute)}
-.step h3{margin:14px 0 8px}
-/* demo */
-.demo-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:28px}
-.client{background:#1d1d1d;border-radius:16px;overflow:hidden;border:1px solid #2c2c2c}
-.cbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid #2c2c2c;position:sticky;top:61px;background:#1d1d1d;z-index:5}
-.cbar .who{font-weight:500}
-.cbar .who small{display:block;font-weight:300;color:#9a9a9a;font-size:13px}
-.meter{flex:1 1 200px;max-width:320px}
-.meter .bar{height:6px;background:#333;border-radius:9px;overflow:hidden;margin-top:6px}
-.meter .bar i{display:block;height:100%;width:0;background:#f4f4f4;transition:width .25s}
-.meter .bar i.over{background:#9a9a9a}
-.meter span{font-size:13px;color:#cfcfcf;white-space:nowrap}
-.seg{display:flex;border:1px solid #444;border-radius:999px;overflow:hidden}
-.seg button{min-height:40px;padding:0 16px;border:0;background:transparent;color:#cfcfcf;font:400 14px Montserrat;cursor:pointer}
-.seg button[aria-pressed=true]{background:#f4f4f4;color:#111}
-.cbar .btn{margin-left:auto}
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:20px}
-.tile{position:relative;aspect-ratio:3/4;border-radius:6px;overflow:hidden;cursor:pointer;border:0;padding:0;background:#000}
-.tile .img{position:absolute;inset:0;transition:transform .4s}
-.tile:hover .img{transform:scale(1.03)}
-.tile .name{position:absolute;left:8px;bottom:8px;font:400 12px Montserrat;color:#fff;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:99px}
-.tile .chk{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,255,255,.85);background:rgba(0,0,0,.25);display:grid;place-items:center;color:transparent;font:700 15px Montserrat}
-.tile.on{outline:3px solid #f4f4f4;outline-offset:-3px}
-.tile.on .chk{background:#f4f4f4;color:#111;border-color:#f4f4f4}
-.empty{padding:60px 20px;text-align:center;color:#9a9a9a;grid-column:1/-1}
-.panel{display:none;padding:24px 20px;border-top:1px solid #2c2c2c}
-.panel.show{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
-.panel textarea{width:100%;min-height:110px;background:#111;color:#eee;border:1px solid #333;border-radius:8px;padding:12px;font:400 14px/1.5 ui-monospace,monospace;resize:vertical}
-.panel .sum{font-size:15px;line-height:1.9}
-.panel .sum b{font-weight:700}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.tiny{font-size:13px}
-/* recursos */
-.feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:40px}
-.feat{background:var(--bg);padding:28px}
-.feat svg{width:28px;height:28px;margin-bottom:16px;stroke:currentColor;fill:none;stroke-width:1.4}
-.feat p{margin-top:8px;color:var(--mute);font-size:15px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,5vw,72px);align-items:center;padding-top:clamp(36px,6vw,80px);padding-bottom:clamp(56px,8vw,110px)}
+.hero p.lead{font-size:18px;color:#3f3e3a;margin:26px 0 34px;max-width:32em}
+.ctas{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.nota{font-size:13px;color:var(--mute);margin-top:22px}
+.foto{position:relative}
+.foto .img{aspect-ratio:4/5;border-radius:6px;background:#cfccc6 center/cover no-repeat;box-shadow:0 40px 80px -40px rgba(0,0,0,.45)}
+.linha-tempo{position:absolute;left:-34px;bottom:38px;background:#fff;border-radius:10px;padding:16px 20px;box-shadow:0 20px 50px -20px rgba(0,0,0,.35);list-style:none;margin:0;font-size:13px}
+.linha-tempo li{display:flex;align-items:center;gap:10px;padding:5px 0;color:#3f3e3a;opacity:.35;transition:opacity .4s}
+.linha-tempo li.on{opacity:1}
+.linha-tempo li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ink)}
+
+/* faixa escura */
+.escura{background:var(--dark);color:var(--dink)}
+.escura .olho,.escura .mute{color:var(--dmute)}
+.duas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,6vw,96px);align-items:start}
+.escura p.txt{color:#c9c7c2;margin-top:24px;max-width:34em}
+.lista-grande{list-style:none;margin:0;padding:0;font-size:clamp(20px,2.2vw,26px);font-weight:300}
+.lista-grande li{padding:16px 0;border-top:1px solid #2c2c2b;display:flex;justify-content:space-between;gap:16px;align-items:baseline}
+.lista-grande li:last-child{border-bottom:1px solid #2c2c2b}
+.lista-grande span{font-size:13px;color:var(--dmute);white-space:nowrap}
+
+/* seções com mockup */
+.secao{border-top:1px solid var(--line)}
+.secao.alt{background:var(--bg2)}
+.secao .duas{align-items:center}
+.secao p.txt{color:#3f3e3a;margin-top:24px;max-width:32em;font-size:17px}
+.passos{list-style:none;margin:36px 0 0;padding:0;counter-reset:p}
+.passos li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:6px;padding:20px 0;border-top:1px solid var(--line);counter-increment:p}
+.passos li::before{content:"0" counter(p);font-size:12px;color:var(--mute);padding-top:4px}
+.passos p{color:var(--mute);margin-top:4px;font-size:15px}
+.recursos{list-style:none;margin:32px 0 0;padding:0}
+.recursos li{padding:18px 0;border-top:1px solid var(--line)}
+.recursos li p{color:var(--mute);font-size:15px;margin-top:4px}
+
+.janela{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 40px 80px -50px rgba(0,0,0,.5);overflow:hidden}
+.janela .barra{display:flex;align-items:center;gap:6px;padding:11px 14px;border-bottom:1px solid var(--line);background:#fbfaf8}
+.janela .barra i{width:9px;height:9px;border-radius:50%;background:#dcd9d3}
+.janela .barra span{font:400 12px ui-monospace,Menlo,monospace;color:var(--mute);margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.janela .corpo{padding:16px}
+.janela .leg{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-top:14px}
+
+/* demo de seleção */
+.demo-topo{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;margin-bottom:12px}
+.demo-topo b{font-weight:500}
+.medidor{height:4px;background:var(--line);border-radius:9px;overflow:hidden;margin-bottom:14px}
+.medidor i{display:block;height:100%;background:var(--ink);transition:width .25s}
+.grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ft{position:relative;aspect-ratio:4/5;border:0;padding:0;border-radius:4px;background:#ddd center/cover no-repeat;cursor:pointer}
+.ft::after{content:"";position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;border:1.5px solid #fff;background:rgba(0,0,0,.15)}
+.ft.on{outline:3px solid var(--ink);outline-offset:-3px}
+.ft.on::after{background:var(--ink);border-color:var(--ink);box-shadow:inset 0 0 0 4px #fff}
+
+/* agenda mockup */
+.ag{display:flex;flex-direction:column}
+.ag .it{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 4px;border-top:1px solid var(--line)}
+.ag .it:first-child{border-top:0}
+.ag .d{text-align:center;line-height:1.1}
+.ag .d b{display:block;font-size:22px;font-weight:500}
+.ag .d span{font-size:11px;text-transform:uppercase;color:var(--mute)}
+.ag strong{font-weight:500;display:block}
+.ag .it span.s{font-size:12px;color:var(--mute)}
+.pill{font-size:11px;font-weight:500;padding:3px 10px;border-radius:99px;background:#efede8;white-space:nowrap}
+.pill.p{background:var(--ink);color:#fff}
+
+/* financeiro mockup */
+.fin{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.fin div{border:1px solid var(--line);border-radius:8px;padding:12px}
+.fin div.e{background:var(--ink);color:#fff;border-color:var(--ink)}
+.fin span{font-size:11px;color:var(--mute)}
+.fin div.e span{color:#bbb}
+.fin b{display:block;font-size:18px;font-weight:500;margin-top:4px;white-space:nowrap}
+.barras{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;align-items:end;height:90px;margin-bottom:6px}
+.barras i{display:block;background:#d6d3cd;border-radius:3px 3px 0 0}
+.barras i.on{background:var(--ink)}
+.lanc{font-size:13px}
+.lanc div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+.lanc b{font-weight:500;white-space:nowrap}
+
+/* módulos */
+.modulos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:44px}
+.mod{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px 22px}
+.mod svg{width:26px;height:26px;margin-bottom:22px}
+.mod p{color:var(--mute);font-size:14px;margin-top:8px}
+.integra{margin-top:26px;font-size:14px;color:var(--mute)}
+
 /* planos */
-.toggle{display:inline-flex;margin-top:22px}
-.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:32px}
-.plan{border:1px solid #333;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:14px}
-.plan.rec{background:#f4f4f4;color:#111;border-color:#f4f4f4}
-.plan .tag{font-size:12px;font-weight:500;align-self:flex-start;padding:3px 10px;border-radius:99px;background:#111;color:#f4f4f4}
-.price{font-size:40px;font-weight:300;white-space:nowrap;line-height:1}
-.price small{font-size:15px}
-.plan ul{list-style:none;padding:0;margin:0;font-size:15px;line-height:2}
-.plan li::before{content:"—  ";color:#888}
-.plan .btn{margin-top:auto}
-.plan.rec .btn.fill{background:#111;color:#f4f4f4;border-color:#111}
-/* faq */
-details{border-bottom:1px solid var(--line);padding:18px 0}
-summary{cursor:pointer;font-weight:500;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+.toggle{display:inline-flex;border:1px solid var(--ink);border-radius:999px;overflow:hidden;margin-top:28px}
+.toggle button{min-height:42px;padding:0 18px;border:0;background:transparent;font:500 14px Montserrat;cursor:pointer;color:var(--ink)}
+.toggle button[aria-pressed=true]{background:var(--ink);color:#fff}
+.planos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:36px}
+.plano{background:#fff;border:1px solid var(--line);border-radius:14px;padding:30px 26px;display:flex;flex-direction:column;gap:14px}
+.plano.rec{background:var(--ink);color:#fff;border-color:var(--ink)}
+.plano .tag{align-self:flex-start;font-size:12px;font-weight:500;padding:4px 11px;border-radius:99px;background:#fff;color:var(--ink)}
+.preco{font-size:44px;font-weight:300;line-height:1;white-space:nowrap}
+.preco small{font-size:15px}
+.plano ul{list-style:none;padding:0;margin:4px 0 0;font-size:15px}
+.plano li{padding:7px 0;border-top:1px solid var(--line)}
+.plano.rec li{border-color:#333}
+.plano .btn{margin-top:auto}
+.plano.rec .btn{background:#fff;color:var(--ink);border-color:#fff}
+
+/* dúvidas */
+.faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px;margin-top:40px}
+details{border-top:1px solid var(--line);padding:20px 0}
+summary{cursor:pointer;font-weight:500;font-size:16px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
 summary::after{content:"+";font-weight:300;font-size:22px;line-height:1}
 details[open] summary::after{content:"–"}
-details p{margin-top:10px;color:var(--mute);max-width:60em}
-.faqgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:40px}
-footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center;font-size:14px}
-@media(max-width:900px){.hero .wrap,.faqgrid,.panel.show{grid-template-columns:minmax(0,1fr)}.steps,.feats,.plans{grid-template-columns:minmax(0,1fr)}.cbar{position:static}}
-@media(max-width:600px){nav .links{display:none}.sheet .grid{grid-template-columns:repeat(3,minmax(0,1fr))}.sheet .grid .ph:nth-child(n+10){display:none}.gallery{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.cbar .btn{margin-left:0;width:100%}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+details p{margin-top:10px;color:var(--mute);font-size:15px}
+
+/* final */
+.final{position:relative;background:#111 center 35%/cover no-repeat;color:#fff;text-align:center}
+.final::before{content:"";position:absolute;inset:0;background:rgba(10,10,10,.62)}
+.final .wrap{position:relative;padding-top:clamp(90px,12vw,160px);padding-bottom:clamp(90px,12vw,160px)}
+.final p{color:#ddd;margin:20px auto 34px;max-width:34em}
+.final .ctas{justify-content:center}
+.final .btn:not(.claro){border-color:#fff;color:#fff}
+
+footer{background:var(--dark);color:var(--dink);padding:64px 0 36px;font-size:14px}
+footer .cols{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:32px}
+footer h4{margin:0 0 14px;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--dmute)}
+footer ul{list-style:none;padding:0;margin:0}
+footer li{padding:5px 0}
+footer a{text-decoration:none;color:#d8d6d1}
+footer a:hover{color:#fff}
+footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--dmute);font-size:13px}
+.credito{font-size:11px;color:var(--dmute);margin-top:10px}
+
+@media(max-width:980px){
+  nav .links{display:none}
+  .hero .wrap,.duas{grid-template-columns:minmax(0,1fr)}
+  .linha-tempo{left:12px;bottom:12px}
+  .modulos{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .planos{grid-template-columns:minmax(0,1fr);max-width:480px}
+  .faq{grid-template-columns:minmax(0,1fr)}
+  footer .cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  nav .entrar{display:none}
+  .modulos{grid-template-columns:minmax(0,1fr)}
+  .fin{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .fin div:last-child{display:none}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute"><defs><symbol id="bp" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="square"/></symbol></defs></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="square"/></symbol>
+</defs></svg>
 
-<nav><div class="wrap">
-  <a class="logo" href="#topo"><svg><use href="#bp"/></svg>SELETA</a>
-  <div class="links"><a href="#como">Como funciona</a><a href="#demo">Demonstração</a><a href="#recursos">Recursos</a><a href="#planos">Planos</a><a href="#duvidas">Dúvidas</a></div>
-  <a class="btn" href="app.html" style="border-color:transparent">Entrar</a><a class="btn fill" href="app.html">Começar grátis</a>
+<nav id="nav"><div class="wrap">
+  <a class="logo" href="#topo" aria-label="Seleta, início"><svg><use href="#s"/></svg>SELETA</a>
+  <div class="links"><a href="#como">Como funciona</a><a href="#estudio">Clientes e agenda</a><a href="#financeiro">Financeiro</a><a href="#planos">Planos</a><a href="#duvidas">Dúvidas</a></div>
+  <a class="entrar" href="app.html">Entrar</a>
+  <a class="btn fill" href="app.html">Começar grátis</a>
 </div></nav>
 
-<header class="band hero" id="topo"><div class="wrap">
+<header class="hero" id="topo"><div class="wrap">
   <div>
-    <h1>Seu cliente escolhe as fotos. <b>Você só edita as certas.</b></h1>
-    <p class="lead mute">Galeria de seleção para fotógrafos de ensaio, evento e casamento. Envie um link, o cliente marca as favoritas pelo celular e você recebe a lista pronta pra filtrar no Lightroom.</p>
-    <div class="ctas"><a class="btn fill" href="app.html">Criar minha conta</a><a class="btn" href="#demo">Testar a galeria</a></div>
-    <p class="note mute">Teste gratuito de 14 dias, sem cartão.</p>
+    <p class="olho">Sistema para fotógrafos</p>
+    <h1>Do primeiro clique à entrega, tudo num só lugar.</h1>
+    <p class="lead">Galeria de seleção, clientes, agenda e financeiro do seu estúdio. Você manda o link, o cliente escolhe pelo celular e a lista chega pronta pro Lightroom.</p>
+    <div class="ctas"><a class="btn fill" href="app.html">Criar meu estúdio grátis</a><a class="lnk" href="#planos">Ver os planos</a></div>
+    <p class="nota">14 dias grátis, sem cartão de crédito. Cancele quando quiser.</p>
   </div>
-  <div class="sheet" aria-hidden="true">
-    <div class="top"><span>Ensaio Sophia · Barragem do Paranã</span><span id="heroCount">0 de 20</span></div>
-    <div class="grid" id="heroGrid"></div>
+  <div class="foto">
+    <div class="img" style="background-image:url('https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1100&q=80&auto=format&fit=crop')" role="img" aria-label="Mulher em um campo com o cabelo ao vento"></div>
+    <ul class="linha-tempo" id="tempo" aria-label="Etapas de um trabalho">
+      <li>Ensaio agendado</li><li>Galeria enviada</li><li>Seleção recebida</li><li>Pagamento registrado</li><li>Fotos entregues</li>
+    </ul>
   </div>
 </div></header>
 
-<section class="band" id="como" style="background:var(--soft)"><div class="wrap">
-  <h2>Três passos, nenhuma planilha</h2>
-  <div class="steps">
-    <div class="step"><div class="n">1</div><h3>Suba o ensaio</h3><p class="mute">Arraste as fotos tratadas em baixa. Defina quantas estão no pacote e o valor da foto adicional.</p></div>
-    <div class="step"><div class="n">2</div><h3>Envie o link</h3><p class="mute">O cliente abre pelo WhatsApp, sem criar conta. Só um código de acesso pra manter tudo privado.</p></div>
-    <div class="step"><div class="n">3</div><h3>Receba a seleção</h3><p class="mute">Chega a lista de arquivos e o total de extras. Cole no Lightroom, filtre, edite e entregue.</p></div>
+<section class="band escura"><div class="wrap duas">
+  <div>
+    <p class="olho">Seu estúdio organizado</p>
+    <h2>Menos planilha e conversa perdida. Mais tempo pra fotografar.</h2>
+    <p class="txt">A galeria é só uma parte do trabalho. Depois vem lembrar quem já escolheu, quem pagou o sinal, qual ensaio é sábado e onde ficou o link das fotos finais. Na Seleta, cada trabalho guarda tudo isso junto.</p>
+    <p class="olho" style="margin-top:36px">Feito para ensaios, casamentos e eventos</p>
+  </div>
+  <ul class="lista-grande">
+    <li>galeria e seleção de fotos <span>com marca d'água</span></li>
+    <li>cadastro de clientes <span>com histórico</span></li>
+    <li>agenda de trabalhos <span>mês a mês</span></li>
+    <li>controle de pagamentos <span>sinal, saldo e extras</span></li>
+    <li>entrega das fotos finais <span>no mesmo link</span></li>
+  </ul>
+</div></section>
+
+<section class="band secao" id="como"><div class="wrap duas">
+  <div>
+    <p class="olho">Como funciona</p>
+    <h2>Você sobe as fotos, o cliente escolhe pelo celular, a seleção chega organizada.</h2>
+    <ol class="passos">
+      <li><div><h3>Monte a galeria</h3><p>Arraste as fotos tratadas. Defina quantas vêm no pacote e o valor da foto extra. A marca d'água entra sozinha.</p></div></li>
+      <li><div><h3>Mande o link e o código</h3><p>A mensagem já sai pronta pro WhatsApp. O cliente não precisa criar conta nem baixar nada.</p></div></li>
+      <li><div><h3>Receba a escolha</h3><p>Você vê as fotos marcadas, os comentários, o total de extras e a lista de arquivos pronta pro filtro do Lightroom.</p></div></li>
+    </ol>
+  </div>
+  <div class="janela">
+    <div class="barra"><i></i><i></i><i></i><span>seleta / galeria / ensaio-no-campo</span></div>
+    <div class="corpo">
+      <div class="demo-topo"><b>Ensaio no campo</b><span id="dTxt">0 de 4 fotos do pacote</span></div>
+      <div class="medidor"><i id="dBar"></i></div>
+      <div class="grade" id="grade"></div>
+      <p class="leg">Clique nas fotos: uma seleção em andamento</p>
+    </div>
   </div>
 </div></section>
 
-<section class="band dark" id="demo"><div class="wrap">
-  <div class="demo-head">
-    <div><h2>Veja como o cliente enxerga</h2><p class="mute" style="margin-top:10px">Clique nas fotos pra marcar. Galeria de exemplo, com fotos ilustrativas.</p></div>
-  </div>
-  <div class="client">
-    <div class="cbar">
-      <div class="who">Ensaio Sophia<small>Brunno Passeri Fotografia</small></div>
-      <div class="meter"><span id="mText">0 de 20 fotos do pacote</span><div class="bar"><i id="mBar"></i></div></div>
-      <div class="seg" role="group" aria-label="Filtro"><button id="fAll" aria-pressed="true">Todas</button><button id="fSel" aria-pressed="false">Marcadas</button></div>
-      <button class="btn fill" id="send">Enviar seleção</button>
+<section class="band secao alt" id="estudio"><div class="wrap duas">
+  <div class="janela">
+    <div class="barra"><i></i><i></i><i></i><span>seleta / agenda</span></div>
+    <div class="corpo ag">
+      <div class="it"><div class="d"><b>6</b><span>sáb</span></div><div><strong>Ensaio pôr do sol</strong><span class="s">Ana Clara · 16:30 · Barragem</span></div><span class="pill p">Confirmado</span></div>
+      <div class="it"><div class="d"><b>13</b><span>sáb</span></div><div><strong>Casamento Júlia e Rafael</strong><span class="s">Igreja Matriz · 15:00</span></div><span class="pill p">Confirmado</span></div>
+      <div class="it"><div class="d"><b>18</b><span>qui</span></div><div><strong>Retratos corporativos</strong><span class="s">Escritório Lima · 09:00</span></div><span class="pill">Orçamento</span></div>
+      <div class="it"><div class="d"><b>21</b><span>dom</span></div><div><strong>Aniversário de 15 anos</strong><span class="s">Salão Primavera · 19:00</span></div><span class="pill p">Confirmado</span></div>
+      <p class="leg">Agenda de um estúdio de exemplo</p>
     </div>
-    <div class="gallery" id="gallery"></div>
-    <div class="panel" id="panel">
-      <div class="sum" id="sum"></div>
-      <div>
-        <label class="tiny" for="lr" style="color:#a3a3a3">O que chega pra você: cole no filtro de texto do Lightroom</label>
-        <textarea id="lr" readonly></textarea>
-        <div class="row"><button class="btn fill" id="copy">Copiar lista</button><button class="btn" id="reset">Limpar seleção</button></div>
+  </div>
+  <div>
+    <p class="olho">Clientes e agenda</p>
+    <h2>Cada cliente com o histórico inteiro, cada ensaio no dia certo.</h2>
+    <p class="txt">Cadastre o cliente uma vez e encontre tudo depois: contato, trabalhos, galerias e quanto já foi pago.</p>
+    <ul class="recursos">
+      <li><h3>Ficha do cliente</h3><p>WhatsApp, Instagram, observações e todos os trabalhos feitos com ele.</p></li>
+      <li><h3>Calendário do mês</h3><p>Orçamentos, confirmados, realizados e entregues, cada um na sua data.</p></li>
+      <li><h3>Do trabalho à galeria</h3><p>A galeria nasce ligada ao trabalho e ao cliente, sem digitar nada de novo.</p></li>
+    </ul>
+  </div>
+</div></section>
+
+<section class="band secao" id="financeiro"><div class="wrap duas">
+  <div>
+    <p class="olho">Financeiro</p>
+    <h2>Saiba quanto entrou, quanto falta e quem está atrasado.</h2>
+    <p class="txt">Ao marcar um ensaio, a Seleta já pode lançar o sinal e o restante. As fotos extras escolhidas pelo cliente viram cobrança com um clique.</p>
+    <ul class="recursos">
+      <li><h3>Sinal e saldo automáticos</h3><p>50% na reserva e 50% na data do trabalho, ou do jeito que você combinar.</p></li>
+      <li><h3>Extras da seleção</h3><p>Passou do pacote? O valor das fotos a mais entra no financeiro.</p></li>
+      <li><h3>Visão do ano</h3><p>Quanto você recebeu em cada mês, num gráfico simples.</p></li>
+    </ul>
+  </div>
+  <div class="janela">
+    <div class="barra"><i></i><i></i><i></i><span>seleta / financeiro</span></div>
+    <div class="corpo">
+      <div class="fin"><div class="e"><span>Recebido no mês</span><b>R$ 4.380</b></div><div><span>A receber</span><b>R$ 2.150</b></div><div><span>Em atraso</span><b>R$ 275</b></div></div>
+      <div class="barras" aria-hidden="true"><i style="height:35%"></i><i style="height:48%"></i><i style="height:30%"></i><i style="height:55%"></i><i style="height:62%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:58%"></i><i style="height:66%"></i><i style="height:74%"></i><i class="on" style="height:88%"></i><i style="height:20%"></i></div>
+      <div class="lanc">
+        <div><span>Sinal · Casamento Júlia e Rafael</span><b>R$ 800,00</b></div>
+        <div><span>6 fotos extras · Ensaio no campo</span><b>R$ 120,00</b></div>
+        <div><span>Restante · Ensaio pôr do sol</span><b>R$ 275,00</b></div>
       </div>
+      <p class="leg">Valores de exemplo</p>
     </div>
   </div>
 </div></section>
 
-<section class="band" id="recursos"><div class="wrap">
-  <h2>Feito por quem fotografa</h2>
-  <div class="feats">
-    <div class="feat"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12l3 3 5-6"/></svg><h3>Limite do pacote</h3><p>O cliente vê quantas fotos já marcou e quanto custa cada extra, antes de enviar.</p></div>
-    <div class="feat"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/></svg><h3>Lista pro Lightroom</h3><p>Nomes de arquivo separados por vírgula, prontos pro filtro de texto do Lightroom Classic.</p></div>
-    <div class="feat"><svg viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7z"/></svg><h3>Marca d'água sua</h3><p>Seu logo sobre as prévias, pra ninguém salvar print e sumir.</p></div>
-    <div class="feat"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><h3>Pensado pro celular</h3><p>A maioria dos clientes escolhe pelo telefone. A galeria nasce pra tela pequena.</p></div>
-    <div class="feat"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1018 0 9 9 0 00-18 0zM12 7v5l3 2"/></svg><h3>Prazo de seleção</h3><p>Defina até quando a galeria fica aberta e mande lembrete automático.</p></div>
-    <div class="feat"><svg viewBox="0 0 24 24"><path d="M4 16v3h16v-3M12 4v11M7 10l5 5 5-5"/></svg><h3>Entrega final</h3><p>Depois de editar, use a mesma galeria pra entregar em alta, com download liberado.</p></div>
+<section class="band secao alt" id="modulos"><div class="wrap">
+  <p class="olho">Tudo o que vem na Seleta</p>
+  <h2>Quatro áreas, um só painel.</h2>
+  <div class="modulos">
+    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8" fill="currentColor"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg><h3>Galeria</h3><p>Seleção com limite do pacote, comentários por foto, capa, marca d'água e entrega final.</p></div>
+    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><h3>Clientes</h3><p>Contatos, histórico de trabalhos e galerias, e o que cada um já pagou.</p></div>
+    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="16"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><h3>Agenda</h3><p>Calendário com ensaios, casamentos e eventos, do orçamento à entrega.</p></div>
+    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><h3>Financeiro</h3><p>Sinais, saldos, extras e atrasos, com o resumo do mês e do ano.</p></div>
   </div>
+  <p class="integra">Funciona junto com o que você já usa: lista pronta pro Lightroom Classic e mensagens prontas pro WhatsApp.</p>
 </div></section>
 
-<section class="band dark" id="planos"><div class="wrap">
-  <h2>Planos</h2>
-  <p class="mute" style="margin-top:10px">Valores sugeridos para lançamento. Ajuste antes de publicar.</p>
-  <div class="seg toggle" role="group" aria-label="Cobrança"><button id="bM" aria-pressed="true">Mensal</button><button id="bA" aria-pressed="false">Anual · 2 meses grátis</button></div>
-  <div class="plans" id="plans"></div>
+<section class="band secao" id="planos"><div class="wrap">
+  <p class="olho">Planos</p>
+  <h2>Comece grátis. Pague só quando fizer sentido.</h2>
+  <div class="toggle" role="group" aria-label="Cobrança"><button id="bM" aria-pressed="true">Mensal</button><button id="bA" aria-pressed="false">Anual · 2 meses grátis</button></div>
+  <div class="planos" id="planos-lista"></div>
 </div></section>
 
-<section class="band" id="duvidas"><div class="wrap faqgrid">
-  <h2>Dúvidas</h2>
-  <div id="faq"></div>
+<section class="band secao alt" id="duvidas"><div class="wrap">
+  <p class="olho">Dúvidas</p>
+  <h2>Perguntas frequentes</h2>
+  <div class="faq" id="faq"></div>
 </div></section>
 
-<footer class="band dark" style="padding-block:32px"><div class="wrap">
-  <a class="logo" href="#topo"><svg><use href="#bp"/></svg>SELETA</a>
-  <span class="mute">Um produto Brunno Passeri · Formosa, Goiás · brunopasseri@gmail.com</span>
+<section class="final" style="background-image:url('https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1800&q=80&auto=format&fit=crop')"><div class="wrap">
+  <h2>Comece pelo próximo ensaio.</h2>
+  <p>Crie seu estúdio em dois minutos, suba a primeira galeria e mande o link hoje mesmo.</p>
+  <div class="ctas"><a class="btn claro" href="app.html">Criar meu estúdio grátis</a><a class="btn" href="#planos">Ver os planos</a></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="cols">
+    <div><a class="logo" href="#topo"><svg><use href="#s"/></svg>SELETA</a><p style="margin-top:16px;color:#bdbbb6;max-width:22em">Galeria de seleção e gestão de estúdio para fotógrafos.</p></div>
+    <div><h4>Produto</h4><ul><li><a href="#como">Como funciona</a></li><li><a href="#modulos">Recursos</a></li><li><a href="#planos">Planos</a></li><li><a href="#duvidas">Dúvidas</a></li></ul></div>
+    <div><h4>Conta</h4><ul><li><a href="app.html">Entrar</a></li><li><a href="app.html">Criar conta</a></li></ul></div>
+    <div><h4>Contato</h4><ul><li><a href="mailto:brunopasseri@gmail.com">brunopasseri@gmail.com</a></li><li style="color:#bdbbb6">Formosa, Goiás</li></ul></div>
+  </div>
+  <div class="base"><span>© 2026 Seleta · um produto Brunno Passeri</span><span>Feito no Brasil</span></div>
+  <p class="credito">Fotos de demonstração: Unsplash.</p>
 </div></footer>
 
 <script>
 {
-const $=id=>document.getElementById(id);
-const tones=[["#2b2722","#8a7a66","#e8d6b8"],["#1f2420","#5f6b58","#c9d1bc"],["#262626","#6f6f6f","#e3e3e3"],["#2a211c","#9a6f52","#f1c99a"],["#1c1f24","#56606c","#c3ccd6"],["#24221d","#7b7462","#ded4bd"]];
-const photo=i=>{const t=tones[i%tones.length],sx=20+(i*37)%60,sy=18+(i*23)%30,hz=55+(i*13)%25,fig=(i*29)%70+15;
-return `background:radial-gradient(circle at ${sx}% ${sy}%,${t[2]} 0 6%,transparent 26%),radial-gradient(ellipse 14% 30% at ${fig}% ${hz+8}%,${t[0]} 0 60%,transparent 62%),linear-gradient(180deg,${t[2]}cc 0%,${t[1]} ${hz}%,${t[0]} ${hz+1}%,${t[0]} 100%)`};
-const N=32,INC=20,EXTRA=20,names=Array.from({length:N},(_,i)=>"IMG_"+String(4120+i*3).padStart(4,"0"));
-let sel=new Set(),only=false;
-/* hero */
-const hero=[1,4,6,9,10];
-$("heroGrid").innerHTML=Array.from({length:12},(_,i)=>`<div class="ph${hero.includes(i)?" on":""}" style="${photo(i+3)}"></div>`).join("");
-$("heroCount").textContent=hero.length+" de 20";
-/* galeria */
-const render=()=>{const list=names.map((n,i)=>({n,i})).filter(o=>!only||sel.has(o.n));
-$("gallery").innerHTML=list.length?list.map(o=>`<button class="tile${sel.has(o.n)?" on":""}" data-n="${o.n}" aria-pressed="${sel.has(o.n)}" aria-label="Foto ${o.n}"><span class="img" style="${photo(o.i)}"></span><span class="chk">✓</span><span class="name">${o.n}</span></button>`).join(""):`<p class="empty">Nenhuma foto marcada ainda.</p>`;
-const c=sel.size,ex=Math.max(0,c-INC);
-$("mText").textContent=ex?`${c} fotos · ${ex} extra${ex>1?"s":""} (R$ ${ex*EXTRA},00)`:`${c} de ${INC} fotos do pacote`;
-const b=$("mBar");b.style.width=Math.min(100,c/INC*100)+"%";b.classList.toggle("over",ex>0);
-if($("panel").classList.contains("show"))summary()};
-const summary=()=>{const c=sel.size,ex=Math.max(0,c-INC),arr=[...sel].sort();
-$("sum").innerHTML=`<b>Seleção recebida</b><br>Fotos marcadas: <b>${c}</b><br>Incluídas no pacote: ${Math.min(c,INC)}<br>Fotos adicionais: ${ex} × R$ ${EXTRA},00 = <b>R$ ${ex*EXTRA},00</b>`;
-$("lr").value=arr.join(", ")||"Nenhuma foto marcada."};
-$("gallery").addEventListener("click",e=>{const t=e.target.closest(".tile");if(!t)return;const n=t.dataset.n;sel.has(n)?sel.delete(n):sel.add(n);render()});
-const setF=v=>{only=v;$("fAll").setAttribute("aria-pressed",!v);$("fSel").setAttribute("aria-pressed",v);render()};
-$("fAll").onclick=()=>setF(false);$("fSel").onclick=()=>setF(true);
-$("send").onclick=()=>{$("panel").classList.add("show");summary();$("panel").scrollIntoView({block:"nearest",behavior:"smooth"})};
-$("copy").onclick=async()=>{try{await navigator.clipboard.writeText($("lr").value);$("copy").textContent="Copiado"}catch(e){$("lr").select();$("copy").textContent="Selecionado, use Ctrl+C"}setTimeout(()=>$("copy").textContent="Copiar lista",1800)};
-$("reset").onclick=()=>{sel.clear();$("panel").classList.remove("show");render()};
-["IMG_4123","IMG_4132","IMG_4141","IMG_4150"].forEach(n=>sel.add(n));
-render();
+const $ = id => document.getElementById(id);
+const nav = $("nav");
+addEventListener("scroll", () => nav.classList.toggle("rolou", scrollY > 10), { passive: true });
+
+/* etapas acendendo no topo */
+const li = [...$("tempo").children]; let k = 0;
+const passo = () => { li.forEach((l, i) => l.classList.toggle("on", i <= k)); k = (k + 1) % (li.length + 1); };
+passo();
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(passo, 1100); else li.forEach(l => l.classList.add("on"));
+
+/* demo de seleção */
+const fotos = ["1625832954356-6ddaffc45853","1560915109-f54ff3d7664c","1578220375772-9a71d4d2ff82","1644901381402-69804395b4e0","1600069265050-3555d89d187b","1612821996907-d3710d7f1351"];
+const marc = new Set([1, 4]), INC = 4;
+const pintar = () => {
+  $("grade").innerHTML = fotos.map((id, i) => `<button class="ft${marc.has(i) ? " on" : ""}" data-i="${i}" aria-pressed="${marc.has(i)}" aria-label="Foto ${i + 1}" style="background-image:url('https://images.unsplash.com/photo-${id}?w=400&q=70&auto=format&fit=crop')"></button>`).join("");
+  const n = marc.size, ex = Math.max(0, n - INC);
+  $("dTxt").textContent = ex ? `${n} fotos · ${ex} extra${ex > 1 ? "s" : ""}` : `${n} de ${INC} fotos do pacote`;
+  $("dBar").style.width = Math.min(100, n / INC * 100) + "%";
+};
+$("grade").onclick = e => { const b = e.target.closest(".ft"); if (!b) return; const i = +b.dataset.i; marc.has(i) ? marc.delete(i) : marc.add(i); pintar(); };
+pintar();
+
 /* planos */
-const plans=[
-{n:"Essencial",m:24.9,d:["20 GB de armazenamento","15 galerias ativas","Seleção com limite do pacote","Lista pro Lightroom","Marca d'água padrão"]},
-{n:"Profissional",m:44.9,rec:1,d:["80 GB de armazenamento","Galerias ilimitadas","Marca d'água com seu logo","Prazo e lembretes automáticos","Entrega final em alta"]},
-{n:"Estúdio",m:84.9,d:["250 GB de armazenamento","Tudo do Profissional","Domínio próprio","Sem a marca Seleta","Até 3 usuários"]}];
-let annual=false;
-const brl=v=>v.toFixed(2).replace(".",",");
-const drawPlans=()=>{$("plans").innerHTML=plans.map(p=>{const v=annual?p.m*10/12:p.m;return `<div class="plan${p.rec?" rec":""}">${p.rec?'<span class="tag">Mais escolhido</span>':""}<h3>${p.n}</h3><div class="price">R$ ${brl(v)}<small> /mês</small></div><p class="tiny" style="opacity:.7">${annual?`R$ ${brl(p.m*10)} cobrados por ano`:"Cobrança mensal, cancele quando quiser"}</p><ul>${p.d.map(x=>`<li>${x}</li>`).join("")}</ul><a class="btn fill" href="app.html">Testar 14 dias</a></div>`}).join("")};
-const setB=a=>{annual=a;$("bM").setAttribute("aria-pressed",!a);$("bA").setAttribute("aria-pressed",a);drawPlans()};
-$("bM").onclick=()=>setB(false);$("bA").onclick=()=>setB(true);drawPlans();
-/* faq */
-const faq=[["O cliente precisa criar conta?","Não. Ele abre o link e digita o código de acesso que você enviou."],
-["Dá pra cobrar fotos extras?","Sim. Você define quantas fotos o pacote inclui e o valor de cada adicional. O total aparece pro cliente antes de enviar."],
-["Funciona com Lightroom?","A seleção vira uma lista de nomes de arquivo. Você cola no filtro de texto da biblioteca e as fotos escolhidas aparecem."],
-["Minhas fotos ficam protegidas?","As prévias levam marca d'água e o download só é liberado quando você quiser, na entrega final."],
-["Posso cancelar?","Quando quiser. As galerias ficam disponíveis pra baixar por 30 dias depois do cancelamento."],
-["Como funciona o teste grátis?","São 14 dias com todos os recursos do plano Profissional, sem cadastrar cartão."]];
-$("faq").innerHTML=faq.map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join("");
+const planos = [
+  { n: "Essencial", m: 24.9, d: ["20 GB de armazenamento", "15 galerias ativas", "Seleção com limite do pacote", "Lista pro Lightroom", "Marca d'água com seu nome"] },
+  { n: "Profissional", m: 44.9, rec: 1, d: ["80 GB de armazenamento", "Galerias ilimitadas", "Clientes, agenda e financeiro", "Marca d'água com seu logo", "Entrega das fotos finais"] },
+  { n: "Estúdio", m: 84.9, d: ["250 GB de armazenamento", "Tudo do Profissional", "Domínio próprio", "Sem a marca Seleta", "Até 3 usuários"] }
+];
+let anual = false;
+const brl = v => "R$ " + v.toFixed(2).replace(".", ",");
+const pintarPlanos = () => {
+  $("planos-lista").innerHTML = planos.map(p => { const v = anual ? p.m * 10 / 12 : p.m; return `<div class="plano${p.rec ? " rec" : ""}">${p.rec ? '<span class="tag">Recomendado</span>' : ""}<h3>${p.n}</h3><div class="preco">${brl(v)}<small> /mês</small></div><p style="font-size:13px;opacity:.7">${anual ? brl(p.m * 10) + " por ano" : "cobrança mensal"}</p><ul>${p.d.map(x => `<li>${x}</li>`).join("")}</ul><a class="btn fill" href="app.html">Testar 14 dias grátis</a></div>`; }).join("");
+  $("bM").setAttribute("aria-pressed", !anual); $("bA").setAttribute("aria-pressed", anual);
+};
+$("bM").onclick = () => { anual = false; pintarPlanos(); }; $("bA").onclick = () => { anual = true; pintarPlanos(); };
+pintarPlanos();
+
+/* dúvidas */
+const faq = [
+  ["Como funciona o teste grátis?", "São 14 dias com tudo liberado, sem cadastrar cartão. No fim, você escolhe um plano ou simplesmente para de usar."],
+  ["O cliente precisa criar conta?", "Não. Ele abre o link pelo celular, digita o código de 6 números que você mandou e já pode escolher."],
+  ["Dá pra cobrar fotos extras?", "Sim. Você define quantas fotos vêm no pacote e o preço de cada extra. O cliente vê o total antes de enviar, e você lança o valor no financeiro com um clique."],
+  ["Funciona com o Lightroom?", "A seleção vira uma lista com os nomes dos arquivos. Cole no filtro de texto da Biblioteca e as fotos escolhidas aparecem."],
+  ["Minhas fotos ficam protegidas?", "As prévias vão em tamanho reduzido e com a sua marca d'água. As fotos finais só ficam disponíveis quando você liberar a entrega."],
+  ["O cliente pode comentar as fotos?", "Pode. Em cada foto ele deixa um recado, como um ajuste que gostaria, e você vê tudo junto com a seleção."],
+  ["Posso usar só a galeria?", "Pode. Clientes, agenda e financeiro estão lá quando você quiser, mas nada é obrigatório."],
+  ["Posso cancelar quando quiser?", "Sim, sem multa. Suas galerias continuam disponíveis pra download por 30 dias depois do cancelamento."]
+];
+$("faq").innerHTML = faq.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("");
 }
 </script>
 </body>
