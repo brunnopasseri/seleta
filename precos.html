@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no"><head><meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preços · Seleta</title><link rel="icon" href="icone.svg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css?v=8">
+<style>
+body{background:#fafaf8}
+.topoS{position:sticky;top:0;z-index:30;background:rgba(250,250,248,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topoS .wrap{display:flex;align-items:center;gap:28px;min-height:68px}
+.topoS nav{display:flex;gap:24px;font-size:14px}
+.topoS nav a{text-decoration:none;color:var(--mute);white-space:nowrap}
+.topoS nav a:hover,.topoS nav a[aria-current]{color:var(--ink)}
+.topoS .dir{margin-left:auto;display:flex;align-items:center;gap:14px}
+.topoS .entrar{font-size:14px;text-decoration:none;color:var(--ink)}
+@media(max-width:820px){.topoS nav{display:none}}
+.rodS{background:#111;color:#bdbbb6;padding:44px 0;font-size:13px;margin-top:80px}
+.rodS .wrap{display:flex;gap:24px;justify-content:space-between;flex-wrap:wrap;align-items:center}
+.rodS a{color:#d8d6d1;text-decoration:none}.rodS a:hover{color:#fff}
+.rodS .lk{display:flex;gap:22px;flex-wrap:wrap}
+</style>
+<style>
+.hero{max-width:900px;margin:0 auto;padding:72px max(4vw,16px) 30px;text-align:center}
+.hero h1{font-size:clamp(34px,5vw,54px);font-weight:400;line-height:1.1}
+.hero p{color:var(--mute);font-size:17px;margin:14px auto 26px;max-width:620px;line-height:1.6}
+.tog{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:4px;background:#fff}
+.tog button{all:unset;cursor:pointer;padding:9px 20px;border-radius:999px;font-size:14px}
+.tog button[aria-pressed=true]{background:#111;color:#fff}
+.tog small{font-size:11px;margin-left:6px;opacity:.75}
+.cardsP{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1100px;margin:20px auto 0;padding:0 max(4vw,16px)}
+.cp{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;display:flex;flex-direction:column}
+.cp.rec{border:2px solid #111;position:relative}
+.cp .tagR{position:absolute;top:-12px;left:28px;background:#111;color:#fff;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:5px 10px;border-radius:6px}
+.cp h3{font-size:22px;font-weight:500}.cp .d{color:var(--mute);font-size:14px;margin:6px 0 18px;min-height:40px}
+.cp .v{font-size:38px;font-weight:400;letter-spacing:-.01em}.cp .v small{font-size:14px;color:var(--mute);margin-left:4px}
+.cp .eq{font-size:13px;color:var(--mute);margin:4px 0 20px;min-height:18px}
+.cp ul{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:9px;flex:1}
+.cp li{display:flex;gap:10px;font-size:14px;line-height:1.4}.cp li::before{content:"✓";font-weight:600}
+.cp .btn{width:100%}.cp .alt{display:block;text-align:center;font-size:13px;color:var(--mute);margin-top:10px}
+body.anual .pm,body:not(.anual) .pa{display:none}
+.todos{text-align:center;color:var(--mute);font-size:14px;max-width:760px;margin:26px auto 0;padding:0 16px;line-height:1.6}
+.qual{max-width:1100px;margin:70px auto 0;padding:0 max(4vw,16px)}
+.qual h2,.compara h2,.faq h2{font-size:clamp(26px,3.5vw,36px);font-weight:400;margin-bottom:22px}
+.qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.qgrid div{border:1px solid var(--line);border-radius:14px;padding:22px;background:#fff}.qgrid b{font-weight:500;display:block;margin-bottom:6px}.qgrid p{color:var(--mute);font-size:14px;line-height:1.6;margin:0}
+.teste{margin-top:16px;padding:18px 22px;border-radius:14px;background:#111;color:#fff;display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+.teste .btn{background:#fff;color:#111;border-color:#fff}
+.compara{max-width:1100px;margin:80px auto 0;padding:0 max(4vw,16px)}
+.tabW{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+.tabP{width:100%;border-collapse:collapse;min-width:640px;font-size:14px}
+.tabP th,.tabP td{padding:13px 18px;text-align:center;border-bottom:1px solid var(--line)}
+.tabP th:first-child,.tabP td:first-child{text-align:left}
+.tabP thead th{font-weight:500;font-size:15px;position:sticky;top:0;background:#fff}
+.tabP thead th.rec{background:#111;color:#fff}
+.tabP tr.g td{background:#f4f2ee;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);font-weight:500;text-align:left}
+.tabP td.s{font-weight:600}.tabP td.n{color:#bbb}
+.tabP td.colR{background:rgba(0,0,0,.025)}
+.faq{max-width:820px;margin:80px auto 0;padding:0 max(4vw,16px)}
+.faq details{border-bottom:1px solid var(--line);padding:18px 0}.faq summary{cursor:pointer;font-size:17px;font-weight:500;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::after{content:"+";font-weight:300;font-size:22px;line-height:1}.faq details[open] summary::after{content:"–"}
+.faq p{color:var(--mute);line-height:1.7;margin:10px 0 0}
+.ctaP{max-width:1100px;margin:80px auto 0;padding:0 max(4vw,16px)}
+.ctaP div{border-radius:20px;padding:56px 24px;text-align:center;color:#fff;background:#111 url('https://images.unsplash.com/photo-1578220375772-9a71d4d2ff82?w=1800&q=72&auto=format&fit=crop') center/cover;position:relative;overflow:hidden}
+.ctaP div::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.55)}.ctaP div>*{position:relative}
+.ctaP h2{font-size:clamp(28px,4vw,44px);font-weight:400}.ctaP p{opacity:.85;margin:10px 0 24px}
+.ctaP .btn{background:#fff;color:#111;border-color:#fff}.ctaP .btn.ghost{background:transparent;color:#fff}
+@media(max-width:900px){.cardsP,.qgrid{grid-template-columns:1fr}}
+</style>
+</head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="square"/></symbol></defs></svg>
+<header class="topoS"><div class="wrap"><a class="logo" href="./"><svg><use href="#s"/></svg>SELETA</a><nav aria-label="Menu principal"><a href="./">Início</a><a href="./#como">Como funciona</a><a href="precos.html" aria-current="page">Preços</a><a href="sobre.html">Sobre</a><a href="blog.html">Blog</a></nav>
+<div class="dir"><span data-seletor-lang></span><a class="entrar" href="app.html">Entrar</a><a class="btn sm fill" href="app.html?criar">Começar grátis</a></div></div></header>
+<main><div data-lang="pt">
+<section class="hero"><h1>Planos e preços da Seleta</h1>
+<p>Comece grátis por 14 dias, com tudo liberado. Depois, escolha o plano do tamanho do seu estúdio. Pix ou cartão, mensal ou anual.</p>
+<div class="tog" role="group" aria-label="Cobrança"><button type="button" data-ciclo="mensal" aria-pressed="true">Mensal</button><button type="button" data-ciclo="anual" aria-pressed="false">Anual<small>−17%</small></button></div></section>
+<section class="cardsP"><div class="cp">
+<h3>Essencial</h3><p class="d">Para quem está começando a entregar com profissionalismo.</p>
+<div class="v pm">R$ 24,90<small>/mês</small></div><div class="v pa">R$ 249,00<small>/ano</small></div>
+<p class="eq pm">ou R$ 20,75 por mês no anual · economize 17%</p><p class="eq pa">equivale a R$ 20,75/mês · 2 meses grátis</p>
+<ul><li>20 GB de armazenamento</li><li>15 galerias ativas</li><li>Seleção com limite e fotos extras</li><li>Entrega de fotos tratadas</li><li>Clientes, agenda, tarefas e financeiro</li><li>Marca d&#x27;água padrão da Seleta</li></ul>
+<a class="btn pm" href="https://invoice.infinitepay.io/plans/brunnopasseri/i0SoWK9m5p" target="_blank" rel="noopener">Assinar Essencial</a><a class="btn pa" href="https://invoice.infinitepay.io/plans/brunnopasseri/EZ5qbBr2Ag" target="_blank" rel="noopener">Assinar Essencial anual</a>
+<a class="alt" href="app.html?criar">ou comece grátis por 14 dias</a></div><div class="cp rec"><span class="tagR">Recomendado</span>
+<h3>Profissional</h3><p class="d">Para o estúdio que quer crescer: sua marca, seu visual e o CRM.</p>
+<div class="v pm">R$ 44,90<small>/mês</small></div><div class="v pa">R$ 449,00<small>/ano</small></div>
+<p class="eq pm">ou R$ 37,42 por mês no anual · economize 17%</p><p class="eq pa">equivale a R$ 37,42/mês · 2 meses grátis</p>
+<ul><li>80 GB de armazenamento</li><li>60 galerias ativas</li><li>Marca d&#x27;água com seu logo ou nome</li><li>Galeria com o seu visual</li><li>Aprovação de álbum</li><li>CRM: funil, conversas e relatórios</li><li>Favoritas e proteção contra print</li></ul>
+<a class="btn fill pm" href="https://invoice.infinitepay.io/plans/brunnopasseri/cDSZLZaCDh" target="_blank" rel="noopener">Assinar Profissional</a><a class="btn fill pa" href="https://invoice.infinitepay.io/plans/brunnopasseri/cmLBSuM9ft" target="_blank" rel="noopener">Assinar Profissional anual</a>
+<a class="alt" href="app.html?criar">ou comece grátis por 14 dias</a></div><div class="cp">
+<h3>Estúdio</h3><p class="d">Para estúdios com alto volume e equipe.</p>
+<div class="v pm">R$ 84,90<small>/mês</small></div><div class="v pa">R$ 849,00<small>/ano</small></div>
+<p class="eq pm">ou R$ 70,75 por mês no anual · economize 17%</p><p class="eq pa">equivale a R$ 70,75/mês · 2 meses grátis</p>
+<ul><li>250 GB de armazenamento</li><li>Galerias ilimitadas</li><li>Tudo do Profissional</li><li>Sem &quot;feito com Seleta&quot; na galeria</li><li>Domínio próprio (em breve)</li><li>Até 3 usuários (em breve)</li></ul>
+<a class="btn pm" href="https://invoice.infinitepay.io/plans/brunnopasseri/kmtkPTSOrv" target="_blank" rel="noopener">Assinar Estúdio</a><a class="btn pa" href="https://invoice.infinitepay.io/plans/brunnopasseri/2EuLsGU3bK" target="_blank" rel="noopener">Assinar Estúdio anual</a>
+<a class="alt" href="app.html?criar">ou comece grátis por 14 dias</a></div></section>
+<p class="todos">Todos os planos incluem galerias com seleção do cliente, entrega das fotos, download em .zip, agenda, tarefas e financeiro.<br>Pix ou cartão em até 12x · Cancele quando quiser · Pagamento seguro pela InfinitePay</p>
+<section class="qual"><h2>Qual plano é para mim?</h2><div class="qgrid">
+<div><b>Essencial</b><p>Se você quer organizar a seleção e a entrega das fotos, com clientes, agenda e financeiro num só lugar.</p></div>
+<div><b>Profissional</b><p>Se você quer a galeria com a sua marca e o seu visual, aprovar álbuns online e acompanhar cada cliente no CRM.</p></div>
+<div><b>Estúdio</b><p>Se você tem muitos ensaios por mês, precisa de mais espaço e quer a galeria sem nenhuma marca da Seleta.</p></div></div>
+<div class="teste"><span>Não sabe ainda? Teste 14 dias grátis com todos os recursos, sem cartão.</span><a class="btn" href="app.html?criar">Começar o teste grátis</a></div></section>
+<section class="compara"><h2>O que cada plano inclui</h2><div class="tabW"><table class="tabP"><thead><tr><th>Recurso</th><th>Essencial</th><th class="rec">Profissional</th><th>Estúdio</th></tr></thead><tbody><tr class="g"><td colspan="4">Preço</td></tr><tr><td>Por mês</td><td class="">R$ 24,90</td><td class=" colR">R$ 44,90</td><td class="">R$ 84,90</td></tr><tr><td>Por ano</td><td class="">R$ 249,00</td><td class=" colR">R$ 449,00</td><td class="">R$ 849,00</td></tr><tr class="g"><td colspan="4">Galeria e seleção</td></tr><tr><td>Seleção com limite do pacote</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Fotos extras com valor automático</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Comentários por foto</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Lista pronta para o Lightroom</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Entrega de fotos tratadas e download .zip</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Visual personalizado (capas, temas, fontes)</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Favoritas do fotógrafo</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Proteção contra print</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Aprovação de álbum folheável</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr class="g"><td colspan="4">Sua marca</td></tr><tr><td>Marca d&#x27;água</td><td class="">Da Seleta</td><td class=" colR">Sua</td><td class="">Sua</td></tr><tr><td>Sem &quot;feito com Seleta&quot; na galeria</td><td class="n">—</td><td class="n colR">—</td><td class="s">✓</td></tr><tr><td>Domínio próprio</td><td class="n">—</td><td class="n colR">—</td><td class="">Em breve</td></tr><tr class="g"><td colspan="4">Gestão do estúdio</td></tr><tr><td>Clientes, agenda, tarefas e financeiro</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Google Agenda</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>CRM: funil, conversas e relatórios</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Usuários</td><td class="">1</td><td class=" colR">1</td><td class="">Até 3 (em breve)</td></tr><tr class="g"><td colspan="4">Limites</td></tr><tr><td>Armazenamento</td><td class="">20 GB</td><td class=" colR">80 GB</td><td class="">250 GB</td></tr><tr><td>Galerias ativas</td><td class="">15</td><td class=" colR">60</td><td class="">Ilimitadas</td></tr></tbody></table></div>
+<p class="small mute" style="margin-top:10px">Galerias encerradas não contam no limite de galerias ativas.</p></section>
+<section class="faq"><h2>Dúvidas sobre planos e preços</h2><details><summary>Como funciona o teste grátis?</summary><p>São 14 dias com todos os recursos liberados, sem cadastrar cartão. No fim, você escolhe um plano ou simplesmente para de usar.</p></details><details><summary>Quais as formas de pagamento?</summary><p>Pix ou cartão de crédito em até 12x, pela InfinitePay. No cartão, a renovação é automática. No Pix, você recebe um lembrete no WhatsApp com o código para pagar.</p></details><details><summary>Mensal ou anual: qual a diferença?</summary><p>Os recursos são os mesmos. No anual você paga 10 meses e usa 12, economizando cerca de 17%.</p></details><details><summary>Posso trocar de plano depois?</summary><p>Pode. É só falar com o suporte que a gente ajusta o seu plano e o valor.</p></details><details><summary>O que conta como galeria ativa?</summary><p>Galerias abertas ou com seleção em andamento. Galerias encerradas não contam no limite.</p></details><details><summary>E se eu atrasar o pagamento?</summary><p>Você tem 3 dias de tolerância. Depois disso o acesso fica pausado até o pagamento, mas nada é apagado.</p></details><details><summary>Posso cancelar quando quiser?</summary><p>Sim, sem multa. O acesso continua até o fim do período pago e suas galerias ficam disponíveis para download por 30 dias.</p></details></section>
+<section class="ctaP"><div><h2>Comece pelo próximo ensaio.</h2><p>Crie seu estúdio em dois minutos e mande a primeira galeria hoje.</p>
+<a class="btn" href="app.html?criar">Começar grátis</a> <a class="btn ghost" href="https://wa.me/5561995169154?text=Oi!%20Vim%20pelo%20site%20da%20Seleta." target="_blank" rel="noopener" style="margin-left:8px">Tirar dúvidas no WhatsApp</a></div></section>
+</div><div data-lang="en" hidden>
+<section class="hero"><h1>Seleta plans and pricing</h1>
+<p>Start free for 14 days with everything unlocked. Then pick the plan that fits your studio. Pix or card, monthly or yearly.</p>
+<div class="tog" role="group" aria-label="Billing"><button type="button" data-ciclo="mensal" aria-pressed="true">Monthly</button><button type="button" data-ciclo="anual" aria-pressed="false">Yearly<small>−17%</small></button></div></section>
+<section class="cardsP"><div class="cp">
+<h3>Essential</h3><p class="d">For those starting to deliver like a pro.</p>
+<div class="v pm">R$ 24,90<small>/month</small></div><div class="v pa">R$ 249,00<small>/year</small></div>
+<p class="eq pm">or R$ 20,75 per month yearly · save 17%</p><p class="eq pa">equals R$ 20,75/month · 2 months free</p>
+<ul><li>20 GB storage</li><li>15 active galleries</li><li>Selection limit and extra photos</li><li>Edited photo delivery</li><li>Clients, calendar, tasks and finance</li><li>Seleta default watermark</li></ul>
+<a class="btn pm" href="https://invoice.infinitepay.io/plans/brunnopasseri/i0SoWK9m5p" target="_blank" rel="noopener">Subscribe to Essential</a><a class="btn pa" href="https://invoice.infinitepay.io/plans/brunnopasseri/EZ5qbBr2Ag" target="_blank" rel="noopener">Subscribe to Essential yearly</a>
+<a class="alt" href="app.html?criar">or start free for 14 days</a></div><div class="cp rec"><span class="tagR">Recommended</span>
+<h3>Professional</h3><p class="d">For studios that want to grow: your brand, your look and the CRM.</p>
+<div class="v pm">R$ 44,90<small>/month</small></div><div class="v pa">R$ 449,00<small>/year</small></div>
+<p class="eq pm">or R$ 37,42 per month yearly · save 17%</p><p class="eq pa">equals R$ 37,42/month · 2 months free</p>
+<ul><li>80 GB storage</li><li>60 active galleries</li><li>Watermark with your logo or name</li><li>Gallery with your look</li><li>Album approval</li><li>CRM: pipeline, conversations and reports</li><li>Favorites and screenshot protection</li></ul>
+<a class="btn fill pm" href="https://invoice.infinitepay.io/plans/brunnopasseri/cDSZLZaCDh" target="_blank" rel="noopener">Subscribe to Professional</a><a class="btn fill pa" href="https://invoice.infinitepay.io/plans/brunnopasseri/cmLBSuM9ft" target="_blank" rel="noopener">Subscribe to Professional yearly</a>
+<a class="alt" href="app.html?criar">or start free for 14 days</a></div><div class="cp">
+<h3>Studio</h3><p class="d">For high-volume studios with a team.</p>
+<div class="v pm">R$ 84,90<small>/month</small></div><div class="v pa">R$ 849,00<small>/year</small></div>
+<p class="eq pm">or R$ 70,75 per month yearly · save 17%</p><p class="eq pa">equals R$ 70,75/month · 2 months free</p>
+<ul><li>250 GB storage</li><li>Unlimited galleries</li><li>Everything in Professional</li><li>No &quot;made with Seleta&quot; in the gallery</li><li>Custom domain (coming soon)</li><li>Up to 3 users (coming soon)</li></ul>
+<a class="btn pm" href="https://invoice.infinitepay.io/plans/brunnopasseri/kmtkPTSOrv" target="_blank" rel="noopener">Subscribe to Studio</a><a class="btn pa" href="https://invoice.infinitepay.io/plans/brunnopasseri/2EuLsGU3bK" target="_blank" rel="noopener">Subscribe to Studio yearly</a>
+<a class="alt" href="app.html?criar">or start free for 14 days</a></div></section>
+<p class="todos">All plans include client selection galleries, photo delivery, .zip download, calendar, tasks and finance.<br>Pix or card in up to 12 installments · Cancel anytime · Secure payment by InfinitePay</p>
+<section class="qual"><h2>Which plan is right for me?</h2><div class="qgrid">
+<div><b>Essential</b><p>If you want to organize photo selection and delivery, with clients, calendar and finance in one place.</p></div>
+<div><b>Professional</b><p>If you want galleries with your brand and look, online album approval and every client tracked in the CRM.</p></div>
+<div><b>Studio</b><p>If you shoot a lot every month, need more space and want galleries with no Seleta branding.</p></div></div>
+<div class="teste"><span>Not sure yet? Try 14 days free with every feature, no card.</span><a class="btn" href="app.html?criar">Start the free trial</a></div></section>
+<section class="compara"><h2>What each plan includes</h2><div class="tabW"><table class="tabP"><thead><tr><th>Feature</th><th>Essential</th><th class="rec">Professional</th><th>Studio</th></tr></thead><tbody><tr class="g"><td colspan="4">Price</td></tr><tr><td>Per month</td><td class="">R$ 24,90</td><td class=" colR">R$ 44,90</td><td class="">R$ 84,90</td></tr><tr><td>Per year</td><td class="">R$ 249,00</td><td class=" colR">R$ 449,00</td><td class="">R$ 849,00</td></tr><tr class="g"><td colspan="4">Gallery and selection</td></tr><tr><td>Selection with package limit</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Extra photos with automatic pricing</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Per-photo comments</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Lightroom-ready list</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Edited photo delivery and .zip download</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Custom look (covers, themes, fonts)</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Photographer&#x27;s favorites</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Screenshot protection</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Flip-through album approval</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr class="g"><td colspan="4">Your brand</td></tr><tr><td>Watermark</td><td class="">Seleta&#x27;s</td><td class=" colR">Yours</td><td class="">Yours</td></tr><tr><td>No &quot;made with Seleta&quot; in the gallery</td><td class="n">—</td><td class="n colR">—</td><td class="s">✓</td></tr><tr><td>Custom domain</td><td class="n">—</td><td class="n colR">—</td><td class="">Soon</td></tr><tr class="g"><td colspan="4">Studio management</td></tr><tr><td>Clients, calendar, tasks and finance</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Google Calendar</td><td class="s">✓</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>CRM: pipeline, conversations and reports</td><td class="n">—</td><td class="s colR">✓</td><td class="s">✓</td></tr><tr><td>Users</td><td class="">1</td><td class=" colR">1</td><td class="">Up to 3 (soon)</td></tr><tr class="g"><td colspan="4">Limits</td></tr><tr><td>Storage</td><td class="">20 GB</td><td class=" colR">80 GB</td><td class="">250 GB</td></tr><tr><td>Active galleries</td><td class="">15</td><td class=" colR">60</td><td class="">Unlimited</td></tr></tbody></table></div>
+<p class="small mute" style="margin-top:10px">Closed galleries don't count toward the active gallery limit.</p></section>
+<section class="faq"><h2>Questions about plans and pricing</h2><details><summary>How does the free trial work?</summary><p>14 days with every feature unlocked, no card needed. At the end, choose a plan or simply stop using it.</p></details><details><summary>What payment methods are accepted?</summary><p>Pix or credit card in up to 12 installments, via InfinitePay. With a card, renewal is automatic. With Pix, you get a WhatsApp reminder with the code to pay.</p></details><details><summary>Monthly or yearly: what&#x27;s the difference?</summary><p>Same features. With yearly you pay 10 months and use 12, saving about 17%.</p></details><details><summary>Can I change plans later?</summary><p>Yes. Just contact support and we&#x27;ll adjust your plan and price.</p></details><details><summary>What counts as an active gallery?</summary><p>Galleries that are open or have a selection in progress. Closed galleries don&#x27;t count toward the limit.</p></details><details><summary>What if my payment is late?</summary><p>You have a 3-day grace period. After that, access is paused until payment, but nothing is deleted.</p></details><details><summary>Can I cancel anytime?</summary><p>Yes, no fee. Access continues until the end of the paid period and your galleries stay available for download for 30 days.</p></details></section>
+<section class="ctaP"><div><h2>Start with your next session.</h2><p>Create your studio in two minutes and send your first gallery today.</p>
+<a class="btn" href="app.html?criar">Start free</a> <a class="btn ghost" href="https://wa.me/5561995169154?text=Oi!%20Vim%20pelo%20site%20da%20Seleta." target="_blank" rel="noopener" style="margin-left:8px">Ask on WhatsApp</a></div></section>
+</div></main>
+<script>document.addEventListener("click",e=>{const b=e.target.closest("[data-ciclo]");if(!b)return;const a=b.dataset.ciclo==="anual";document.body.classList.toggle("anual",a);document.querySelectorAll("[data-ciclo]").forEach(x=>x.setAttribute("aria-pressed",(x.dataset.ciclo==="anual")===a));});</script>
+<footer class="rodS"><div class="wrap"><a class="logo" href="./" style="color:#fff"><svg><use href="#s"/></svg>SELETA</a>
+<span class="lk"><a href="sobre.html">Sobre</a><a href="blog.html">Blog</a><a href="termos.html">Termos de uso</a><a href="privacidade.html">Privacidade</a><a href="https://wa.me/5561995169154?text=Oi!%20Vim%20pelo%20site%20da%20Seleta." target="_blank" rel="noopener">WhatsApp</a></span>
+<span>© 2026 Seleta · Feito no Brasil</span></div></footer>
+<script src="i18n.js?v=6"></script>
+</body></html>
