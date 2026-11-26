@@ -51,11 +51,19 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("modal"
 const aviso = (txt, ruim) => { const m = $("msgEntrar"); m.textContent = txt; m.className = "msg" + (ruim ? " erro" : ""); };
 const setModo = criar => {
   modoCriar = criar;
-  $("abaEntrar").setAttribute("aria-pressed", !criar); $("abaCriar").setAttribute("aria-pressed", criar);
-  show("campoNome", criar); $("bEntrar").textContent = criar ? "Criar minha conta" : "Entrar";
+  $("eTitulo").textContent = criar ? "Criar estúdio" : "Entrar";
+  $("eSub").textContent = criar ? "14 dias grátis, sem cartão de crédito." : "Acesse o seu estúdio.";
+  show("campoNome", criar); show("esqueci", !criar);
+  $("bEntrar").textContent = criar ? "Criar meu estúdio" : "Entrar";
+  $("senha").autocomplete = criar ? "new-password" : "current-password";
+  $("trocar").innerHTML = criar ? 'Já tem conta? <a href="#" id="lTrocar">Entrar.</a>' : 'Primeira vez aqui? <a href="#" id="lTrocar">Crie o seu estúdio.</a>';
+  $("lTrocar").onclick = e => { e.preventDefault(); show("msgEntrar", false); setModo(!criar); };
 };
-$("abaEntrar").onclick = () => setModo(false);
-$("abaCriar").onclick = () => setModo(true);
+$("lTrocar").onclick = e => { e.preventDefault(); setModo(true); };
+if (/criar/.test(location.search)) setModo(true);
+/* "Manter conectado" desmarcado: a sessão acaba quando o navegador fecha */
+try { if (localStorage.getItem("seleta-temporaria") === "1" && !sessionStorage.getItem("seleta-ativa")) sb.auth.signOut(); } catch {}
+const marcarSessao = () => { try { const m = $("manter").checked; localStorage.setItem("seleta-temporaria", m ? "0" : "1"); sessionStorage.setItem("seleta-ativa", "1"); } catch {} };
 $("fEntrar").onsubmit = async e => {
   e.preventDefault();
   const email = $("email").value.trim(), senha = $("senha").value;
@@ -66,6 +74,7 @@ $("fEntrar").onsubmit = async e => {
       if (error) throw error;
       if (!data.session) aviso("Conta criada. Enviamos um link de confirmação para " + email + ". Clique nele e depois entre aqui.");
     } else {
+      marcarSessao();
       const { error } = await sb.auth.signInWithPassword({ email, password: senha });
       if (error) throw error;
     }
@@ -91,7 +100,7 @@ $("fSenha").onsubmit = async e => {
 $("sair").onclick = () => sb.auth.signOut();
 
 /* ============ moldura do painel ============ */
-const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações" };
+const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança" };
 const celular = () => matchMedia("(max-width:860px)").matches;
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -205,7 +214,7 @@ ROTAS.inicio = async () => {
   const atrasado = atras.reduce((s, p) => s + +p.valor, 0);
   const recebidas = gals.filter(g => g.status === "enviada"), aguardando = gals.filter(g => g.status === "aberta");
   const nome = (estudio.nome || "").split(" ")[0];
-  C().innerHTML = `
+  C().innerHTML = `${avisoPlano()}
     <div class="cabeca"><div><h1>Olá${nome ? ", " + esc(nome) : ""}</h1><p class="mute">${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p></div>
       <div class="acoes"><button class="btn ghost" id="aTrab">Novo trabalho</button><button class="btn ghost" id="aCli">Novo cliente</button><button class="btn fill" id="aGal">Nova galeria</button></div></div>
     <div class="cards">
@@ -296,7 +305,7 @@ function pintarGaleria() {
   const capa = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
   const abas = [["fotos", `Fotos (${fotos.length})`], ["selecao", `Seleção (${marcadas.size})`], ["entrega", "Entrega"], ["ajustes", "Ajustes"]];
   C().innerHTML = `
-    <a class="volta" href="#/galerias">← Álbuns</a>
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="#/galerias" style="margin:0">← Álbuns</a><button class="btn sm ghost" id="excluirAlbum">Excluir álbum</button></div>
     <div class="banner" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}">
       <div class="sobre"><div><h1>${esc(G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${[G.cliente_nome, `${G.fotos_incluidas} no pacote`, `extra ${brl(G.preco_extra)}`, G.prazo && "prazo " + dataBR(G.prazo)].filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${STATUS_G[G.status]}</span></div>
     </div>
@@ -308,6 +317,7 @@ function pintarGaleria() {
     <div id="abaConteudo"></div>`;
   $("copMsg").onclick = async () => { try { await navigator.clipboard.writeText(msgCliente()); toast("Mensagem copiada"); } catch { prompt("Copie a mensagem:", msgCliente()); } };
   document.querySelectorAll(".abasG button").forEach(b => b.onclick = () => { abaG = b.dataset.a; pintarGaleria(); });
+  $("excluirAlbum").onclick = excluirAlbum;
   ({ fotos: abaFotos, selecao: abaSelecao, entrega: abaEntrega, ajustes: abaAjustes })[abaG]();
 }
 
@@ -322,7 +332,7 @@ function abaFotos() {
         <img src="${esc(urlFoto(f.caminho))}" alt="${esc(f.nome_arquivo)}" loading="lazy">
         ${f.id === G.capa_foto_id ? '<span class="capaTag">Capa</span>' : ""}
         <div class="acts"><button data-capa="${f.id}" title="Usar como capa" aria-label="Usar ${esc(f.nome_arquivo)} como capa">★</button><button data-del="${f.id}" title="Excluir" aria-label="Excluir ${esc(f.nome_arquivo)}">×</button></div>
-        ${marcadas.has(f.id) ? '<span class="marca">✓</span>' : ""}
+        ${marcadas.has(f.id) ? '<span class="marca"></span>' : ""}
         ${coments[f.id] ? `<span class="com" title="${esc(coments[f.id])}"><svg><use href="#i-coment"/></svg></span>` : ""}
         <span class="nome">${esc(f.nome_arquivo)}</span>
       </div>`).join("") : `<div class="vazio" style="grid-column:1/-1">Nenhuma foto ainda.</div>`}</div>`;
@@ -366,7 +376,7 @@ function abaSelecao() {
       </div>
       ${comLista.length ? `<div class="coms"><h2>Comentários do cliente (${comLista.length})</h2><ul>${comLista.map(f => `<li><strong>${esc(semExtensao(f.nome_arquivo))}:</strong> ${esc(coments[f.id])}</li>`).join("")}</ul></div>` : ""}
     </div>
-    ${sel.length ? `<div class="fotos" style="margin-top:18px">${sel.map(f => `<div class="tile on"><img src="${esc(urlFoto(f.caminho))}" alt="" loading="lazy"><span class="marca">✓</span>${coments[f.id] ? `<span class="com"><svg><use href="#i-coment"/></svg></span>` : ""}<span class="nome">${esc(f.nome_arquivo)}</span></div>`).join("")}</div>` : ""}`;
+    ${sel.length ? `<div class="fotos" style="margin-top:18px">${sel.map(f => `<div class="tile on"><img src="${esc(urlFoto(f.caminho))}" alt="" loading="lazy"><span class="marca"></span>${coments[f.id] ? `<span class="com"><svg><use href="#i-coment"/></svg></span>` : ""}<span class="nome">${esc(f.nome_arquivo)}</span></div>`).join("")}</div>` : ""}`;
   if ($("copLr")) $("copLr").onclick = async () => { try { await navigator.clipboard.writeText($("lr").value); toast("Lista copiada"); } catch { $("lr").select(); } };
   if ($("reabrir")) $("reabrir").onclick = async () => { try { await q(sb.from("galerias").update({ status: "aberta", enviada_em: null }).eq("id", G.id)); G.status = "aberta"; toast("Galeria reaberta para o cliente"); pintarGaleria(); } catch (e) { erro(e); } };
   if ($("lancar")) $("lancar").onclick = async () => {
@@ -428,15 +438,17 @@ async function abaAjustes() {
     const cod = String(Math.floor(Math.random() * 1e6)).padStart(6, "0");
     try { await q(sb.from("galerias").update({ codigo_acesso: cod }).eq("id", G.id)); G.codigo_acesso = cod; toast("Novo código: " + cod); pintarGaleria(); } catch (e) { erro(e); }
   };
-  $("apagar").onclick = async () => {
-    if (!confirm(`Excluir a galeria “${G.titulo}” e as ${fotos.length} fotos? Isso não pode ser desfeito.`)) return;
-    try {
-      const cam = fotos.map(f => f.caminho);
-      for (let i = 0; i < cam.length; i += 100) await sb.storage.from("fotos").remove(cam.slice(i, i + 100));
-      await q(sb.from("galerias").delete().eq("id", G.id));
-      atualizarUso(); toast("Galeria excluída"); ir("#/galerias");
-    } catch (e) { erro(e); }
-  };
+  $("apagar").onclick = excluirAlbum;
+}
+
+async function excluirAlbum() {
+  if (!confirm(`Excluir o álbum “${G.titulo}” e as ${fotos.length} fotos?\n\nO link do cliente para de funcionar. Isso não pode ser desfeito.`)) return;
+  try {
+    const cam = fotos.map(f => f.caminho);
+    for (let i = 0; i < cam.length; i += 100) await sb.storage.from("fotos").remove(cam.slice(i, i + 100));
+    await q(sb.from("galerias").delete().eq("id", G.id));
+    atualizarUso(); toast("Álbum excluído"); ir("#/galerias");
+  } catch (e) { erro(e); }
 }
 
 /* --- envio com prévia e marca d'água --- */
@@ -455,11 +467,20 @@ async function prepararMarca() {
   await document.fonts.load("500 40px Montserrat").catch(() => {});
   return { texto: (estudio.nome || "").toUpperCase() };
 }
-function textoMarca(x, texto, W, H) {
-  let tam = Math.round(W * 0.045);
-  const medir = () => { x.font = `500 ${tam}px Montserrat, sans-serif`; try { x.letterSpacing = Math.round(tam * 0.25) + "px"; } catch {} return x.measureText(texto).width; };
-  while (medir() > W * 0.7 && tam > 8) tam--;
-  x.fillStyle = "#fff"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(texto, W / 2, H / 2);
+/* Marca discreta: pequena, fina e espaçada. posicao: rodape | canto | centro */
+function desenharMarca(x, marca, W, H, posicao = "rodape") {
+  const lado = Math.min(W, H), m = lado * 0.05;
+  const lugar = (w, h) => posicao === "centro" ? [(W - w) / 2, (H - h) / 2] : posicao === "canto" ? [W - w - m, H - h - m] : [(W - w) / 2, H - h - m * 1.2];
+  if (marca.canvas) {
+    const w = W * (posicao === "centro" ? 0.22 : posicao === "canto" ? 0.1 : 0.13), h = w * marca.canvas.height / marca.canvas.width;
+    const [px, py] = lugar(w, h); x.drawImage(marca.canvas, px, py, w, h);
+  } else if (marca.texto) {
+    let tam = Math.max(9, Math.round(lado * (posicao === "centro" ? 0.032 : 0.022)));
+    const medir = () => { x.font = `400 ${tam}px Montserrat, sans-serif`; try { x.letterSpacing = Math.round(tam * 0.4) + "px"; } catch {} return x.measureText(marca.texto).width; };
+    while (medir() > W * (posicao === "canto" ? 0.4 : 0.6) && tam > 8) tam--;
+    const w = medir(), [px, py] = lugar(w, tam);
+    x.fillStyle = "#fff"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText(marca.texto, px, py);
+  }
 }
 async function previa(file, marca) {
   const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -468,12 +489,7 @@ async function previa(file, marca) {
   const x = c.getContext("2d"); x.drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
   if (marca) {
     x.globalAlpha = +estudio.marca_opacidade || 0.35;
-    if (marca.canvas) {
-      const w = c.width * 0.38, h = w * marca.canvas.height / marca.canvas.width;
-      x.drawImage(marca.canvas, (c.width - w) / 2, (c.height - h) / 2, w, h);
-    } else if (marca.texto) {
-      textoMarca(x, marca.texto, c.width, c.height);
-    }
+    desenharMarca(x, marca, c.width, c.height, estudio.marca_posicao);
     x.globalAlpha = 1;
   }
   return await new Promise(r => c.toBlob(r, "image/jpeg", SELETA.qualidade));
@@ -708,6 +724,7 @@ ROTAS.config = async () => {
       </div>
       <form class="bloco" id="fMarca"><h2>Marca d'água nas prévias</h2>
         <div class="field"><label class="switch"><input type="checkbox" id="mOn" ${estudio.marca_dagua ? "checked" : ""}> Aplicar marca d'água nas fotos que eu subir</label></div>
+        <div class="field"><label for="mPos">Posição</label><select id="mPos">${[["rodape", "Discreta, no rodapé"], ["canto", "Pequena, no canto"], ["centro", "No centro"]].map(([v, t]) => `<option value="${v}" ${(estudio.marca_posicao || "rodape") === v ? "selected" : ""}>${t}</option>`).join("")}</select></div>
         <div class="field"><label for="mOp">Intensidade: <span id="mOpTxt">${Math.round((+estudio.marca_opacidade || .35) * 100)}%</span></label><input id="mOp" type="range" min="0.1" max="0.8" step="0.05" value="${+estudio.marca_opacidade || .35}" style="padding:0"></div>
         <canvas class="previa" id="mPrev" width="600" height="400" aria-label="Prévia da marca d'água"></canvas>
         <p class="small mute" style="margin:10px 0 14px">Vale para as próximas fotos enviadas. As que já estão na galeria não mudam.</p>
@@ -723,12 +740,12 @@ ROTAS.config = async () => {
     const salvo = estudio.marca_opacidade; estudio.marca_opacidade = +$("mOp").value;
     const m = await prepararMarca().catch(() => null) || { texto: (estudio.nome || "").toUpperCase() };
     x.globalAlpha = estudio.marca_opacidade;
-    if (m.canvas) { const w = 600 * .38, h = w * m.canvas.height / m.canvas.width; x.drawImage(m.canvas, 300 - w / 2, 200 - h / 2, w, h); }
-    else textoMarca(x, m.texto, 600, 400);
+    desenharMarca(x, m, 600, 400, $("mPos").value);
     x.globalAlpha = 1; estudio.marca_opacidade = salvo;
   };
   const marcaOn = estudio.marca_dagua; estudio.marca_dagua = true; await desenhar(); estudio.marca_dagua = marcaOn;
   $("mOp").oninput = () => { $("mOpTxt").textContent = Math.round($("mOp").value * 100) + "%"; const o = estudio.marca_dagua; estudio.marca_dagua = true; desenhar().then(() => estudio.marca_dagua = o); };
+  $("mPos").onchange = () => { const o = estudio.marca_dagua; estudio.marca_dagua = true; desenharMarca && desenhar().then(() => estudio.marca_dagua = o); };
   $("mOn").onchange = () => { const o = estudio.marca_dagua; estudio.marca_dagua = true; desenhar().then(() => estudio.marca_dagua = o); };
   $("fEst").onsubmit = async e => {
     e.preventDefault();
@@ -737,7 +754,7 @@ ROTAS.config = async () => {
   };
   $("fMarca").onsubmit = async e => {
     e.preventDefault();
-    try { Object.assign(estudio, await q(sb.from("estudios").update({ marca_dagua: $("mOn").checked, marca_opacidade: +$("mOp").value }).eq("id", user.id).select().single())); toast("Marca d'água salva"); }
+    try { Object.assign(estudio, await q(sb.from("estudios").update({ marca_dagua: $("mOn").checked, marca_opacidade: +$("mOp").value, marca_posicao: $("mPos").value }).eq("id", user.id).select().single())); toast("Marca d'água salva"); }
     catch (err) { erro(err); }
   };
   $("cLogo").onchange = async e => {
@@ -838,5 +855,46 @@ ROTAS.tarefas = async () => {
     try { await q(sb.from("tarefas").insert({ titulo: $("tTit").value.trim(), vencimento: $("tData").value || null })); rota(); } catch (err) { erro(err); }
   };
   ligarTarefas(ts, $("tLista"));
+};
+
+/* ============ PLANO E COBRANÇA ============ */
+const PLANOS = [
+  { id: "essencial", nome: "Essencial", m: 24.9, desc: "Para quem está começando a entregar com profissionalismo.", itens: ["20 GB de armazenamento", "15 álbuns ativos", "Seleção com limite do pacote e fotos extras", "Lista pronta pro Lightroom", "Marca d'água com o nome do estúdio"] },
+  { id: "profissional", nome: "Profissional", m: 44.9, rec: true, desc: "Para o estúdio que quer crescer: sua marca nas prévias, clientes, agenda e financeiro.", itens: ["80 GB de armazenamento", "Álbuns ilimitados", "Clientes, trabalhos, agenda, tarefas e financeiro", "Marca d'água com o seu logo", "Entrega das fotos finais"] },
+  { id: "estudio", nome: "Estúdio", m: 84.9, desc: "Para estúdios com alto volume e equipe.", itens: ["250 GB de armazenamento", "Tudo do Profissional", "Domínio próprio", "Sem a marca Seleta na galeria", "Até 3 usuários"] }
+];
+const diasTeste = () => estudio?.teste_ate ? Math.ceil((dia(estudio.teste_ate) - dia(hoje())) / 864e5) : 14;
+function avisoPlano() {
+  if (!estudio || (estudio.plano && estudio.plano !== "teste")) return "";
+  const d = diasTeste();
+  return `<div class="aviso"><span>${d > 0 ? `Você está no teste grátis: <strong style="font-weight:500">${d} ${d === 1 ? "dia restante" : "dias restantes"}</strong>.` : `<strong style="font-weight:500">Seu teste grátis terminou.</strong> Tudo foi mantido. Escolha um plano para continuar.`}</span><a class="btn sm fill" href="#/plano">Ver planos</a></div>`;
+}
+let cicloPlano = "mensal", planoSel = "profissional";
+ROTAS.plano = async () => {
+  const atual = estudio.plano && estudio.plano !== "teste" ? PLANOS.find(p => p.id === estudio.plano) : null;
+  const d = diasTeste();
+  const preco = p => cicloPlano === "anual" ? p.m * 10 / 12 : p.m;
+  const pintar = () => {
+    const p = PLANOS.find(x => x.id === planoSel);
+    C().innerHTML = `<div class="planosApp">
+      <h1>${atual ? "Seu plano" : d > 0 ? "Escolha seu plano" : "Seu teste terminou"}</h1>
+      <p class="mute" style="margin:10px 0 26px;font-size:16px">${atual ? `Você está no plano <strong style="font-weight:500">${esc(atual.nome)}</strong>.` : d > 0 ? `Seu teste grátis vai até ${esc(dataBR(estudio.teste_ate))} (${d} ${d === 1 ? "dia" : "dias"}). Assine quando quiser: nada do que você já fez se perde.` : `Seu teste terminou em ${esc(dataBR(estudio.teste_ate))}. Tudo foi mantido; escolha um plano para continuar.`}</p>
+      <div class="ciclo" role="group" aria-label="Cobrança"><button data-c="mensal" aria-pressed="${cicloPlano === "mensal"}">Mensal</button><button data-c="anual" aria-pressed="${cicloPlano === "anual"}">Anual</button></div>
+      <p class="mute small" style="margin-bottom:16px">Todos os planos incluem álbuns com seleção do cliente, comentários por foto, marca d'água e lista pro Lightroom.</p>
+      ${PLANOS.map(x => `<label class="opPlano${x.id === planoSel ? " sel" : ""}"><div class="lin"><input type="radio" name="plano" value="${x.id}" ${x.id === planoSel ? "checked" : ""}><div style="flex:1;min-width:0"><span class="nome">${x.nome}</span>${x.rec ? '<span class="rec">Recomendado</span>' : ""}<p>${x.desc}</p><details><summary>Ver detalhes</summary><ul>${x.itens.map(i => `<li>${i}</li>`).join("")}</ul></details></div><span class="pr">${brl(preco(x))}/mês${cicloPlano === "anual" ? `<br><span class="small">${brl(x.m * 10)} por ano</span>` : ""}</span></div></label>`).join("")}
+      <p class="miudo">No plano anual você paga 10 meses e usa 12 (economia de cerca de 17%).</p>
+      <button class="btn fill assinar" id="assinar">Assinar ${p.nome} · ${brl(preco(p))}/mês</button>
+      <p class="miudo">Pagamento seguro · Cancele quando quiser · Recibo por e-mail</p>
+      <div id="msgPlano"></div>
+    </div>`;
+    C().querySelectorAll("[data-c]").forEach(b => b.onclick = () => { cicloPlano = b.dataset.c; pintar(); });
+    C().querySelectorAll("input[name=plano]").forEach(r => r.onchange = () => { planoSel = r.value; pintar(); });
+    $("assinar").onclick = () => {
+      const link = SELETA.pagamento?.[planoSel]?.[cicloPlano];
+      if (link) { window.open(link, "_blank", "noopener"); return; }
+      $("msgPlano").innerHTML = `<div class="msg" style="margin-top:16px">O pagamento online está sendo ativado. Enquanto isso, fale com a gente para assinar: <a href="mailto:brunopasseri@gmail.com?subject=${encodeURIComponent("Quero assinar o plano " + p.nome + " (" + cicloPlano + ")")}">enviar e-mail</a>.</div>`;
+    };
+  };
+  pintar();
 };
 }

@@ -16,7 +16,7 @@ async function abrir(codigo) {
   cod = codigo; gravarCod(codigo); g = data; marc = new Set(g.marcadas || []); coms = g.comentarios || {};
   show("vCodigo", false);
   document.title = g.titulo + (g.estudio?.nome ? " · " + g.estudio.nome : "");
-  const capa = g.capa || g.fotos[0]?.caminho;
+  const capa = g.capa || g.fotos[0]?.caminho; capaAtual = capa;
   if (capa) $("hero").style.backgroundImage = `url('${urlFoto(capa)}')`;
   $("hTopo").innerHTML = marcaEstudio(g.estudio);
   $("hTitulo").textContent = g.titulo;
@@ -50,7 +50,7 @@ function pintar() {
   $("grade").innerHTML = lista.length ? lista.map(({ f, i }) => `
     <div class="tile${marc.has(f.id) ? " on" : ""}" data-i="${i}">
       <img src="${esc(urlFoto(f.caminho))}" alt="Foto ${i + 1}" loading="lazy" data-ver="${i}">
-      <button class="marca" data-marcar="${i}" aria-pressed="${marc.has(f.id)}" aria-label="Marcar foto ${i + 1}">✓</button>
+      <button class="marca" data-marcar="${i}" aria-pressed="${marc.has(f.id)}" aria-label="Selecionar foto ${i + 1}"></button>
       ${coms[f.id] ? `<span class="com" title="${esc(coms[f.id])}">✎</span>` : ""}
       <span class="nome">${esc(semExtensao(f.nome))}</span>
     </div>`).join("") : `<div class="vazio" style="grid-column:1/-1">${so ? "Nenhuma foto marcada ainda." : "O fotógrafo ainda não subiu as fotos."}</div>`;
@@ -62,7 +62,7 @@ function alternar(i) {
   const t = document.querySelector(`.tile[data-i="${i}"]`);
   if (so) pintar();
   else if (t) { t.classList.toggle("on", marc.has(id)); t.querySelector(".marca").setAttribute("aria-pressed", marc.has(id)); medidor(); }
-  if (atual === i) $("cMarcar").textContent = marc.has(id) ? "✓ Marcada" : "Marcar";
+  if (atual === i) pintarCaixaBotoes();
   $("salvo").textContent = "Salvando…";
   clearTimeout(timer); timer = setTimeout(salvar, 700);
 }
@@ -84,21 +84,37 @@ function caixa(i) {
   atual = i; const f = g.fotos[i];
   $("cImg").src = urlFoto(f.caminho); $("cImg").alt = "Foto " + (i + 1);
   $("cNome").textContent = `${i + 1} de ${g.fotos.length} · ${semExtensao(f.nome)}`;
-  $("cMarcar").textContent = marc.has(f.id) ? "✓ Marcada" : "Marcar";
+  pintarCaixaBotoes();
   $("cTexto").value = coms[f.id] || ""; $("cSalvarCom").textContent = "Salvar";
   show("caixa", true);
 }
+function pintarCaixaBotoes() {
+  const f = g.fotos[atual]; if (!f) return;
+  const sel = marc.has(f.id);
+  $("cMarcar").textContent = sel ? "Selecionada" : "Selecionar";
+  $("cMarcar").classList.toggle("fill", !sel); $("cMarcar").classList.toggle("ghost", sel);
+  $("cCapa").textContent = capaAtual === f.caminho ? "É a capa" : "Usar como capa";
+  $("cCapa").disabled = capaAtual === f.caminho;
+}
+let capaAtual = null;
 const fechar = () => { atual = -1; show("caixa", false); pintar(); };
 $("cFechar").onclick = fechar;
 $("cMarcar").onclick = () => alternar(atual);
 $("cAnt").onclick = () => caixa((atual - 1 + g.fotos.length) % g.fotos.length);
 $("cProx").onclick = () => caixa((atual + 1) % g.fotos.length);
+$("cCapa").onclick = async () => {
+  const f = g.fotos[atual];
+  const { error } = await sb.rpc("definir_capa", { p_slug: slug, p_codigo: cod, p_foto: f.id });
+  if (error) { $("cCapa").textContent = "Não deu certo"; return; }
+  capaAtual = f.caminho; $("hero").style.backgroundImage = `url('${urlFoto(f.caminho)}')`;
+  pintarCaixaBotoes();
+};
 $("cSalvarCom").onclick = async () => {
   const f = g.fotos[atual], txt = $("cTexto").value.trim();
   const { error } = await sb.rpc("comentar_foto", { p_slug: slug, p_codigo: cod, p_foto: f.id, p_texto: txt });
   if (error) { $("cSalvarCom").textContent = "Erro"; return; }
   if (txt) coms[f.id] = txt; else delete coms[f.id];
-  $("cSalvarCom").textContent = "Salvo ✓";
+  $("cSalvarCom").textContent = "Salvo";
 };
 document.addEventListener("keydown", e => {
   if (atual < 0 || e.target.tagName === "TEXTAREA") return;
