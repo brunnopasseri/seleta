@@ -486,7 +486,7 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
   <p class="credito">Fotos de demonstração: Unsplash.</p>
 </div></footer>
 
-<script src="i18n.js?v=3"></script>
+<script src="i18n.js?v=4"></script>
 <script>try{const r=new URLSearchParams(location.search).get("ref");if(r)localStorage.setItem("seleta-ref",r.toLowerCase().replace(/[^a-z0-9-]/g,""))}catch{}</script>
 <script>
 {
@@ -515,9 +515,9 @@ pintar();
 
 /* planos */
 const planos = [
-  { n: "Essencial", m: 24.9, d: ["20 GB de armazenamento", "15 galerias ativas", "Seleção com limite do pacote", "Lista pro Lightroom", "Marca d'água com seu nome"] },
-  { n: "Profissional", m: 44.9, rec: 1, d: ["80 GB de armazenamento", "Galerias ilimitadas", "Clientes, agenda e financeiro", "Marca d'água com seu logo", "Entrega das fotos finais"] },
-  { n: "Estúdio", m: 84.9, d: ["250 GB de armazenamento", "Tudo do Profissional", "Domínio próprio", "Sem a marca Seleta", "Até 3 usuários"] }
+  { n: "Essencial", m: 24.9, d: ["20 GB de armazenamento", "15 galerias ativas", "Seleção com limite e fotos extras", "Entrega de fotos tratadas", "Clientes, agenda e financeiro", "Marca d'água padrão da Seleta"] },
+  { n: "Profissional", m: 44.9, rec: 1, d: ["80 GB de armazenamento", "60 galerias ativas", "Marca d'água com seu logo ou nome", "Galeria com o seu visual", "Aprovação de álbum", "CRM: funil, conversas e relatórios"] },
+  { n: "Estúdio", m: 84.9, d: ["250 GB de armazenamento", "Galerias ilimitadas", "Tudo do Profissional", "Sem \"feito com Seleta\" na galeria", "Domínio próprio (em breve)", "Até 3 usuários (em breve)"] }
 ];
 let anual = false;
 const brl = v => "R$ " + v.toFixed(2).replace(".", ",");

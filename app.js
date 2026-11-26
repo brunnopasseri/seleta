@@ -103,7 +103,7 @@ $("fSenha").onsubmit = async e => {
 $("sair").onclick = () => sb.auth.signOut();
 
 /* ============ moldura do painel ============ */
-const TITULOS = { inicio: "Painel", galerias: "Galerias", galeria: "Galeria", entregas: "Entregas", diagramacoes: "Aprovação de álbum", diagramacao: "Aprovação de álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança", conversas: "Conversas", relatorios: "Relatórios", funil: "Funil", indique: "Indique e ganhe" };
+const TITULOS = { inicio: "Painel", galerias: "Galerias", galeria: "Galeria", entregas: "Entregas", diagramacoes: "Aprovação de álbum", diagramacao: "Aprovação de álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança", admin: "Administrador", conversas: "Conversas", relatorios: "Relatórios", funil: "Funil", indique: "Indique e ganhe" };
 const celular = () => matchMedia("(max-width:860px)").matches;
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -202,7 +202,7 @@ async function entrar() {
 }
 async function carregarEstudio() {
   estudio = await q(sb.from("estudios").select("*").eq("id", user.id).maybeSingle()) || { id: user.id, nome: "Meu estúdio", marca_dagua: true, marca_opacidade: 0.35 };
-  pintarConta();
+  pintarConta(); marcarTravados();
   if (!estudio.slug) {
     const base = slugify(estudio.nome || user.email.split("@")[0]);
     for (let i = 0; i < 30; i++) {
@@ -235,13 +235,17 @@ const ROTAS = {};
 async function rota() {
   if (!user) return;
   const [nome, arg] = location.hash.replace(/^#\/?/, "").split("/");
-  const r = ROTAS[nome] ? nome : "inicio";
+  let r = ROTAS[nome] ? nome : "inicio";
+  if (estudio && nivelAtual() === 0 && r !== "plano") { if (location.hash !== "#/plano") { location.hash = "#/plano"; return; } r = "plano"; }
   const ativo = r === "galeria" ? "galerias" : r === "cliente" ? "clientes" : r === "plano" ? "config" : r === "diagramacao" ? "diagramacoes" : r;
   document.querySelectorAll("#menu a, .ladoPe a[data-r]").forEach(a => a.classList.toggle("on", a.dataset.r === ativo));
   $("tituloPag").textContent = TITULOS[r] || "";
   document.title = (TITULOS[r] || "Painel") + " · Seleta";
   $("vPainel").classList.remove("aberto");
   notificacoes();
+  marcarTravados();
+  const TRAVA = { diagramacoes: "album", diagramacao: "album", funil: "crm", conversas: "crm", relatorios: "crm" };
+  if (TRAVA[r] && !pode(TRAVA[r])) { C().innerHTML = cadeado(TRAVA[r]); return; }
   C().innerHTML = `<p class="mute">Carregando…</p>`;
   try { await ROTAS[r](arg ? decodeURIComponent(arg) : null); } catch (e) { C().innerHTML = `<div class="msg erro">Não foi possível carregar: ${esc(e.message || e)}</div>`; console.error(e); }
   C().focus({ preventScroll: true }); window.scrollTo(0, 0);
@@ -354,6 +358,11 @@ async function novaEntrega() {
 }
 
 async function novaGaleria(pre = {}) {
+  const lim = LIMITE_GAL[nivelAtual()] ?? 15;
+  if (lim !== Infinity) {
+    const { count } = await sb.from("galerias").select("id", { count: "exact", head: true }).neq("status", "encerrada").eq("so_entrega", false);
+    if ((count || 0) >= lim) { if (confirm(`Seu plano permite ${lim} galerias ativas e você já tem ${count}. Encerre uma galeria antiga ou mude de plano. Ver planos?`)) ir("#/plano"); return; }
+  }
   const [cs, ts] = await Promise.all([listaClientes(), listaTrabalhos()]);
   formulario({
     titulo: "Nova galeria", botao: "Criar galeria",
@@ -434,7 +443,7 @@ function abaFotos() {
         <img src="${esc(urlFoto(f.caminho))}" alt="${esc(f.nome_arquivo)}" loading="lazy">
         ${f.id === G.capa_foto_id ? '<span class="capaTag">Capa</span>' : ""}
         ${f.destaque ? '<span class="favTag" title="Favorita do fotógrafo">♥</span>' : ""}
-        <div class="acts"><button data-fav="${f.id}" title="${f.destaque ? "Tirar das favoritas" : "Marcar como favorita do fotógrafo"}" aria-label="Favorita: ${esc(f.nome_arquivo)}" aria-pressed="${!!f.destaque}">${f.destaque ? "♥" : "♡"}</button><button data-capa="${f.id}" title="Usar como capa" aria-label="Usar ${esc(f.nome_arquivo)} como capa">★</button><button data-del="${f.id}" title="Excluir" aria-label="Excluir ${esc(f.nome_arquivo)}">×</button></div>
+        <div class="acts">${pode("favoritas") ? "" : "<!--"}<button data-fav="${f.id}" title="${f.destaque ? "Tirar das favoritas" : "Marcar como favorita do fotógrafo"}" aria-label="Favorita: ${esc(f.nome_arquivo)}" aria-pressed="${!!f.destaque}">${f.destaque ? "♥" : "♡"}</button>${pode("favoritas") ? "" : "-->"}<button data-capa="${f.id}" title="Usar como capa" aria-label="Usar ${esc(f.nome_arquivo)} como capa">★</button><button data-del="${f.id}" title="Excluir" aria-label="Excluir ${esc(f.nome_arquivo)}">×</button></div>
         ${marcadas.has(f.id) ? '<span class="marca"></span>' : ""}
         ${coments[f.id] ? `<span class="com" title="${esc(coments[f.id])}"><svg><use href="#i-coment"/></svg></span>` : ""}
         <span class="nome">${esc(f.nome_arquivo)}</span>
@@ -666,6 +675,7 @@ const FONTES_MARCA = {
 };
 /* cfg: tipo (texto|imagem), texto, fonte, url — por padrão, o que está salvo no estúdio */
 async function prepararMarca(cfg = {}) {
+  if (!pode("marca")) cfg = { tipo: "texto", texto: "SELETA", fonte: "moderna" };
   const tipo = cfg.tipo ?? estudio.marca_tipo ?? "texto";
   const url = cfg.url ?? estudio.marca_url ?? estudio.logo_url;
   if (tipo === "imagem" && url) {
@@ -992,7 +1002,7 @@ ROTAS.config = async sub => {
         <p class="small mute" style="margin-bottom:12px">Use PNG com fundo transparente. Ele aparece no topo da galeria do cliente e é usado na marca d'água.</p>
         <div class="acoes"><label class="btn ghost" for="cLogo">Escolher logo</label><input id="cLogo" type="file" accept="image/png,image/jpeg,image/webp" class="hide">${estudio.logo_url ? `<button class="btn ghost" id="tirarLogo">Remover</button>` : ""}</div>
       </div>
-      <form class="bloco" id="fMarca" style="grid-column:1/-1"><h2>Marca d'água nas prévias</h2>
+      <form class="bloco" id="fMarca" style="grid-column:1/-1"><h2>Marca d'água nas prévias</h2>${pode("marca") ? "" : `<div class="msg" style="margin:8px 0 14px">No plano Essencial, as prévias levam a marca d'água da Seleta. Para usar seu logo ou seu nome, <a href="#/plano">conheça o Profissional</a>.</div>`}
         <div class="marcaGrid">
           <div>
             <div class="field"><label class="switch"><input type="checkbox" id="mOn" ${estudio.marca_dagua ? "checked" : ""}> Aplicar marca d'água nas fotos que eu subir</label></div>
@@ -1193,47 +1203,164 @@ ROTAS.tarefas = async () => {
 
 /* ============ PLANO E COBRANÇA ============ */
 const PLANOS = [
-  { id: "essencial", nome: "Essencial", m: 24.9, desc: "Para quem está começando a entregar com profissionalismo.", itens: ["20 GB de armazenamento", "15 galerias ativas", "Seleção com limite do pacote e fotos extras", "Lista pronta pro Lightroom", "Marca d'água com o nome do estúdio"] },
-  { id: "profissional", nome: "Profissional", m: 44.9, rec: true, desc: "Para o estúdio que quer crescer: sua marca nas prévias, clientes, agenda e financeiro.", itens: ["80 GB de armazenamento", "Galerias ilimitadas", "Clientes, trabalhos, agenda, tarefas e financeiro", "Marca d'água com o seu logo", "Entrega das fotos finais"] },
-  { id: "estudio", nome: "Estúdio", m: 84.9, desc: "Para estúdios com alto volume e equipe.", itens: ["250 GB de armazenamento", "Tudo do Profissional", "Domínio próprio", "Sem a marca Seleta na galeria", "Até 3 usuários"] }
+  { id: "essencial", nome: "Essencial", m: 24.9, desc: "Para quem está começando a entregar com profissionalismo.",
+    itens: ["20 GB de armazenamento", "15 galerias ativas", "Seleção com limite do pacote e fotos extras", "Entrega de fotos tratadas", "Clientes, agenda, tarefas e financeiro", "Marca d'água padrão da Seleta"] },
+  { id: "profissional", nome: "Profissional", m: 44.9, rec: true, desc: "Para o estúdio que quer crescer: sua marca, seu visual e o CRM.",
+    itens: ["80 GB de armazenamento", "60 galerias ativas", "Marca d'água com seu logo ou nome", "Galeria com o seu visual: capas, temas e fontes", "Aprovação de álbum", "CRM: funil, conversas e relatórios", "Favoritas do fotógrafo e proteção contra print"] },
+  { id: "estudio", nome: "Estúdio", m: 84.9, desc: "Para estúdios com alto volume e equipe.",
+    itens: ["250 GB de armazenamento", "Galerias ilimitadas", "Tudo do Profissional", "Sem \"feito com Seleta\" na galeria", "Domínio próprio (em breve)", "Até 3 usuários (em breve)"] }
 ];
-const diasTeste = () => estudio?.teste_ate ? Math.ceil((dia(estudio.teste_ate) - dia(hoje())) / 864e5) : 14;
+/* ---- níveis e recursos ---- */
+const ehAdmin = () => (user?.email || "").toLowerCase() === "brunnopasseri@gmail.com";
+const NIVEL_PLANO = { essencial: 1, profissional: 2, estudio: 3 };
+const diasPara = d => d ? Math.round((dia(d) - dia(hoje())) / 864e5) : -999;
+function nivelAtual() {
+  if (ehAdmin()) return 3;
+  if (!estudio) return 3;
+  if (estudio.plano === "teste") return diasPara(estudio.teste_ate) >= 0 ? 3 : 0;
+  if (NIVEL_PLANO[estudio.plano]) return diasPara(estudio.plano_ate) >= -3 ? NIVEL_PLANO[estudio.plano] : 0;
+  return 0;
+}
+const REC = { marca: 2, design: 2, album: 2, crm: 2, favoritas: 2, protecao: 2, semMarca: 3 };
+const NOME_REC = { marca: "Marca d'água personalizada", design: "Visual personalizado da galeria", album: "Aprovação de álbum", crm: "CRM", favoritas: "Favoritas do fotógrafo" };
+const pode = rec => nivelAtual() >= (REC[rec] || 1);
+const LIMITE_GAL = { 1: 15, 2: 60, 3: Infinity };
+function cadeado(rec) {
+  const n = REC[rec] >= 3 ? "Estúdio" : "Profissional";
+  return `<div class="cadeado bloco"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    <h2>${esc(NOME_REC[rec] || "Recurso")}</h2><p class="mute">Disponível a partir do plano ${n}.</p><a class="btn fill" href="#/plano">Ver planos</a></div>`;
+}
+function marcarTravados() {
+  const map = { diagramacoes: "album", funil: "crm", conversas: "crm", relatorios: "crm" };
+  for (const [r, rec] of Object.entries(map)) document.querySelector(`#menu a[data-r="${r}"]`)?.classList.toggle("travado", !pode(rec));
+  document.querySelectorAll(".soAdmin").forEach(el => el.classList.toggle("hide", !ehAdmin()));
+}
+const diasTeste = () => estudio?.teste_ate ? diasPara(estudio.teste_ate) : 14;
 function avisoPlano() {
-  if (!estudio || (estudio.plano && estudio.plano !== "teste")) return "";
-  const d = diasTeste();
-  return `<div class="aviso"><span>${d > 0 ? `Você está no teste grátis: <strong style="font-weight:500">${d} ${d === 1 ? "dia restante" : "dias restantes"}</strong>.` : `<strong style="font-weight:500">Seu teste grátis terminou.</strong> Tudo foi mantido. Escolha um plano para continuar.`}</span><a class="btn sm fill" href="#/plano">Ver planos</a></div>`;
+  if (!estudio || ehAdmin()) return "";
+  if (estudio.plano === "teste") {
+    const d = diasTeste();
+    return `<div class="aviso"><span>${d > 0 ? `Você está no teste grátis: <strong style="font-weight:500">${d} ${d === 1 ? "dia restante" : "dias restantes"}</strong>.` : d === 0 ? `<strong style="font-weight:500">Último dia do seu teste grátis.</strong>` : `<strong style="font-weight:500">Seu teste terminou.</strong>`}</span><a class="btn sm fill" href="#/plano">Ver planos</a></div>`;
+  }
+  const d = diasPara(estudio.plano_ate);
+  if (d < 0 && d >= -3) return `<div class="aviso alerta"><span><strong style="font-weight:500">Pagamento pendente.</strong> Regularize em até ${3 + d} ${3 + d === 1 ? "dia" : "dias"} para não pausar seu acesso.</span><a class="btn sm fill" href="#/plano">Pagar agora</a></div>`;
+  if (d >= 0 && d <= 3) return `<div class="aviso"><span>Seu plano renova em ${d === 0 ? "hoje" : d + (d === 1 ? " dia" : " dias")}.</span></div>`;
+  return "";
 }
 let cicloPlano = "mensal", planoSel = "profissional";
 ROTAS.plano = async () => {
-  const atual = estudio.plano && estudio.plano !== "teste" ? PLANOS.find(p => p.id === estudio.plano) : null;
-  const d = diasTeste();
+  const nv = nivelAtual(), pago = NIVEL_PLANO[estudio.plano];
+  const atual = pago ? PLANOS.find(p => p.id === estudio.plano) : null;
+  if (atual && planoSel === "profissional" && !pintarPlano.mexeu) planoSel = atual.id;
   const temAnual = Object.values(SELETA.pagamento || {}).some(x => x.anual);
   if (!temAnual) cicloPlano = "mensal";
   const preco = p => cicloPlano === "anual" ? p.m * 10 / 12 : p.m;
-  const pintar = () => {
+  const d = pago ? diasPara(estudio.plano_ate) : diasTeste();
+  const bloqueado = nv === 0;
+  const status = bloqueado
+    ? `<div class="statusPlano ruim"><b>${pago ? "Seu acesso está pausado" : "Seu teste grátis terminou"}</b><span>${pago ? "Não encontramos o pagamento do seu plano. Atualize o pagamento para voltar a usar a Seleta. Suas galerias e dados continuam guardados." : "Escolha um plano para continuar usando a Seleta. Tudo o que você criou continua guardado."}</span></div>`
+    : pago ? `<div class="statusPlano${d < 0 ? " ruim" : ""}"><b>Plano ${esc(atual.nome)}${d < 0 ? " · pagamento pendente" : ""}</b><span>${d < 0 ? "Regularize o pagamento para não pausar o acesso." : "Ativo até " + esc(dataBR(estudio.plano_ate)) + ". A renovação é automática no cartão ou por Pix."}</span></div>`
+    : `<div class="statusPlano"><b>Teste grátis · ${d} ${d === 1 ? "dia restante" : "dias restantes"}</b><span>Até ${esc(dataBR(estudio.teste_ate))}, com todos os recursos liberados. Assine quando quiser: nada do que você fez se perde.</span></div>`;
+  const cob = estudio.cobranca || {};
+  function pintarPlano() {
     const p = PLANOS.find(x => x.id === planoSel);
-    C().innerHTML = `<a class="volta" href="#/config">← Configurações</a><div class="planosApp">
-      <h1>${atual ? "Seu plano" : d > 0 ? "Escolha seu plano" : "Seu teste terminou"}</h1>
-      <p class="mute" style="margin:10px 0 26px;font-size:16px">${atual ? `Você está no plano <strong style="font-weight:500">${esc(atual.nome)}</strong>.` : d > 0 ? `Seu teste grátis vai até ${esc(dataBR(estudio.teste_ate))} (${d} ${d === 1 ? "dia" : "dias"}). Assine quando quiser: nada do que você já fez se perde.` : `Seu teste terminou em ${esc(dataBR(estudio.teste_ate))}. Tudo foi mantido; escolha um plano para continuar.`}</p>
+    C().innerHTML = `${bloqueado ? "" : `<a class="volta" href="#/config">← Configurações</a>`}<div class="planosApp">
+      <h1>${bloqueado ? (pago ? "Atualize seu pagamento" : "Escolha seu plano") : atual ? "Seu plano" : "Escolha seu plano"}</h1>
+      ${status}
       <div class="ciclo${temAnual ? "" : " hide"}" role="group" aria-label="Cobrança"><button data-c="mensal" aria-pressed="${cicloPlano === "mensal"}">Mensal</button><button data-c="anual" aria-pressed="${cicloPlano === "anual"}">Anual</button></div>
-      <p class="mute small" style="margin-bottom:16px">Todos os planos incluem galerias com seleção do cliente, comentários por foto, marca d'água e lista pro Lightroom.</p>
-      ${PLANOS.map(x => `<label class="opPlano${x.id === planoSel ? " sel" : ""}"><div class="lin"><input type="radio" name="plano" value="${x.id}" ${x.id === planoSel ? "checked" : ""}><div style="flex:1;min-width:0"><span class="nome">${x.nome}</span>${x.rec ? '<span class="rec">Recomendado</span>' : ""}<p>${x.desc}</p><details><summary>Ver detalhes</summary><ul>${x.itens.map(i => `<li>${i}</li>`).join("")}</ul></details></div><span class="pr">${brl(preco(x))}/mês${cicloPlano === "anual" ? `<br><span class="small">${brl(x.m * 10)} por ano</span>` : ""}</span></div></label>`).join("")}
-      <p class="miudo">No plano anual você paga 10 meses e usa 12 (economia de cerca de 17%).</p>
-      <button class="btn fill assinar" id="assinar">Assinar ${p.nome} · ${brl(preco(p))}/mês</button>
-      <p class="miudo">Pagamento seguro · Cancele quando quiser · Recibo por e-mail</p>
+      <p class="mute small" style="margin-bottom:16px">Todos os planos incluem galerias com seleção do cliente, entrega das fotos, download em .zip, agenda, tarefas e financeiro.</p>
+      ${PLANOS.map(x => `<label class="opPlano${x.id === planoSel ? " sel" : ""}"><div class="lin"><input type="radio" name="plano" value="${x.id}" ${x.id === planoSel ? "checked" : ""}><div style="flex:1;min-width:0"><span class="nome">${x.nome}</span>${x.rec ? '<span class="rec">Recomendado</span>' : ""}${atual?.id === x.id ? '<span class="rec">Seu plano</span>' : ""}<p>${x.desc}</p>
+        <ul class="itensPlano">${x.itens.map(i => `<li>${esc(i)}</li>`).join("")}</ul>${temAnual ? `<p class="small mute">ou ${brl(x.m * 10 / 12)} por mês no plano anual · economize 17%</p>` : ""}</div>
+        <span class="pr">${brl(preco(x))}/mês${cicloPlano === "anual" ? `<br><span class="small">${brl(x.m * 10)} por ano</span>` : ""}</span></div></label>`).join("")}
+      <button class="btn fill assinar" id="assinar">${atual?.id === planoSel ? "Pagar ou atualizar cartão" : "Assinar " + p.nome} · ${brl(preco(p))}/mês</button>
+      <p class="miudo">Pagamento seguro pela InfinitePay · Pix ou cartão em até 12x · Cancele quando quiser</p>
+      <p class="miudo">Já pagou? A liberação é feita em até 1 dia útil. Se demorar, <a href="#" data-suporte>fale com o suporte</a>.</p>
       <div id="msgPlano"></div>
+      <div class="bloco cupomBox"><h2>Tem um cupom?</h2><p class="small mute">Cupons dão dias grátis a mais no seu teste ou no seu plano.</p>
+        <form id="fCupom" class="row" style="margin-top:12px;gap:8px"><input id="cupom" placeholder="Ex.: FOTOGRAFO30" autocomplete="off" style="max-width:240px;text-transform:uppercase"><button class="btn">Aplicar</button></form><p class="small" id="msgCupom" role="status"></p></div>
+      <div class="bloco"><h2>Dados de cobrança</h2><p class="small mute" style="margin-bottom:14px">Para quem as cobranças e os recibos são emitidos.</p>
+        <form id="fCob" class="grid2">
+          <div class="field"><label>Cobrado de</label><input value="${esc(estudio.nome || "")}" disabled></div>
+          <div class="field"><label for="cDoc">CPF ou CNPJ</label><input id="cDoc" inputmode="numeric" value="${esc(cob.doc || "")}" placeholder="000.000.000-00"></div>
+          <div class="field" style="grid-column:1/-1"><label for="cEmail">E-mail de cobrança</label><input id="cEmail" type="email" value="${esc(cob.email || "")}" placeholder="${esc(user.email)}"><span class="small mute">Deixe em branco para usar ${esc(user.email)}.</span></div>
+          <div class="field"><label for="cTel">Telefone</label><input id="cTel" inputmode="tel" value="${esc(cob.telefone || "")}" placeholder="(61) 99999-9999"></div>
+          <div class="field"><label for="cEnd">Endereço</label><input id="cEnd" value="${esc(cob.endereco || "")}" placeholder="Rua, número, cidade, estado"></div>
+          <div class="acoes" style="grid-column:1/-1"><button class="btn fill">Salvar dados</button></div>
+        </form></div>
     </div>`;
-    C().querySelectorAll("[data-c]").forEach(b => b.onclick = () => { cicloPlano = b.dataset.c; pintar(); });
-    C().querySelectorAll("input[name=plano]").forEach(r => r.onchange = () => { planoSel = r.value; pintar(); });
+    C().querySelectorAll("[data-c]").forEach(b => b.onclick = () => { cicloPlano = b.dataset.c; pintarPlano(); });
+    C().querySelectorAll("input[name=plano]").forEach(r => r.onchange = () => { planoSel = r.value; pintarPlano.mexeu = true; pintarPlano(); });
     $("assinar").onclick = () => {
       const link = SELETA.pagamento?.[planoSel]?.[cicloPlano];
       if (link) { window.open(link, "_blank", "noopener"); return; }
       $("msgPlano").innerHTML = `<div class="msg" style="margin-top:16px">O pagamento online está sendo ativado. Enquanto isso, fale com a gente para assinar: <a href="#" data-suporte>abrir o suporte</a>.</div>`;
     };
-  };
-  pintar();
+    $("fCupom").onsubmit = async e => {
+      e.preventDefault(); const c = $("cupom").value.trim(); if (!c) return;
+      const { data, error } = await sb.rpc("aplicar_cupom", { p_codigo: c });
+      if (error) { $("msgCupom").textContent = error.message; $("msgCupom").style.color = "#b3261e"; return; }
+      $("msgCupom").style.color = ""; toast(`Cupom aplicado: +${data.dias} dias`);
+      const r = await sb.from("estudios").select("*").eq("id", user.id).single(); if (r.data) estudio = r.data;
+      marcarTravados(); rota();
+    };
+    $("fCob").onsubmit = async e => {
+      e.preventDefault();
+      const cobranca = { doc: $("cDoc").value.trim(), email: $("cEmail").value.trim(), telefone: $("cTel").value.trim(), endereco: $("cEnd").value.trim() };
+      try { Object.assign(estudio, await q(sb.from("estudios").update({ cobranca }).eq("id", user.id).select().single())); toast("Dados de cobrança salvos"); } catch (err) { erro(err); }
+    };
+  }
+  pintarPlano();
 };
 
+/* ============ ADMINISTRADOR ============ */
+ROTAS.admin = async () => {
+  if (!ehAdmin()) return ir("#/inicio");
+  const [es, cs] = await Promise.all([sb.rpc("admin_estudios"), sb.rpc("admin_cupons")]);
+  if (es.error) throw es.error;
+  const lista = es.data || [], cupons = cs.data || [];
+  const st = e => e.nivel === 0 ? ["Pausado", "atrasado"] : e.plano === "teste" ? ["Teste", "aberta"] : ["Ativo", "encerrada"];
+  const conta = k => lista.filter(e => (k === "pagos" ? NIVEL_PLANO[e.plano] && e.nivel > 0 : k === "teste" ? e.plano === "teste" && e.nivel > 0 : e.nivel === 0)).length;
+  const receita = lista.filter(e => NIVEL_PLANO[e.plano] && e.nivel > 0).reduce((s, e) => s + (PLANOS.find(p => p.id === e.plano)?.m || 0), 0);
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Administrador</h1><p class="mute">Estúdios cadastrados, planos e cupons. Só você vê esta página.</p></div></div>
+    <div class="cards"><div class="num"><span>Assinantes</span><b>${conta("pagos")}</b><small class="mute">${brl(receita)}/mês</small></div><div class="num"><span>Em teste</span><b>${conta("teste")}</b></div><div class="num"><span>Pausados</span><b>${conta("pausados")}</b></div><div class="num"><span>Total</span><b>${lista.length}</b></div></div>
+    <div class="bloco" style="padding:6px 8px;margin-top:20px"><table class="tabela stack"><thead><tr><th>Estúdio</th><th>Plano</th><th>Situação</th><th>Vence</th><th>Galerias</th><th></th></tr></thead><tbody>
+    ${lista.map(e => `<tr><td><strong style="font-weight:500">${esc(e.nome || "—")}</strong><br><span class="small mute">${esc(e.email)}${e.cobranca?.doc ? " · " + esc(e.cobranca.doc) : ""}${e.indicado_por ? " · indicado por " + esc(e.indicado_por) : ""}</span></td>
+      <td>${esc(e.plano === "teste" ? "Teste" : PLANOS.find(p => p.id === e.plano)?.nome || e.plano)}</td>
+      <td><span class="tag ${st(e)[1]}">${st(e)[0]}</span></td>
+      <td>${esc(dataBR(e.plano === "teste" ? e.teste_ate : e.plano_ate) || "—")}</td><td>${e.galerias}</td>
+      <td class="r"><button class="btn sm" data-ed="${e.id}">Alterar</button></td></tr>`).join("")}</tbody></table></div>
+    <div class="bloco" style="margin-top:20px"><h2>Cupons</h2>
+      <form id="fNovoCupom" class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0"><input id="nCod" placeholder="CÓDIGO" required style="max-width:180px;text-transform:uppercase"><input id="nDias" type="number" min="1" max="365" value="30" style="max-width:110px" aria-label="Dias grátis"><input id="nUsos" type="number" min="1" placeholder="Usos (vazio = ilimitado)" style="max-width:220px"><button class="btn fill">Criar cupom</button></form>
+      <table class="tabela"><thead><tr><th>Código</th><th>Dias</th><th>Usos</th><th>Situação</th><th></th></tr></thead><tbody>
+      ${cupons.map(c => `<tr><td><strong style="font-weight:500;letter-spacing:.06em">${esc(c.codigo)}</strong></td><td>${c.dias}</td><td>${c.usos}${c.usos_max ? " / " + c.usos_max : ""}</td><td><span class="tag ${c.ativo ? "encerrada" : "aberta"}">${c.ativo ? "Ativo" : "Desativado"}</span></td>
+        <td class="r"><button class="btn sm ghost" data-tog="${esc(c.codigo)}">${c.ativo ? "Desativar" : "Ativar"}</button></td></tr>`).join("") || `<tr><td colspan="5" class="mute">Nenhum cupom ainda.</td></tr>`}</tbody></table></div>`;
+  C().querySelectorAll("[data-ed]").forEach(b => b.onclick = () => {
+    const e = lista.find(x => x.id === b.dataset.ed);
+    const mais = n => { const d = new Date(); d.setMonth(d.getMonth() + n); return ymd(d); };
+    formulario({
+      titulo: "Alterar plano · " + (e.nome || e.email), botao: "Salvar",
+      campos: [
+        { id: "plano", rotulo: "Plano", tipo: "select", opcoes: [["teste", "Teste grátis"], ["essencial", "Essencial"], ["profissional", "Profissional"], ["estudio", "Estúdio"]], valor: e.plano },
+        { id: "ate", rotulo: "Válido até", tipo: "date", req: true, valor: (e.plano === "teste" ? e.teste_ate : e.plano_ate) || mais(1) }
+      ],
+      extra: `<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px"><button type="button" class="btn sm" data-mais="1">+1 mês</button><button type="button" class="btn sm" data-mais="12">+1 ano</button><button type="button" class="btn sm ghost" data-pausar>Pausar acesso</button></div>`,
+      aoSalvar: async v => { const r = await sb.rpc("admin_definir_plano", { p_id: e.id, p_plano: v.plano, p_ate: v.ate }); if (r.error) throw r.error; toast("Plano atualizado"); rota(); }
+    });
+    document.querySelectorAll("[data-mais]").forEach(x => x.onclick = () => { $("f_ate").value = mais(+x.dataset.mais); });
+    document.querySelector("[data-pausar]").onclick = () => { const d = new Date(); d.setDate(d.getDate() - 10); $("f_ate").value = ymd(d); };
+  });
+  $("fNovoCupom").onsubmit = async ev => {
+    ev.preventDefault();
+    const r = await sb.rpc("admin_salvar_cupom", { p_codigo: $("nCod").value, p_dias: +$("nDias").value, p_usos_max: $("nUsos").value ? +$("nUsos").value : null, p_ativo: true });
+    if (r.error) return erro(r.error); toast("Cupom criado"); rota();
+  };
+  C().querySelectorAll("[data-tog]").forEach(b => b.onclick = async () => {
+    const c = cupons.find(x => x.codigo === b.dataset.tog);
+    const r = await sb.rpc("admin_salvar_cupom", { p_codigo: c.codigo, p_dias: c.dias, p_usos_max: c.usos_max, p_ativo: !c.ativo });
+    if (r.error) return erro(r.error); rota();
+  });
+};
 
 /* ============ CRM: situação de cada álbum ============ */
 const ETAPA_A = {
@@ -1551,6 +1678,7 @@ function previaDesign(d, capaUrl, imgs) {
 }
 let dEdit = null;
 function abaDesign() {
+  if (!pode("design")) { $("abaConteudo").innerHTML = cadeado("design"); return; }
   dEdit = designDe(G);
   const capa = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
   const capaUrl = capa ? urlFoto(capa.caminho) : "https://images.unsplash.com/photo-1578220375772-9a71d4d2ff82?w=1200&q=70&auto=format&fit=crop";

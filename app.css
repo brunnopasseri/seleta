@@ -388,3 +388,17 @@ button.num:hover{border-color:var(--ink)}
 .g-mosaico .pvGrade{display:block;columns:4;column-gap:4px}.g-mosaico .pvGrade span{display:block;margin-bottom:4px;aspect-ratio:4/5}.g-mosaico .pvGrade span.alta{aspect-ratio:2/3}
 .g-ampla .pvGrade{grid-template-columns:repeat(2,1fr);gap:8px}
 @media(max-width:980px){.designGrid{grid-template-columns:1fr}.prevWrap{position:static}}
+
+.cadeado{text-align:center;padding:56px 24px;max-width:520px;margin:30px auto}
+.cadeado svg{width:38px;height:38px;margin-bottom:14px;opacity:.8}
+.cadeado h2{font-size:20px;font-weight:500;margin-bottom:6px}.cadeado p{margin-bottom:18px}
+#menu a.travado .rot::after{content:"";display:inline-block;width:10px;height:10px;margin-left:8px;vertical-align:-1px;opacity:.55;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 11V8a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 11V8a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z'/%3E%3C/svg%3E") center/contain no-repeat}
+.statusPlano{display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);border-left:3px solid var(--ink);border-radius:12px;padding:16px 18px;margin:6px 0 24px;background:var(--card)}
+.statusPlano b{font-weight:500;font-size:16px}.statusPlano span{color:var(--mute);font-size:14px;line-height:1.5}
+.statusPlano.ruim{border-left-color:#b3261e}.statusPlano.ruim b{color:#b3261e}
+.itensPlano{list-style:none;padding:0;margin:10px 0 6px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.itensPlano li{font-size:13px;display:flex;align-items:center;gap:7px}
+.itensPlano li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.5}
+.aviso.alerta{border-color:#e7b3ad;background:#fbefed}
+[data-theme=dark] .aviso.alerta{background:#3a1f1c;border-color:#6b2f28}
+.cupomBox{margin:28px 0 18px}

@@ -15,6 +15,10 @@ async function abrir(codigo) {
   if (error) { show("vCodigo", true); $("cErro").textContent = codigo ? "Código incorreto. Confira a mensagem do fotógrafo." : ""; return; }
   cod = codigo; gravarCod(codigo); g = data; marc = new Set(g.marcadas || []); coms = g.comentarios || {};
   show("vCodigo", false);
+  const nivel = g.nivel ?? 3;
+  if (nivel === 0) { document.body.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px;font-family:Montserrat,sans-serif"><div><h1 style="font-weight:400;font-size:26px;margin-bottom:10px">Galeria temporariamente indisponível</h1><p style="opacity:.7">Fale com o fotógrafo para mais informações.</p></div></main>'; return; }
+  if (nivel < 2) { g.design = { protecao: false }; g.fotos.forEach(f => { f.destaque = false; }); }
+  if (nivel >= 3) document.querySelectorAll(".rodape").forEach(el => el.remove());
   aplicarDesign(g.design || {});
   if (g.entrega_liberada && (g.entrega_fotos || []).length) return abrirEntrega();
   if (!g.fotos.length && !g.entrega) {

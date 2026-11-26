@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Great+Vibes&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="base.css?v=24">
-<link rel="stylesheet" href="app.css?v=24">
+<link rel="stylesheet" href="app.css?v=26">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -39,6 +39,7 @@
 <symbol id="i-presente" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 12v9h14v-9M12 8v13M12 8c-1-3-5-4-5-1.5S12 8 12 8zm0 0c1-3 5-4 5-1.5S12 8 12 8z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v13H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-livro" viewBox="0 0 24 24"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
 <symbol id="i-plano" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.6"/></symbol>
 </defs></svg>
 
@@ -97,6 +98,7 @@
     </nav>
     <div class="ladoPe">
       <div class="uso rot" id="uso"></div>
+      <a class="mi soAdmin hide" href="#/admin" data-r="admin" title="Administrador"><svg><use href="#i-escudo"/></svg><span class="rot">Administrador</span></a>
       <a class="mi" href="#/indique" data-r="indique" title="Indique e ganhe"><svg><use href="#i-presente"/></svg><span class="rot">Indique e ganhe</span></a>
       <a class="mi" href="#" data-suporte title="Suporte"><svg><use href="#i-ajuda"/></svg><span class="rot">Suporte</span></a>
       <a class="mi" href="#/config" data-r="config" title="Configurações"><svg><use href="#i-config"/></svg><span class="rot">Configurações</span></a>
@@ -141,8 +143,8 @@
 <div id="toast" class="toast hide" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="i18n.js?v=3"></script>
+<script src="i18n.js?v=4"></script>
 <script src="config.js?v=25"></script>
-<script src="app.js?v=25"></script>
+<script src="app.js?v=26"></script>
 </body>
 </html>
