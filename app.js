@@ -102,7 +102,7 @@ $("fSenha").onsubmit = async e => {
 $("sair").onclick = () => sb.auth.signOut();
 
 /* ============ moldura do painel ============ */
-const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", entregas: "Entregas", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança", conversas: "Conversas", relatorios: "Relatórios", funil: "Funil", indique: "Indique e ganhe" };
+const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", entregas: "Entregas", diagramacoes: "Aprovação de álbum", diagramacao: "Aprovação de álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança", conversas: "Conversas", relatorios: "Relatórios", funil: "Funil", indique: "Indique e ganhe" };
 const celular = () => matchMedia("(max-width:860px)").matches;
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -163,16 +163,18 @@ function pintarConta() {
 }
 async function notificacoes() {
   try {
-    const [sel, atr, tar] = await Promise.all([
+    const [sel, atr, tar, dg] = await Promise.all([
       q(sb.from("galerias").select("slug,titulo,cliente_nome,enviada_em").eq("status", "enviada").order("enviada_em", { ascending: false }).limit(8)),
       q(sb.from("pagamentos").select("descricao,valor,vencimento").is("pago_em", null).lt("vencimento", hoje()).order("vencimento").limit(8)),
-      q(sb.from("tarefas").select("id,titulo,vencimento").eq("feita", false).lte("vencimento", hoje()).order("vencimento").limit(8))
+      q(sb.from("tarefas").select("id,titulo,vencimento").eq("feita", false).lte("vencimento", hoje()).order("vencimento").limit(8)),
+      q(sb.from("diagramacoes").select("slug,titulo,cliente_nome,status,respondido_em").eq("status", "alteracoes").order("respondido_em", { ascending: false }).limit(8))
     ]);
-    const total = sel.length + atr.length + tar.length;
+    const total = sel.length + atr.length + tar.length + dg.length;
     $("badge").textContent = total > 9 ? "9+" : total; show("badge", total > 0);
     $("contTarefas").textContent = tar.length || "";
     $("notifs").innerHTML = total ? `
       ${sel.length ? `<h3>Seleções recebidas</h3>${sel.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")}${g.enviada_em ? " · " + new Date(g.enviada_em).toLocaleDateString("pt-BR") : ""}</span></div></a>`).join("")}` : ""}
+      ${dg.length ? `<h3>Álbuns com pedido de alteração</h3>${dg.map(d => `<a class="item" href="#/diagramacao/${esc(d.slug)}"><div class="txt"><strong>${esc(d.titulo)}</strong><span>${esc(d.cliente_nome || "")}</span></div></a>`).join("")}` : ""}
       ${atr.length ? `<h3>Pagamentos atrasados</h3>${atr.map(p => `<a class="item" href="#/financeiro"><div class="txt"><strong>${esc(p.descricao)}</strong><span>venceu ${esc(dataBR(p.vencimento))}</span></div><span class="val">${brl(p.valor)}</span></a>`).join("")}` : ""}
       ${tar.length ? `<h3>Tarefas para hoje</h3>${tar.map(t => `<a class="item" href="#/tarefas"><div class="txt"><strong>${esc(t.titulo)}</strong><span>${t.vencimento < hoje() ? "atrasada · " : ""}${esc(dataBR(t.vencimento))}</span></div></a>`).join("")}` : ""}`
       : `<p class="vazioP" style="padding:14px 10px">Tudo em dia por aqui.</p>`;
@@ -229,7 +231,7 @@ async function rota() {
   if (!user) return;
   const [nome, arg] = location.hash.replace(/^#\/?/, "").split("/");
   const r = ROTAS[nome] ? nome : "inicio";
-  const ativo = r === "galeria" ? "galerias" : r === "cliente" ? "clientes" : r === "plano" ? "config" : r;
+  const ativo = r === "galeria" ? "galerias" : r === "cliente" ? "clientes" : r === "plano" ? "config" : r === "diagramacao" ? "diagramacoes" : r;
   document.querySelectorAll("#menu a, .ladoPe a[data-r]").forEach(a => a.classList.toggle("on", a.dataset.r === ativo));
   $("tituloPag").textContent = TITULOS[r] || "";
   document.title = (TITULOS[r] || "Painel") + " · Seleta";
@@ -797,6 +799,7 @@ async function editarTrabalho(t = {}, depois) {
   const cs = await listaClientes();
   formulario({
     titulo: t.id ? "Editar trabalho" : "Novo trabalho",
+    extra: t.id && t.data ? `<a class="btn ghost sm gAdd" target="_blank" rel="noopener" href="${esc(linkGoogle({ ...t, clientes: t.clientes || cs.find(c => c.id === t.cliente_id) }))}"><svg class="gIco" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6"/></svg>Adicionar ao Google Agenda</a>` : "",
     campos: [
       { id: "titulo", rotulo: "Título", req: true, ph: "Ensaio pôr do sol", valor: t.titulo },
       { id: "cliente_id", rotulo: "Cliente", tipo: "select", opcoes: opcClientes(cs), valor: t.cliente_id },
@@ -836,7 +839,7 @@ ROTAS.agenda = async arg => {
   const doMes = ts.filter(t => t.data.startsWith(mesTxt));
   C().innerHTML = `
     <div class="cabeca"><div><h1>Agenda</h1><p class="mute">${doMes.length} ${doMes.length === 1 ? "trabalho" : "trabalhos"} no mês · ${brl(doMes.filter(t => t.status !== "cancelado").reduce((s, t) => s + +t.valor, 0))} em valor</p></div>
-      <div class="acoes"><div class="mes"><a class="btn ghost sm" href="#/agenda/${ymd(ant).slice(0, 7)}" aria-label="Mês anterior">←</a><strong>${esc(mesAno(base))}</strong><a class="btn ghost sm" href="#/agenda/${ymd(prox).slice(0, 7)}" aria-label="Próximo mês">→</a></div><button class="btn fill" id="nt">Novo trabalho</button></div></div>
+      <div class="acoes"><div class="mes"><a class="btn ghost sm" href="#/agenda/${ymd(ant).slice(0, 7)}" aria-label="Mês anterior">←</a><strong>${esc(mesAno(base))}</strong><a class="btn ghost sm" href="#/agenda/${ymd(prox).slice(0, 7)}" aria-label="Próximo mês">→</a></div><button class="btn ghost" id="gcal"><svg class="gIco" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6"/></svg>Google Agenda</button><button class="btn fill" id="nt">Novo trabalho</button></div></div>
     <div class="cal">${["dom", "seg", "ter", "qua", "qui", "sex", "sáb"].map(d => `<div class="dow">${d}</div>`).join("")}
       ${dias.map(d => { const k = ymd(d); return `<div class="dia${d.getMonth() !== base.getMonth() ? " fora" : ""}${k === hoje() ? " hoje" : ""}"><span class="n">${d.getDate()}</span>${(porDia[k] || []).map(t => `<button class="ev ${t.status}" data-t="${t.id}" title="${esc(t.titulo)}">${t.hora ? esc(t.hora.slice(0, 5)) + " " : ""}${esc(t.titulo)}</button>`).join("")}</div>`; }).join("")}
     </div>
@@ -844,8 +847,47 @@ ROTAS.agenda = async arg => {
       ${doMes.length ? doMes.map(t => `<button class="item" data-t="${t.id}"><div class="data"><b>${dia(t.data).getDate()}</b><span>${dia(t.data).toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}</span></div><div class="txt"><strong>${esc(t.titulo)}</strong><span>${[t.clientes?.nome, t.hora?.slice(0, 5), t.local, t.tipo].filter(Boolean).map(esc).join(" · ")}</span></div><span class="val">${brl(t.valor)}</span><span class="st">${STATUS_T[t.status]}</span></button>`).join("") : `<p class="vazioP">Nenhum trabalho neste mês.</p>`}
     </div>`;
   $("nt").onclick = () => editarTrabalho({});
+  $("gcal").onclick = modalGoogleAgenda;
   C().querySelectorAll("[data-t]").forEach(b => b.onclick = () => editarTrabalho(ts.find(t => t.id === b.dataset.t)));
 };
+/* --- Google Agenda --- */
+const somaHoras = (data, hora, h) => { const d = new Date(`${data}T${hora}`); d.setHours(d.getHours() + h); return d; };
+const fmtLocal = d => `${ymd(d).replace(/-/g, "")}T${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}00`;
+function datasEvento(t) {
+  if (t.hora) { const ini = new Date(`${t.data}T${t.hora.slice(0, 5)}`); return [fmtLocal(ini), fmtLocal(somaHoras(t.data, t.hora.slice(0, 5), t.tipo === "casamento" ? 6 : 2)), false]; }
+  const fim = new Date(t.data + "T12:00"); fim.setDate(fim.getDate() + 1);
+  return [t.data.replace(/-/g, ""), ymd(fim).replace(/-/g, ""), true];
+}
+const descEvento = t => [t.clientes?.nome && "Cliente: " + t.clientes.nome, t.tipo && "Tipo: " + t.tipo, +t.valor ? "Valor: " + brl(t.valor) : "", t.observacoes].filter(Boolean).join("\n");
+function linkGoogle(t) {
+  const [a, b] = datasEvento(t);
+  return "https://calendar.google.com/calendar/render?" + new URLSearchParams({ action: "TEMPLATE", text: t.titulo + (t.clientes?.nome ? " · " + t.clientes.nome : ""), dates: `${a}/${b}`, details: descEvento(t) + "\n\nCriado pela Seleta", location: t.local || "", ctz: "America/Sao_Paulo" });
+}
+async function modalGoogleAgenda() {
+  const ts = await q(sb.from("trabalhos").select("*, clientes(nome)").gte("data", hoje()).neq("status", "cancelado").order("data").order("hora"));
+  $("modalCaixa").innerHTML = `<h2 id="modalTitulo">Levar para o Google Agenda</h2>
+    <p class="mute small" style="margin:8px 0 18px">Seus trabalhos aparecem no Google Agenda do celular, com lembrete, local e cliente.</p>
+    <div class="gOp"><div><strong>Todos os próximos trabalhos de uma vez</strong><p class="small mute">Baixe o arquivo e importe no Google Agenda: no computador, Configurações → Importar e exportar → Importar. ${ts.length} ${ts.length === 1 ? "trabalho" : "trabalhos"} a partir de hoje.</p></div><button class="btn fill sm" id="gIcs" ${ts.length ? "" : "disabled"}>Baixar agenda (.ics)</button></div>
+    <div class="gOp"><div><strong>Um trabalho por vez</strong><p class="small mute">Abre o Google Agenda com o evento já preenchido. Também aparece dentro de cada trabalho.</p></div></div>
+    <div class="gLista">${ts.slice(0, 12).map(t => `<a class="item" target="_blank" rel="noopener" href="${esc(linkGoogle(t))}"><div class="txt"><strong>${esc(t.titulo)}</strong><span>${esc([dataBR(t.data), t.hora?.slice(0, 5), t.clientes?.nome].filter(Boolean).join(" · "))}</span></div><span class="small">Adicionar →</span></a>`).join("") || `<p class="vazioP">Nenhum trabalho marcado a partir de hoje.</p>`}</div>
+    <div class="acoes" style="margin-top:18px"><button class="btn ghost" id="gFechar">Fechar</button></div>`;
+  show("modal", true);
+  $("gFechar").onclick = fecharModal;
+  if ($("gIcs")) $("gIcs").onclick = () => {
+    const e = x => String(x || "").replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\n/g, "\\n");
+    const linhas = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Seleta//Agenda//PT-BR", "CALSCALE:GREGORIAN", "X-WR-CALNAME:Seleta · " + e(estudio.nome || "Estúdio"), "X-WR-TIMEZONE:America/Sao_Paulo"];
+    ts.forEach(t => {
+      const [a, b, dia] = datasEvento(t);
+      linhas.push("BEGIN:VEVENT", `UID:${t.id}@seleta`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`,
+        dia ? `DTSTART;VALUE=DATE:${a}` : `DTSTART;TZID=America/Sao_Paulo:${a}`, dia ? `DTEND;VALUE=DATE:${b}` : `DTEND;TZID=America/Sao_Paulo:${b}`,
+        "SUMMARY:" + e(t.titulo + (t.clientes?.nome ? " · " + t.clientes.nome : "")), t.local ? "LOCATION:" + e(t.local) : "", "DESCRIPTION:" + e(descEvento(t)),
+        "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + e(t.titulo), "TRIGGER:-P1D", "END:VALARM", "END:VEVENT");
+    });
+    linhas.push("END:VCALENDAR");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([linhas.filter(Boolean).join("\r\n")], { type: "text/calendar" })); a.download = "agenda-seleta.ics"; a.click();
+    toast("Arquivo baixado. Agora importe no Google Agenda.");
+  };
+}
 
 /* ============ FINANCEIRO ============ */
 async function editarPagamento(p = {}) {
@@ -1360,4 +1402,126 @@ ROTAS.indique = async () => {
       <ol class="passos"><li><b>1</b><span>Mande seu link para outro fotógrafo.</span></li><li><b>2</b><span>Ele cria o estúdio e testa 14 dias grátis.</span></li><li><b>3</b><span>Quando ele assinar, você ganha 1 mês grátis.</span></li></ol></div>`;
   $("cRef").onclick = async () => { try { await navigator.clipboard.writeText(link); toast("Link copiado"); } catch { $("lRef").select(); } };
 };
+
+/* ============ APROVAÇÃO DE ÁLBUM (diagramação) ============ */
+const STATUS_D = { aguardando: ["Aguardando cliente", "aberta"], alteracoes: ["Pediu alterações", "andamento"], aprovado: ["Aprovado", "encerrada"] };
+const linkDiag = d => raizSite() + (estudio.slug || "") + "/album/" + d.slug;
+ROTAS.diagramacoes = async () => {
+  const ds = await q(sb.from("diagramacoes").select("id,slug,titulo,cliente_nome,status,versao,prazo,criado_em,laminas(caminho,versao,ordem),lamina_comentarios(id,versao)").order("criado_em", { ascending: false }));
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Aprovação de álbum</h1><p class="mute">Envie as lâminas diagramadas. O cliente folheia, comenta nas páginas e aprova.</p></div><button class="btn fill" id="nd">Novo álbum para aprovar</button></div>
+    <div class="galerias">${ds.length ? ds.map(d => {
+      const capa = (d.laminas || []).filter(l => l.versao === d.versao).sort((a, b) => a.ordem - b.ordem)[0];
+      const nc = (d.lamina_comentarios || []).filter(c => c.versao === d.versao).length;
+      return `<a class="gcard" href="#/diagramacao/${esc(d.slug)}"><div class="capa capaLarga" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}"><span class="tag ${STATUS_D[d.status][1]}">${STATUS_D[d.status][0]}</span></div>
+        <div class="info"><h3>${esc(d.titulo)}</h3><span class="small mute">${esc(d.cliente_nome || "Sem cliente")} · versão ${d.versao}${nc ? ` · ${nc} ${nc === 1 ? "comentário" : "comentários"}` : ""}</span></div></a>`; }).join("")
+      : `<div class="vazio" style="grid-column:1/-1">Nenhum álbum ainda. Exporte as lâminas do seu programa de diagramação em JPG e envie aqui.</div>`}</div>`;
+  $("nd").onclick = novaDiagramacao;
+};
+async function novaDiagramacao() {
+  const [cs, ts] = await Promise.all([listaClientes(), listaTrabalhos()]);
+  formulario({
+    titulo: "Novo álbum para aprovar", botao: "Criar e enviar lâminas",
+    campos: [
+      { id: "titulo", rotulo: "Nome do álbum", req: true, ph: "Álbum Júlia e Rafael" },
+      { id: "cliente_id", rotulo: "Cliente", tipo: "select", opcoes: opcClientes(cs) },
+      { id: "trabalho_id", rotulo: "Trabalho da agenda", tipo: "select", opcoes: opcTrabalhos(ts) },
+      { id: "prazo", rotulo: "Prazo para aprovar", tipo: "date" },
+      { id: "mensagem", rotulo: "Recado para o cliente", tipo: "area", largo: true, ph: "Folheie com calma e toque na página para comentar 🤍" }
+    ],
+    aoSalvar: async v => {
+      const cli = cs.find(c => c.id === v.cliente_id);
+      const base = slugify(v.titulo); const usados = new Set((await q(sb.from("diagramacoes").select("slug").like("slug", base + "%"))).map(x => x.slug));
+      let slug = base, i = 2; while (usados.has(slug)) slug = `${base}-${i++}`;
+      const d = await q(sb.from("diagramacoes").insert({ slug, titulo: v.titulo, cliente_id: v.cliente_id || null, cliente_nome: cli?.nome || null, trabalho_id: v.trabalho_id || null, prazo: v.prazo || null, mensagem: v.mensagem || null }).select("slug").single());
+      ir("#/diagramacao/" + d.slug);
+    }
+  });
+}
+let D = null, versaoVer = null;
+ROTAS.diagramacao = async slug => {
+  D = await q(sb.from("diagramacoes").select("*, clientes(nome,whatsapp)").eq("slug", slug).maybeSingle());
+  if (!D) return ir("#/diagramacoes");
+  if (versaoVer === null || versaoVer.id !== D.id) versaoVer = { id: D.id, v: D.versao };
+  const [ls, cs] = await Promise.all([
+    q(sb.from("laminas").select("*").eq("diagramacao_id", D.id).order("versao").order("ordem")),
+    q(sb.from("lamina_comentarios").select("*").eq("diagramacao_id", D.id).order("criado_em"))
+  ]);
+  const v = versaoVer.v, lv = ls.filter(l => l.versao === v), cv = cs.filter(c => c.versao === v);
+  const versoes = [...new Set(ls.map(l => l.versao).concat(D.versao))].sort((a, b) => a - b);
+  const msg = `Oi${D.cliente_nome ? ", " + D.cliente_nome.split(" ")[0] : ""}! ${D.versao > 1 ? "A nova versão do seu álbum está pronta" : "A diagramação do seu álbum está pronta"} 📖 Folheie, comente nas páginas e aprove por aqui:\n\n${linkDiag(D)}\nCódigo: ${D.codigo_acesso}`;
+  const capa = lv[0];
+  C().innerHTML = `
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="#/diagramacoes" style="margin:0">← Aprovação de álbum</a><button class="btn sm ghost" id="exD">Excluir</button></div>
+    <div class="banner" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}"><div class="sobre"><div><h1>${esc(D.titulo)}</h1><p style="margin-top:6px;opacity:.85">${[D.cliente_nome, `versão ${D.versao}`, `${ls.filter(l => l.versao === D.versao).length} lâminas`, D.prazo && "prazo " + dataBR(D.prazo)].filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${STATUS_D[D.status][0]}</span></div></div>
+    ${D.status === "alteracoes" ? `<div class="bloco avisoPronta"><div><strong>O cliente pediu alterações na versão ${D.versao}</strong><br><span class="small mute">${cs.filter(c => c.versao === D.versao).length} comentários abaixo. Ajuste a diagramação e envie a versão ${D.versao + 1}.</span></div><label class="btn fill" for="novaV">Enviar nova versão</label></div>` : ""}
+    ${D.status === "aprovado" ? `<div class="bloco avisoPronta"><div><strong>Álbum aprovado${D.respondido_em ? " em " + new Date(D.respondido_em).toLocaleDateString("pt-BR") : ""} 🎉</strong><br><span class="small mute">Pode mandar para impressão. O cliente continua podendo folhear pelo mesmo link.</span></div></div>` : ""}
+    <div class="bloco compart">
+      <div><span class="small mute">Link do cliente</span><br><code>${esc(linkDiag(D))}</code><div style="margin-top:8px"><span class="small mute">Código</span> <span class="codigo">${esc(D.codigo_acesso)}</span></div></div>
+      <div class="acoes"><button class="btn ghost" id="cpD">Copiar mensagem</button><a class="btn fill" target="_blank" rel="noopener" href="https://wa.me/${fone(D.clientes?.whatsapp)}?text=${encodeURIComponent(msg)}">Enviar no WhatsApp</a><a class="btn ghost" target="_blank" rel="noopener" href="${esc(linkDiag(D))}">Ver como cliente</a></div>
+    </div>
+    <div class="abasG" role="tablist">${versoes.map(n => `<button role="tab" data-v="${n}" aria-selected="${n === v}">Versão ${n}${n === D.versao ? " (atual)" : ""}</button>`).join("")}</div>
+    <div class="sec" style="margin-top:0">
+      ${v === D.versao && D.status !== "aprovado" ? `<label class="soltar" id="soltarL" for="arqL"><strong>${lv.length ? "Adicionar mais lâminas a esta versão" : "Arraste as lâminas aqui ou clique pra escolher"}</strong><br>
+        <span class="small mute">JPG exportado do seu programa de diagramação, uma imagem por lâmina (página dupla). A ordem segue o nome do arquivo.</span>
+        <input id="arqL" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hide"></label><p class="small mute" id="progL" role="status" style="margin-bottom:12px"></p>` : ""}
+      <input id="novaV" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hide">
+      <div class="laminasAdm">${lv.length ? lv.map((l, i) => { const cl = cv.filter(c => c.lamina_id === l.id); return `
+        <div class="lamAdm"><div class="lamImg"><img src="${esc(urlFoto(l.caminho))}" alt="Lâmina ${i + 1}" loading="lazy">${cl.filter(c => c.x != null).map(c => `<span class="pino" style="left:${c.x * 100}%;top:${c.y * 100}%">${cv.indexOf(c) + 1}</span>`).join("")}
+          ${v === D.versao && D.status !== "aprovado" ? `<button class="lamDel" data-del="${l.id}" aria-label="Excluir lâmina ${i + 1}">×</button>` : ""}</div>
+          <div class="lamInfo"><strong>${i === 0 ? "Capa / lâmina 1" : "Lâmina " + (i + 1)}</strong>${cl.length ? `<ul>${cl.map(c => `<li><b>${cv.indexOf(c) + 1}</b>${esc(c.texto)}</li>`).join("")}</ul>` : `<span class="small mute">Sem comentários</span>`}</div></div>`; }).join("")
+        : `<div class="vazio">Nenhuma lâmina nesta versão ainda.</div>`}</div>
+    </div>`;
+  $("cpD").onclick = async () => { try { await navigator.clipboard.writeText(msg); toast("Mensagem copiada"); } catch { prompt("Copie:", msg); } };
+  document.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { versaoVer.v = +b.dataset.v; rota(); });
+  $("exD").onclick = async () => {
+    if (!confirm(`Excluir “${D.titulo}” com todas as versões? O link do cliente para de funcionar.`)) return;
+    try { const cam = ls.map(l => l.caminho); for (let i = 0; i < cam.length; i += 100) await sb.storage.from("fotos").remove(cam.slice(i, i + 100));
+      await q(sb.from("diagramacoes").delete().eq("id", D.id)); atualizarUso(); toast("Excluído"); ir("#/diagramacoes"); } catch (e) { erro(e); }
+  };
+  if ($("arqL")) {
+    $("arqL").onchange = e => { enviarLaminas(e.target.files, D.versao, lv.length); e.target.value = ""; };
+    const z = $("soltarL");
+    ["dragenter", "dragover"].forEach(t => z.addEventListener(t, ev => { ev.preventDefault(); z.classList.add("ativo"); }));
+    ["dragleave", "drop"].forEach(t => z.addEventListener(t, ev => { ev.preventDefault(); z.classList.remove("ativo"); }));
+    z.addEventListener("drop", ev => enviarLaminas(ev.dataTransfer.files, D.versao, lv.length));
+  }
+  $("novaV").onchange = async e => {
+    const files = e.target.files; if (!files.length) return;
+    const nv = D.versao + 1;
+    if (!await enviarLaminas(files, nv, 0, true)) return;
+    try { await q(sb.from("diagramacoes").update({ versao: nv, status: "aguardando", respondido_em: null }).eq("id", D.id)); versaoVer.v = nv; toast(`Versão ${nv} enviada. Mande o link de novo pro cliente.`); rota(); } catch (err) { erro(err); }
+  };
+  C().querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+    const l = lv.find(x => x.id === b.dataset.del); if (!confirm("Excluir esta lâmina?")) return;
+    try { await sb.storage.from("fotos").remove([l.caminho]); await q(sb.from("laminas").delete().eq("id", l.id)); atualizarUso(); rota(); } catch (e) { erro(e); }
+  });
+};
+async function otimizarLamina(file) {
+  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const k = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+  return { blob: await new Promise(r => c.toBlob(r, "image/jpeg", 0.86)), w: c.width, h: c.height };
+}
+async function enviarLaminas(files, versao, inicio, silencioso) {
+  files = [...files].filter(f => /image\//.test(f.type)).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  if (!files.length) return false;
+  const prog = $("progL"), did = D.id; let ok = 0;
+  if (silencioso) toast(`Enviando ${files.length} lâminas…`);
+  for (const [i, f] of files.entries()) {
+    if (prog) prog.textContent = `Enviando lâmina ${i + 1} de ${files.length}…`;
+    try {
+      const { blob, w, h } = await otimizarLamina(f);
+      const cam = `${user.id}/diag/${did}/v${versao}-${Date.now()}-${i}.jpg`;
+      const up = await sb.storage.from("fotos").upload(cam, blob, { contentType: "image/jpeg", cacheControl: "31536000" });
+      if (up.error) throw up.error;
+      await q(sb.from("laminas").insert({ diagramacao_id: did, versao, ordem: inicio + i, caminho: cam, largura: w, altura: h }));
+      ok++;
+    } catch (e) { erro(e); }
+  }
+  atualizarUso();
+  if (!silencioso) { toast(`${ok} lâminas enviadas`); rota(); }
+  return ok > 0;
+}
 }

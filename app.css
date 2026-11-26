@@ -319,3 +319,22 @@ button.num:hover{border-color:var(--ink)}
 .supItem{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
 .supItem p{margin-top:6px;white-space:pre-wrap}
 .supResp{margin-top:10px;padding:10px 12px;background:var(--hover);border-radius:8px}
+
+.capaLarga{aspect-ratio:2/1!important}
+.laminasAdm{display:grid;gap:16px}
+.lamAdm{display:grid;grid-template-columns:minmax(0,2fr) minmax(220px,1fr);gap:18px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--card)}
+.lamImg{position:relative;align-self:start}
+.lamImg img{width:100%;display:block;border-radius:4px;box-shadow:0 10px 30px -18px rgba(0,0,0,.5)}
+.lamImg::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:linear-gradient(90deg,rgba(0,0,0,.12),rgba(255,255,255,.15),rgba(0,0,0,.12));pointer-events:none}
+.pino{position:absolute;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;background:#111;color:#fff;border:2px solid #fff;font-size:11px;font-weight:500;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.35);z-index:1}
+.lamDel{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;z-index:2}
+.lamInfo ul{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px}
+.lamInfo li{display:flex;gap:10px;font-size:14px;align-items:flex-start}
+.lamInfo li b{flex:none;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:11px;font-weight:500;display:grid;place-items:center}
+@media(max-width:800px){.lamAdm{grid-template-columns:1fr}}
+
+.gIco{width:16px;height:16px;flex:none}
+.gOp{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.gOp p{margin-top:4px}
+.gLista{max-height:260px;overflow-y:auto}
+.gAdd{margin:4px 0 14px}

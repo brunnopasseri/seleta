@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Aprovação do álbum</title>
+<link rel="icon" href="icone.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css?v=8">
+<style>
+body{background:#141414;color:#f2f2f2;overflow-x:hidden}
+.mute{color:#a3a3a3}
+.btn{border-color:#f2f2f2;color:#f2f2f2}.btn.fill{background:#f2f2f2;color:#111}.btn.ghost{border-color:#444}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input,textarea{background:#1d1d1d;border-color:#333;color:#f2f2f2}
+textarea{font:400 15px/1.5 Montserrat,sans-serif}
+.codigo{max-width:380px;margin:14vh auto;padding:0 16px;text-align:center}
+.codigo img{max-height:56px;max-width:220px;margin:0 auto 18px;display:block}
+.codigo input{text-align:center;font:500 28px Montserrat;letter-spacing:.3em;margin:24px 0 14px}
+.topoA{display:flex;align-items:center;gap:16px;padding:14px max(3vw,16px);border-bottom:1px solid #262626;flex-wrap:wrap}
+.topoA .marca img{max-height:34px;max-width:160px;display:block}
+.topoA .marca span{font-weight:500;letter-spacing:.22em;font-size:13px;text-transform:uppercase}
+.topoA h1{font-size:18px;font-weight:400}
+.topoA .info{font-size:12px;color:#9a9a9a}
+.estado{font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border:1px solid #444;border-radius:999px}
+.estado.ok{background:#f2f2f2;color:#111;border-color:#f2f2f2}
+.palco{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:calc(100vh - 140px)}
+.visor{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 64px 18px;perspective:2200px}
+.livro{position:relative;max-width:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.3,.7,.3,1),opacity .45s}
+.livro img{display:block;max-width:100%;max-height:calc(100vh - 260px);border-radius:3px;box-shadow:0 30px 70px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.04);user-select:none;-webkit-user-drag:none}
+.livro::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:46px;transform:translateX(-50%);pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.18) 42%,rgba(0,0,0,.32) 50%,rgba(0,0,0,.18) 58%,rgba(0,0,0,0) 100%)}
+.livro.virandoP{transform:rotateY(-14deg) translateX(-3%);opacity:0}
+.livro.virandoA{transform:rotateY(14deg) translateX(3%);opacity:0}
+.livro.comentando{cursor:crosshair}
+.pino{position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:#f2f2f2;color:#111;font-size:12px;font-weight:500;display:grid;place-items:center;box-shadow:0 3px 12px rgba(0,0,0,.5);border:2px solid #111;cursor:pointer;z-index:2}
+.pino.novo{background:#111;color:#f2f2f2;border-color:#f2f2f2}
+.seta{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:1px solid #444;background:rgba(20,20,20,.7);color:#f2f2f2;font-size:20px;cursor:pointer;z-index:3}
+.seta:disabled{opacity:.25;cursor:default}
+.seta.ant{left:10px}.seta.prox{right:10px}
+.contador{margin-top:14px;font-size:13px;color:#9a9a9a}
+.lado{border-left:1px solid #262626;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 140px);overflow-y:auto}
+.lado h2{font-size:15px;font-weight:500}
+.dica{font-size:13px;color:#b5b5b5;background:#1c1c1c;border-radius:10px;padding:12px}
+.coms{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.coms li{display:flex;gap:10px;align-items:flex-start;font-size:14px;background:#1c1c1c;border-radius:10px;padding:10px 12px}
+.coms li b{flex:none;width:22px;height:22px;border-radius:50%;background:#f2f2f2;color:#111;font-size:11px;font-weight:500;display:grid;place-items:center}
+.coms li .x{margin-left:auto;background:none;border:0;color:#888;cursor:pointer;font-size:16px}
+.coms li.foto b{background:#111;color:#f2f2f2;border:1px solid #f2f2f2}
+.novoCom{display:grid;gap:8px}
+.novoCom textarea{min-height:70px;resize:vertical}
+.miniaturas{display:flex;gap:8px;overflow-x:auto;padding:12px max(3vw,16px);border-top:1px solid #262626;scrollbar-width:thin}
+.miniaturas button{flex:none;width:110px;padding:0;border:2px solid transparent;border-radius:4px;background:#222;cursor:pointer;position:relative;opacity:.6;transition:opacity .2s}
+.miniaturas button.on{border-color:#f2f2f2;opacity:1}
+.miniaturas button:hover{opacity:1}
+.miniaturas img{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:2px}
+.miniaturas .n{position:absolute;top:4px;right:4px;background:#f2f2f2;color:#111;font-size:10px;font-weight:500;border-radius:999px;padding:1px 6px}
+.acoesA{display:grid;gap:8px;margin-top:auto;padding-top:14px;border-top:1px solid #262626}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.75);display:grid;place-items:center;padding:16px}
+.modal .card{background:#1d1d1d;border:1px solid #333;border-radius:16px;padding:24px;max-width:440px;width:100%}
+.aprovado{text-align:center;padding:16px;border:1px solid #333;border-radius:12px}
+@media(max-width:900px){.palco{grid-template-columns:1fr}.lado{border-left:0;border-top:1px solid #262626;max-height:none}.visor{padding:18px 8px 12px}.seta{width:38px;height:38px;top:auto;bottom:-8px;transform:none}.seta.ant{left:calc(50% - 90px)}.seta.prox{right:calc(50% - 90px)}.contador{margin-top:44px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="square"/></symbol></defs></svg>
+
+<section id="vCodigo" class="codigo hide">
+  <div id="cMarca"></div>
+  <h1 style="margin-top:8px">Digite o código que você recebeu</h1>
+  <form id="fCodigo"><label for="cod" class="hide">Código de acesso</label><input id="cod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required><button class="btn fill" style="width:100%">Ver meu álbum</button></form>
+  <p id="cErro" class="small" style="margin-top:14px;color:#ff9b9b" role="alert"></p>
+</section>
+
+<div id="vAlbum" class="hide">
+  <header class="topoA">
+    <div class="marca" id="aMarca"></div>
+    <div><h1 id="aTitulo"></h1><span class="info" id="aInfo"></span></div>
+    <span class="grow"></span>
+    <span class="estado" id="aEstado"></span>
+  </header>
+  <div class="palco">
+    <div class="visor">
+      <button class="seta ant" id="ant" aria-label="Página anterior">←</button>
+      <div class="livro" id="livro"><img id="lImg" alt=""><div id="pinos"></div></div>
+      <button class="seta prox" id="prox" aria-label="Próxima página">→</button>
+      <span class="contador" id="contador"></span>
+    </div>
+    <aside class="lado">
+      <p class="dica" id="dica"></p>
+      <div><h2 id="tComs">Comentários desta página</h2></div>
+      <ul class="coms" id="coms"></ul>
+      <form class="novoCom" id="fCom">
+        <label for="tCom" class="small mute" id="lCom">Escreva um comentário sobre esta página</label>
+        <textarea id="tCom" maxlength="800" placeholder="Ex.: trocar esta foto pela da entrada da igreja"></textarea>
+        <div class="row"><button class="btn fill sm" id="salvarCom">Comentar</button><button type="button" class="btn ghost sm" id="marcarPonto">Marcar um ponto na página</button></div>
+      </form>
+      <div class="acoesA" id="acoesA">
+        <button class="btn fill" id="bAprovar">Aprovar álbum</button>
+        <button class="btn ghost" id="bAlterar">Enviar pedido de alterações</button>
+        <p class="small mute" id="resumoComs"></p>
+      </div>
+    </aside>
+  </div>
+  <nav class="miniaturas" id="mini" aria-label="Páginas do álbum"></nav>
+  <p class="small mute" style="text-align:center;padding:10px 0 24px;display:flex;justify-content:center;gap:6px;align-items:center">Álbum enviado com <svg width="11" height="11"><use href="#s"/></svg><strong style="letter-spacing:.22em;font-weight:500">SELETA</strong></p>
+</div>
+
+<div id="modal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="mTit">
+  <div class="card"><h2 id="mTit" style="margin-bottom:12px"></h2><p class="mute" id="mTxt" style="margin-bottom:18px"></p>
+    <div class="row"><button class="btn fill" id="mOk"></button><button class="btn ghost" id="mVoltar">Voltar</button></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=10"></script>
+<script src="aprovar.js?v=1"></script>
+</body>
+</html>

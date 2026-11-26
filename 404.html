@@ -7,6 +7,8 @@
   var p = location.pathname, raiz = "/";
   if (/\.github\.io$/.test(location.hostname)) { var seg = p.split("/")[1]; raiz = "/" + seg + "/"; }
   var resto = p.slice(raiz.length).replace(/^\/+|\/+$/g, "");
+  var alb = resto.match(/^([a-z0-9-]+)\/album\/([a-z0-9-]+)$/);
+  if (alb) { location.replace(raiz + "aprovar.html?a=" + alb[1] + "/" + alb[2]); return; }
   if (!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(resto)) { location.replace(raiz); return; }
   window.CAMINHO_GALERIA = resto;
   document.write('<base href="' + raiz + '">');
