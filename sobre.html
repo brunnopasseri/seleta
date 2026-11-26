@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no"><head><meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sobre · Seleta</title><link rel="icon" href="icone.svg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css?v=8">
+<style>
+body{background:#fafaf8}
+.topoS{position:sticky;top:0;z-index:30;background:rgba(250,250,248,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topoS .wrap{display:flex;align-items:center;gap:28px;min-height:68px}
+.topoS nav{display:flex;gap:24px;font-size:14px}
+.topoS nav a{text-decoration:none;color:var(--mute);white-space:nowrap}
+.topoS nav a:hover,.topoS nav a[aria-current]{color:var(--ink)}
+.topoS .dir{margin-left:auto;display:flex;align-items:center;gap:14px}
+.topoS .entrar{font-size:14px;text-decoration:none;color:var(--ink)}
+@media(max-width:820px){.topoS nav{display:none}}
+.rodS{background:#111;color:#bdbbb6;padding:44px 0;font-size:13px;margin-top:80px}
+.rodS .wrap{display:flex;gap:24px;justify-content:space-between;flex-wrap:wrap;align-items:center}
+.rodS a{color:#d8d6d1;text-decoration:none}.rodS a:hover{color:#fff}
+.rodS .lk{display:flex;gap:22px;flex-wrap:wrap}
+</style>
+<style>
+.capaS{position:relative;min-height:56vh;display:grid;place-items:center;text-align:center;color:#fff;background:#111 url('https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1800&q=72&auto=format&fit=crop') center 40%/cover}
+.capaS::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.6))}
+.capaS>div{position:relative;z-index:1;padding:80px 16px}
+.capaS h1{font-weight:300;font-size:clamp(34px,6vw,64px);letter-spacing:.18em;text-transform:uppercase}
+.capaS p{margin-top:14px;font-size:clamp(15px,2vw,18px);opacity:.9}
+.historia{max-width:780px;margin:0 auto;padding:72px max(4vw,16px) 20px}
+.frase{text-align:center;font-size:clamp(20px,3vw,30px);font-weight:500;letter-spacing:.12em;text-transform:uppercase;line-height:1.35;margin-bottom:56px}
+.autor{display:flex;gap:22px;align-items:center;margin-bottom:34px}
+.mono{width:84px;height:84px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-size:26px;letter-spacing:.06em;flex:none;overflow:hidden}
+.mono img{width:100%;height:100%;object-fit:cover}
+.autor strong{display:block;font-size:20px;font-weight:500}.autor span{color:var(--mute);font-size:14px}
+.historia p{font-size:17px;line-height:1.85;color:#2b2b2b;margin:0 0 18px}
+.valores{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:980px;margin:40px auto 0;padding:0 max(4vw,16px)}
+.valores div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px}
+.valores b{display:block;font-weight:500;margin-bottom:6px}.valores p{font-size:14px;color:var(--mute);line-height:1.6;margin:0}
+.assina{margin-top:30px;font-size:15px;color:var(--mute)}
+.ctaS{text-align:center;margin-top:48px}
+@media(max-width:760px){.valores{grid-template-columns:1fr}}
+</style>
+</head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="square"/></symbol></defs></svg>
+<header class="topoS"><div class="wrap"><a class="logo" href="./"><svg><use href="#s"/></svg>SELETA</a><nav aria-label="Menu principal"><a href="./">Início</a><a href="./#como">Como funciona</a><a href="./#planos">Planos</a><a href="sobre.html" aria-current="page">Sobre</a><a href="blog.html">Blog</a></nav>
+<div class="dir"><span data-seletor-lang></span><a class="entrar" href="app.html">Entrar</a><a class="btn sm fill" href="app.html?criar">Começar grátis</a></div></div></header>
+
+<section class="capaS"><div><h1>A Seleta</h1><p>Uma ideia que nasceu atrás da câmera.</p></div></section>
+<main><article class="historia"><div data-lang="pt">
+<p class="frase">“Feita por quem fotografa, para quem fotografa”</p>
+<div class="autor"><span class="mono">BP</span><div><strong>Brunno Passeri</strong><span>Fotógrafo em Formosa, Goiás · criador da Seleta</span></div></div>
+<p>Oi, eu sou o Brunno. Sou fotógrafo de ensaios, eventos e casamentos, e foi justamente no dia a dia do meu trabalho que a Seleta começou.</p>
+<p>Durante muito tempo, a parte mais cansativa da fotografia não era fotografar. Era tudo o que vinha depois: mandar link do Drive, receber a escolha do cliente em print no WhatsApp, conferir o número de cada arquivo, lembrar quem já tinha pagado o sinal, quem ainda não tinha escolhido e qual ensaio era no sábado.</p>
+<p>Testei várias ferramentas. Algumas eram caras demais para quem está crescendo, outras resolviam só um pedaço do problema. Então resolvi construir a minha.</p>
+<p>A Seleta nasceu para organizar o meu próprio estúdio e agora existe para ajudar outros fotógrafos que vivem a mesma rotina. A ideia é simples: o cliente escolhe as fotos pelo celular, numa galeria bonita, e você tem em um só lugar a seleção, a entrega, a aprovação do álbum, a agenda e o financeiro.</p>
+<p>Cada recurso aqui saiu de uma necessidade real, minha ou de colegas. E vai continuar assim: quem usa a Seleta ajuda a decidir o que vem a seguir.</p>
+<p class="assina">Brunno Passeri · Fundador da Seleta</p>
+</div><div data-lang="en" hidden>
+<p class="frase">“Made by a photographer, for photographers”</p>
+<div class="autor"><span class="mono">BP</span><div><strong>Brunno Passeri</strong><span>Photographer in Formosa, Goiás, Brazil · creator of Seleta</span></div></div>
+<p>Hi, I'm Brunno. I photograph portraits, events and weddings, and Seleta was born right out of my day-to-day work.</p>
+<p>For a long time, the most tiring part of photography wasn't shooting. It was everything that came after: sending Drive links, getting the client's picks as WhatsApp screenshots, checking every file number, remembering who had paid the deposit, who hadn't chosen yet and which session was on Saturday.</p>
+<p>I tried many tools. Some were too expensive for a growing business, others only solved part of the problem. So I decided to build my own.</p>
+<p>Seleta started as a way to organize my own studio, and now it exists to help other photographers who live the same routine. The idea is simple: the client picks photos on their phone, in a beautiful gallery, and you have selection, delivery, album approval, calendar and finance all in one place.</p>
+<p>Every feature here came from a real need, mine or a colleague's. And it will stay that way: the people who use Seleta help decide what comes next.</p>
+<p class="assina">Brunno Passeri · Founder of Seleta</p>
+</div></article><div class="valores" data-lang="pt"><div><b>Preço justo</b><p>Planos pensados para quem está começando e para quem já tem um estúdio cheio.</p></div><div><b>Rotina real</b><p>Cada tela foi desenhada a partir do dia a dia de um fotógrafo, não de uma planilha.</p></div><div><b>Perto de você</b><p>Sugestão vira melhoria. O suporte é feito por quem entende de fotografia.</p></div></div><div class="valores" data-lang="en" hidden><div><b>Fair pricing</b><p>Plans designed both for those starting out and for busy studios.</p></div><div><b>Real routine</b><p>Every screen was designed from a photographer's day-to-day, not from a spreadsheet.</p></div><div><b>Close to you</b><p>Suggestions become improvements. Support comes from someone who understands photography.</p></div></div>
+<div class="ctaS"><a class="btn fill" href="app.html?criar">Testar 14 dias grátis</a> <a class="btn" href="https://wa.me/5561995169154?text=Oi!%20Vim%20pelo%20site%20da%20Seleta." target="_blank" rel="noopener" style="margin-left:8px">Falar no WhatsApp</a></div></main>
+<footer class="rodS"><div class="wrap"><a class="logo" href="./" style="color:#fff"><svg><use href="#s"/></svg>SELETA</a>
+<span class="lk"><a href="sobre.html">Sobre</a><a href="blog.html">Blog</a><a href="termos.html">Termos de uso</a><a href="privacidade.html">Privacidade</a><a href="https://wa.me/5561995169154?text=Oi!%20Vim%20pelo%20site%20da%20Seleta." target="_blank" rel="noopener">WhatsApp</a></span>
+<span>© 2026 Seleta · Feito no Brasil</span></div></footer>
+<script src="i18n.js?v=3"></script>
+</body></html>

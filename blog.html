@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR" translate="no"><head><meta charset="utf-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blog · Seleta</title><link rel="icon" href="icone.svg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css?v=8">
+<style>
+body{background:#fafaf8}
+.topoS{position:sticky;top:0;z-index:30;background:rgba(250,250,248,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topoS .wrap{display:flex;align-items:center;gap:28px;min-height:68px}
+.topoS nav{display:flex;gap:24px;font-size:14px}
+.topoS nav a{text-decoration:none;color:var(--mute);white-space:nowrap}
+.topoS nav a:hover,.topoS nav a[aria-current]{color:var(--ink)}
+.topoS .dir{margin-left:auto;display:flex;align-items:center;gap:14px}
+.topoS .entrar{font-size:14px;text-decoration:none;color:var(--ink)}
+@media(max-width:820px){.topoS nav{display:none}}
+.rodS{background:#111;color:#bdbbb6;padding:44px 0;font-size:13px;margin-top:80px}
+.rodS .wrap{display:flex;gap:24px;justify-content:space-between;flex-wrap:wrap;align-items:center}
+.rodS a{color:#d8d6d1;text-decoration:none}.rodS a:hover{color:#fff}
+.rodS .lk{display:flex;gap:22px;flex-wrap:wrap}
+</style>
+<style>
+.carrossel{position:relative;height:min(78vh,640px);overflow:hidden;background:#111;color:#fff}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity .9s ease;display:flex;align-items:center}
+.slide.on{opacity:1;z-index:1}
+.slide .bg{position:absolute;inset:0;background:center/cover;transform:scale(1.04);transition:transform 7s ease}
+.slide.on .bg{transform:scale(1)}
+.slide::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.75),rgba(0,0,0,.25))}
+.slide .txt{position:relative;z-index:1;max-width:760px;padding:0 max(6vw,20px)}
+.slide .olho{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.8}
+.slide h2{font-size:clamp(30px,5vw,56px);font-weight:400;line-height:1.1;margin:14px 0}
+.slide p{font-size:17px;opacity:.88;line-height:1.6;max-width:620px}
+.slide .meta{font-size:13px;opacity:.75;margin:16px 0 22px}
+.carrossel .btn.claro{background:#fff;color:#111;border-color:#fff}
+.setaC{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.25);color:#fff;font-size:18px;cursor:pointer}
+.setaC.a{left:16px}.setaC.p{right:16px}
+.pontos{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:3;display:flex;gap:8px}
+.pontos button{width:26px;height:3px;border:0;border-radius:2px;background:rgba(255,255,255,.35);cursor:pointer;padding:0}
+.pontos button[aria-current=true]{background:#fff}
+.listaB{max-width:1100px;margin:0 auto;padding:64px max(4vw,16px) 0}
+.listaB h2.sec{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);font-weight:500;margin-bottom:24px}
+.post{display:grid;grid-template-columns:1.1fr 1fr;gap:34px;align-items:center;padding:28px 0;border-top:1px solid var(--line);text-decoration:none;color:inherit}
+.post .im{aspect-ratio:16/10;border-radius:14px;background:#ddd center/cover;position:relative;overflow:hidden}
+.post .im span{position:absolute;top:14px;left:14px;background:#111;color:#fff;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border-radius:6px}
+.post small{color:var(--mute);font-size:13px}
+.post h3{font-size:clamp(22px,3vw,32px);font-weight:500;line-height:1.2;margin:10px 0}
+.post p{color:var(--mute);line-height:1.7;margin:0}
+.post:hover h3{text-decoration:underline;text-underline-offset:4px}
+@media(max-width:760px){.post{grid-template-columns:1fr;gap:16px}}
+.artigo{max-width:740px;margin:0 auto;padding:56px max(4vw,16px) 0}
+.artigo .volta{font-size:14px;color:var(--mute);text-decoration:none}
+.artigo .cat{display:inline-block;margin-top:26px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;background:#111;color:#fff;padding:6px 10px;border-radius:6px}
+.artigo h1{font-size:clamp(30px,5vw,48px);font-weight:500;line-height:1.15;margin:16px 0 10px}
+.artigo .meta{color:var(--mute);font-size:14px;margin-bottom:28px}
+.artigo .im{aspect-ratio:16/9;border-radius:16px;background:#ddd center/cover;margin-bottom:34px}
+.artigo .corpo p{font-size:17px;line-height:1.85;color:#2b2b2b;margin:0 0 18px}
+.artigo .corpo h2{font-size:22px;font-weight:500;margin:34px 0 10px}
+.ctaB{margin:44px 0 0;padding:28px;border-radius:16px;background:#111;color:#fff;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ctaB b{font-weight:500;font-size:18px}.ctaB .btn{background:#fff;color:#111;border-color:#fff}
+</style>
+</head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="square"/></symbol></defs></svg>
+<header class="topoS"><div class="wrap"><a class="logo" href="./"><svg><use href="#s"/></svg>SELETA</a><nav aria-label="Menu principal"><a href="./">Início</a><a href="./#como">Como funciona</a><a href="./#planos">Planos</a><a href="sobre.html">Sobre</a><a href="blog.html" aria-current="page">Blog</a></nav>
+<div class="dir"><span data-seletor-lang></span><a class="entrar" href="app.html">Entrar</a><a class="btn sm fill" href="app.html?criar">Começar grátis</a></div></div></header>
+
+<main id="blog" data-sem-traducao></main>
+<script src="blog-posts.js?v=1"></script>
+<script>
+{
+const U = (i, w) => `https://images.unsplash.com/photo-${i}?w=${w}&q=72&auto=format&fit=crop`;
+const L = () => (window.SeletaLang ? SeletaLang.get() : "pt");
+const T = {
+  pt: { dest: "Artigos em destaque", ler: "Ler artigo", todos: "Todos os artigos", min: "min de leitura", volta: "← Todos os artigos", cta: "Organize suas galerias, entregas e clientes num só lugar.", ctaBtn: "Testar 14 dias grátis", nao: "Artigo não encontrado.", titulo: "Blog" },
+  en: { dest: "Featured articles", ler: "Read article", todos: "All articles", min: "min read", volta: "← All articles", cta: "Organize your galleries, deliveries and clients in one place.", ctaBtn: "Try 14 days free", nao: "Article not found.", titulo: "Blog" }
+};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const dataF = d => new Date(d + "T12:00").toLocaleDateString(L() === "en" ? "en-US" : "pt-BR", { day: "numeric", month: "short", year: "numeric" });
+let timer = null;
+function render() {
+  clearInterval(timer);
+  const l = L(), t = T[l], p = new URLSearchParams(location.search).get("p"), m = document.getElementById("blog");
+  if (p) {
+    const a = POSTS.find(x => x.slug === p);
+    if (!a) { m.innerHTML = `<div class="artigo"><a class="volta" href="blog.html">${t.volta}</a><p style="margin-top:30px">${t.nao}</p></div>`; return; }
+    document.title = a.titulo[l] + " · Seleta";
+    m.innerHTML = `<article class="artigo"><a class="volta" href="blog.html">${t.volta}</a><br><span class="cat">${esc(a.cat[l])}</span>
+      <h1>${esc(a.titulo[l])}</h1><p class="meta">${dataF(a.data)} · ${a.min} ${t.min}</p>
+      <div class="im" style="background-image:url('${U(a.img, 1400)}')"></div><div class="corpo">${a.corpo[l]}</div>
+      <div class="ctaB"><b>${t.cta}</b><a class="btn" href="app.html?criar">${t.ctaBtn}</a></div></article>`;
+    return;
+  }
+  document.title = "Blog · Seleta";
+  const dest = POSTS.slice(0, 3);
+  m.innerHTML = `<section class="carrossel" aria-roledescription="carousel" aria-label="${t.dest}">
+    ${dest.map((a, i) => `<div class="slide${i ? "" : " on"}" aria-hidden="${!!i}"><div class="bg" style="background-image:url('${U(a.img, 1800)}')"></div>
+      <div class="txt"><span class="olho">${t.dest}</span><h2>${esc(a.titulo[l])}</h2><p>${esc(a.resumo[l])}</p><p class="meta">${dataF(a.data)} · ${a.min} ${t.min}</p>
+      <a class="btn claro" href="?p=${a.slug}" tabindex="${i ? -1 : 0}">${t.ler}</a></div></div>`).join("")}
+    <button class="setaC a" aria-label="‹">‹</button><button class="setaC p" aria-label="›">›</button>
+    <div class="pontos">${dest.map((_, i) => `<button aria-label="${i + 1}" aria-current="${!i}"></button>`).join("")}</div></section>
+    <section class="listaB"><h2 class="sec">${t.todos}</h2>
+    ${POSTS.map(a => `<a class="post" href="?p=${a.slug}"><div class="im" style="background-image:url('${U(a.img, 900)}')"><span>${esc(a.cat[l])}</span></div>
+      <div><small>${dataF(a.data)} · ${a.min} ${t.min}</small><h3>${esc(a.titulo[l])}</h3><p>${esc(a.resumo[l])}</p></div></a>`).join("")}</section>`;
+  const sl = [...m.querySelectorAll(".slide")], pt = [...m.querySelectorAll(".pontos button")];
+  let atual = 0;
+  const ir = n => { atual = (n + sl.length) % sl.length; sl.forEach((s, i) => { s.classList.toggle("on", i === atual); s.setAttribute("aria-hidden", i !== atual); s.querySelector("a").tabIndex = i === atual ? 0 : -1; }); pt.forEach((b, i) => b.setAttribute("aria-current", i === atual)); };
+  const auto = () => { clearInterval(timer); if (!matchMedia("(prefers-reduced-motion: reduce)").matches) timer = setInterval(() => ir(atual + 1), 6500); };
+  m.querySelector(".setaC.a").onclick = () => { ir(atual - 1); auto(); };
+  m.querySelector(".setaC.p").onclick = () => { ir(atual + 1); auto(); };
+  pt.forEach((b, i) => b.onclick = () => { ir(i); auto(); });
+  const car = m.querySelector(".carrossel"); car.onmouseenter = () => clearInterval(timer); car.onmouseleave = auto;
+  auto();
+}
+render();
+addEventListener("seleta:lang", render);
+}
+</script>
+<footer class="rodS"><div class="wrap"><a class="logo" href="./" style="color:#fff"><svg><use href="#s"/></svg>SELETA</a>
+<span class="lk"><a href="sobre.html">Sobre</a><a href="blog.html">Blog</a><a href="termos.html">Termos de uso</a><a href="privacidade.html">Privacidade</a><a href="https://wa.me/5561995169154?text=Oi!%20Vim%20pelo%20site%20da%20Seleta." target="_blank" rel="noopener">WhatsApp</a></span>
+<span>© 2026 Seleta · Feito no Brasil</span></div></footer>
+<script src="i18n.js?v=3"></script>
+</body></html>
