@@ -243,7 +243,7 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
 @keyframes zoomLento{to{transform:scale(1)}}
 .heroGrid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:4vw;align-items:center;min-height:calc(min(100vh,920px) - 71px);padding-top:30px;padding-bottom:30px}
 .heroD h1{font-size:clamp(40px,5.4vw,76px);font-weight:300;line-height:1.04;letter-spacing:-.02em;color:#fff}
-.olhoD{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin:0 0 20px}
+.olhoD{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin:0 0 20px;max-width:34em}
 .rev{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em}.rev>span{display:inline-block;transform:translateY(110%);animation:sobe .9s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes sobe{to{transform:none}}
 .brilho{font-weight:500;background:linear-gradient(90deg,#fff 0%,#9a9a9a 50%,#fff 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:brilho 4s linear infinite}
@@ -253,7 +253,7 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
 .heroD .btn.claro{background:#fff;color:#111;border-color:#fff;gap:10px}
 .heroD .btn.contorno{border-color:rgba(255,255,255,.7);color:#fff;background:transparent}
 .heroD .btn .seta{transition:transform .25s}.heroD .btn:hover .seta{transform:translateX(4px)}
-.entra{opacity:0;transform:translateY(14px);animation:aparece .8s .6s ease forwards}.e2{animation-delay:.75s}.e3{animation-delay:.9s}
+.entra{opacity:0;transform:translateY(14px);animation:aparece .8s .6s ease forwards}.entra.d2{animation-delay:.75s}.entra.d3{animation-delay:.9s}
 @keyframes aparece{to{opacity:1;transform:none}}
 .numerosD{display:flex;gap:30px;flex-wrap:wrap;margin-top:36px;font-size:13px;color:rgba(255,255,255,.7)}.numerosD b{display:block;font-size:26px;font-weight:300;color:#fff}
 .colsD{height:min(78vh,720px);display:grid;grid-template-columns:repeat(3,1fr);gap:12px;overflow:hidden;opacity:0;animation:aparece 1.2s .2s ease forwards;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
@@ -294,8 +294,8 @@ nav.sobreFoto:not(.rolou) .btn.fill{background:#fff;color:#111;border-color:#fff
       <p class="olhoD"><span class="rev"><span>Para fotógrafos de ensaios, casamentos e eventos</span></span></p>
       <h1><span class="rev"><span style="animation-delay:.1s">Seu cliente</span></span><br><span class="rev"><span style="animation-delay:.22s">escolhe as fotos.</span></span><br><span class="rev"><span style="animation-delay:.34s"><span class="brilho">Você só edita.</span></span></span></h1>
       <p class="lead entra">Galeria de seleção, entrega, aprovação de álbum e a gestão do estúdio num só lugar. Feito por um fotógrafo, para fotógrafos.</p>
-      <div class="ctas entra e2"><a class="btn claro" href="app.html?criar">Testar 14 dias grátis <span class="seta" aria-hidden="true">→</span></a><a class="btn contorno" href="precos.html">Ver os planos</a></div>
-      <div class="numerosD entra e3"><span><b>2 min</b>para criar o estúdio</span><span><b>0</b>prints no WhatsApp</span><span><b>14 dias</b>grátis, sem cartão</span></div>
+      <div class="ctas entra d2"><a class="btn claro" href="app.html?criar">Testar 14 dias grátis <span class="seta" aria-hidden="true">→</span></a><a class="btn contorno" href="precos.html">Ver os planos</a></div>
+      <div class="numerosD entra d3"><span><b>2 min</b>para criar o estúdio</span><span><b>0</b>prints no WhatsApp</span><span><b>14 dias</b>grátis, sem cartão</span></div>
     </div>
     <div class="colsD" id="colsD" aria-hidden="true"></div>
   </div>
