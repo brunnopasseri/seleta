@@ -186,6 +186,28 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
   .fin div:last-child{display:none}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+.modulos{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.entregaMock{background:#111}
+.capaE{position:relative;aspect-ratio:16/8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;overflow:hidden;padding:20px}
+.capaE::before{content:"";position:absolute;inset:-12px;background:var(--f) center/cover;filter:blur(5px) brightness(.6)}
+.capaE>*{position:relative}
+.capaE span{font-size:10px;letter-spacing:.25em;text-transform:uppercase;opacity:.8}
+.capaE h3{font-size:clamp(22px,3vw,32px);font-weight:400;margin:8px 0 4px}
+.capaE small{font-size:12px;opacity:.8}
+.capaE b{margin-top:14px;background:#fff;color:#111;font-size:12px;font-weight:500;padding:8px 16px;border-radius:8px}
+.gradeE{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;background:#fff}
+.gradeE i{aspect-ratio:4/5;background:center/cover}
+.relCards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.relCards div{border:1px solid var(--line);border-radius:8px;padding:10px}
+.relCards div.e{background:#111;color:#fff;border-color:#111}
+.relCards span{display:block;font-size:10px;color:var(--mute)}.relCards .e span{color:#bbb}
+.relCards b{font-size:20px;font-weight:500}
+.relLinhas{margin-top:12px}
+.relLinhas div{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-top:1px solid var(--line);font-size:14px}
+.relLinhas strong{font-weight:500}
+.pill.alerta{background:#fbe9e7;color:#b3261e;border-color:#f3c9c3}
+@media(max-width:900px){.modulos{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:560px){.modulos{grid-template-columns:minmax(0,1fr)!important}.relCards{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -195,7 +217,7 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
 
 <nav id="nav"><div class="wrap">
   <a class="logo" href="#topo" aria-label="Seleta, início"><svg><use href="#s"/></svg>SELETA</a>
-  <div class="links"><a href="#como">Como funciona</a><a href="#estudio">Clientes e agenda</a><a href="#financeiro">Financeiro</a><a href="#planos">Planos</a><a href="#duvidas">Dúvidas</a></div>
+  <div class="links"><a href="#como">Como funciona</a><a href="#entrega">Entrega</a><a href="#crm">CRM</a><a href="#financeiro">Financeiro</a><a href="#planos">Planos</a><a href="#duvidas">Dúvidas</a></div>
   <a class="entrar" href="app.html">Entrar</a>
   <a class="btn fill" href="app.html">Começar grátis</a>
 </div></nav>
@@ -253,6 +275,52 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
   </div>
 </div></section>
 
+<section class="band secao alt" id="entrega"><div class="wrap duas">
+  <div class="janela">
+    <div class="barra"><i></i><i></i><i></i><span>seleta.com.br / bruno-fotografia / ensaio-sophia</span></div>
+    <div class="entregaMock">
+      <div class="capaE" style="--f:url('https://images.unsplash.com/photo-1578220375772-9a71d4d2ff82?w=1000&q=70&auto=format&fit=crop')"><span>Bruno Fotografia</span><h3>Ensaio Sophia</h3><small>42 fotos · prontas para baixar</small><b>Baixar todas</b></div>
+      <div class="gradeE"><i style="background-image:url('https://images.unsplash.com/photo-1625832954356-6ddaffc45853?w=400&q=70&auto=format&fit=crop')"></i><i style="background-image:url('https://images.unsplash.com/photo-1560915109-f54ff3d7664c?w=400&q=70&auto=format&fit=crop')"></i><i style="background-image:url('https://images.unsplash.com/photo-1578220375772-9a71d4d2ff82?w=400&q=70&auto=format&fit=crop')"></i><i style="background-image:url('https://images.unsplash.com/photo-1644901381402-69804395b4e0?w=400&q=70&auto=format&fit=crop')"></i><i style="background-image:url('https://images.unsplash.com/photo-1600069265050-3555d89d187b?w=400&q=70&auto=format&fit=crop')"></i><i style="background-image:url('https://images.unsplash.com/photo-1612821996907-d3710d7f1351?w=400&q=70&auto=format&fit=crop')"></i></div>
+    </div>
+  </div>
+  <div>
+    <p class="olho">Entrega das fotos</p>
+    <h2>Entregue as fotos tratadas direto aqui, com a sua cara.</h2>
+    <p class="txt">Nada de link de Drive perdido no WhatsApp. O cliente abre a página de entrega com a capa, o nome do ensaio e as fotos prontas.</p>
+    <ul class="recursos">
+      <li><h3>Capa e título</h3><p>Você escolhe a foto de capa e o nome que aparece em cima, num visual limpo.</p></li>
+      <li><h3>Baixar tudo ou só algumas</h3><p>O cliente baixa o ensaio inteiro de uma vez ou marca só as favoritas.</p></li>
+      <li><h3>Depois da seleção, um clique</h3><p>Quando o cliente finaliza a escolha, o botão "Enviar fotos tratadas" já aparece pra você.</p></li>
+    </ul>
+  </div>
+</div></section>
+
+<section class="band secao" id="crm"><div class="wrap duas">
+  <div>
+    <p class="olho">CRM para fotógrafos</p>
+    <h2>Saiba quem já escolheu, quem está escolhendo e quem sumiu.</h2>
+    <p class="txt">Os relatórios mostram cada cliente e em que ponto ele está. O funil acompanha seus trabalhos do primeiro orçamento até a entrega.</p>
+    <ul class="recursos">
+      <li><h3>Relatórios</h3><p>Quem não abriu o link, quem está marcando fotos, quem já enviou e quem passou do prazo.</p></li>
+      <li><h3>Funil</h3><p>Orçamento, fechado, fotografado e entregue. Arraste o card e pronto.</p></li>
+      <li><h3>Conversas</h3><p>A mensagem certa pra cada cliente, pronta pra abrir no WhatsApp.</p></li>
+    </ul>
+  </div>
+  <div class="janela">
+    <div class="barra"><i></i><i></i><i></i><span>seleta / relatórios</span></div>
+    <div class="corpo">
+      <div class="relCards"><div><span>Não escolheram</span><b>3</b></div><div><span>Escolhendo</span><b>2</b></div><div class="e"><span>Já escolheram</span><b>4</b></div><div><span>Entregues</span><b>11</b></div></div>
+      <div class="relLinhas">
+        <div><strong>Ana Clara</strong><span class="pill">Escolhendo · 18/25</span></div>
+        <div><strong>Júlia e Rafael</strong><span class="pill p">Já escolheu</span></div>
+        <div><strong>Marina Lopes</strong><span class="pill alerta">Prazo vencido</span></div>
+        <div><strong>Pedro Henrique</strong><span class="pill">Entregue</span></div>
+      </div>
+      <p class="leg">Dados de exemplo</p>
+    </div>
+  </div>
+</div></section>
+
 <section class="band secao alt" id="estudio"><div class="wrap duas">
   <div class="janela">
     <div class="barra"><i></i><i></i><i></i><span>seleta / agenda</span></div>
@@ -304,9 +372,11 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
 
 <section class="band secao alt" id="modulos"><div class="wrap">
   <p class="olho">Tudo o que vem na Seleta</p>
-  <h2>Quatro áreas, um só painel.</h2>
+  <h2>Tudo do estúdio, num só painel.</h2>
   <div class="modulos">
-    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8" fill="currentColor"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg><h3>Galeria</h3><p>Seleção com limite do pacote, comentários por foto, capa, marca d'água e entrega final.</p></div>
+    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8" fill="currentColor"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg><h3>Galeria</h3><p>Seleção com limite do pacote, comentários por foto, capa e marca d'água com a sua assinatura.</p></div>
+    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg><h3>Entregas</h3><p>Página de entrega com capa e título, para o cliente baixar as fotos tratadas.</p></div>
+    <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="5" height="16"/><rect x="10" y="4" width="5" height="11"/><rect x="17" y="4" width="4" height="6"/></svg><h3>CRM</h3><p>Funil de trabalhos, relatórios de seleção e mensagens prontas para o WhatsApp.</p></div>
     <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><h3>Clientes</h3><p>Contatos, histórico de trabalhos e galerias, e o que cada um já pagou.</p></div>
     <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="16"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><h3>Agenda</h3><p>Calendário com ensaios, casamentos e eventos, do orçamento à entrega.</p></div>
     <div class="mod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><h3>Financeiro</h3><p>Sinais, saldos, extras e atrasos, com o resumo do mês e do ano.</p></div>

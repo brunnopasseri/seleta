@@ -8,8 +8,8 @@
 <link rel="icon" href="icone.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital@1&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="base.css?v=17">
-<link rel="stylesheet" href="app.css?v=17">
+<link rel="stylesheet" href="base.css?v=18">
+<link rel="stylesheet" href="app.css?v=18">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -93,7 +93,7 @@
     <div class="ladoPe">
       <div class="uso rot" id="uso"></div>
       <a class="mi" href="#/indique" data-r="indique" title="Indique e ganhe"><svg><use href="#i-presente"/></svg><span class="rot">Indique e ganhe</span></a>
-      <a class="mi" href="mailto:brunopasseri@gmail.com?subject=Suporte%20Seleta" title="Suporte"><svg><use href="#i-ajuda"/></svg><span class="rot">Suporte</span></a>
+      <a class="mi" href="#" data-suporte title="Suporte"><svg><use href="#i-ajuda"/></svg><span class="rot">Suporte</span></a>
       <a class="mi" href="#/config" data-r="config" title="Configurações"><svg><use href="#i-config"/></svg><span class="rot">Configurações</span></a>
       <span class="versao rot">v1.0 · seleta</span>
     </div>
@@ -112,10 +112,22 @@
           <a href="index.html" target="_blank" rel="noopener"><svg><use href="#i-externo"/></svg>Ver a página da Seleta</a>
           <a href="#/plano"><svg><use href="#i-plano"/></svg>Plano e cobrança</a>
           <a href="#/config"><svg><use href="#i-config"/></svg>Configurações</a>
-          <a href="mailto:brunopasseri@gmail.com?subject=Suporte%20Seleta"><svg><use href="#i-ajuda"/></svg>Suporte</a>
+          <a href="#" data-suporte><svg><use href="#i-ajuda"/></svg>Suporte</a>
           <hr><button id="sair"><svg><use href="#i-sair"/></svg>Sair</button></div></div>
     </header>
     <main class="conteudo" id="conteudo" tabindex="-1"></main>
+  </div>
+  <div class="gaveta hide" id="gaveta" role="dialog" aria-modal="true" aria-labelledby="gTit">
+    <div class="gavetaVeu" data-fechar></div>
+    <div class="gavetaCaixa">
+      <div class="gavetaTopo"><div><h2 id="gTit">Suporte</h2><p class="mute">Suas conversas com a equipe da Seleta.</p></div><button class="ico" data-fechar aria-label="Fechar">×</button></div>
+      <form class="gavetaCorpo" id="fSup">
+        <div class="field"><label for="sAss">Assunto</label><input id="sAss" required maxlength="120" placeholder="Sobre o que você precisa falar"></div>
+        <div class="field"><label for="sMsg">Mensagem</label><textarea id="sMsg" required rows="7" placeholder="Conte o que aconteceu, com o máximo de detalhe que puder."></textarea></div>
+        <div id="sHist"></div>
+      </form>
+      <div class="gavetaPe"><button type="button" class="btn ghost" data-fechar>Cancelar</button><button class="btn fill" form="fSup" id="sEnv" disabled>Enviar</button></div>
+    </div>
   </div>
 </div>
 
@@ -123,7 +135,7 @@
 <div id="toast" class="toast hide" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=17"></script>
-<script src="app.js?v=17"></script>
+<script src="config.js?v=18"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>

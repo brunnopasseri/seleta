@@ -129,6 +129,30 @@ $("avatar").onclick = e => { e.stopPropagation(); alternarPop("avatar", "menuCon
 document.addEventListener("click", e => { if (!e.target.closest(".caixaPop")) { show("notifs", false); show("menuConta", false); } });
 $("notifs").addEventListener("click", e => { if (e.target.closest("a")) show("notifs", false); });
 $("menuConta").addEventListener("click", e => { if (e.target.closest("a")) show("menuConta", false); });
+/* --- suporte (gaveta lateral) --- */
+async function abrirSuporte() {
+  show("menuConta", false); $("vPainel").classList.remove("aberto");
+  show("gaveta", true); requestAnimationFrame(() => $("gaveta").classList.add("on"));
+  $("sAss").focus();
+  const { data } = await sb.from("suporte").select("*").order("criado_em", { ascending: false }).limit(20);
+  $("sHist").innerHTML = (data || []).length ? `<h3 class="small mute" style="margin:26px 0 10px;letter-spacing:.12em">CONVERSAS ANTERIORES</h3>` + data.map(m => `
+    <div class="supItem"><div class="row" style="justify-content:space-between;gap:8px"><strong>${esc(m.assunto)}</strong><span class="tag ${m.resposta ? "encerrada" : "aberta"}">${m.resposta ? "Respondido" : "Aguardando"}</span></div>
+      <p class="small mute">${new Date(m.criado_em).toLocaleDateString("pt-BR")} · ${esc(m.mensagem)}</p>
+      ${m.resposta ? `<div class="supResp"><span class="small mute">Resposta da equipe</span><p>${esc(m.resposta)}</p></div>` : ""}</div>`).join("") : "";
+}
+function fecharSuporte() { $("gaveta").classList.remove("on"); setTimeout(() => show("gaveta", false), 200); }
+document.addEventListener("click", e => { if (e.target.closest("[data-suporte]")) { e.preventDefault(); abrirSuporte(); } });
+$("gaveta").addEventListener("click", e => { if (e.target.closest("[data-fechar]")) fecharSuporte(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("gaveta").classList.contains("hide")) fecharSuporte(); });
+const validarSup = () => $("sEnv").disabled = !($("sAss").value.trim() && $("sMsg").value.trim());
+$("sAss").oninput = validarSup; $("sMsg").oninput = validarSup;
+$("fSup").onsubmit = async e => {
+  e.preventDefault(); $("sEnv").disabled = true;
+  try {
+    await q(sb.from("suporte").insert({ email: user.email, assunto: $("sAss").value.trim(), mensagem: $("sMsg").value.trim() }));
+    $("sAss").value = ""; $("sMsg").value = ""; toast("Mensagem enviada. Respondemos por aqui e no seu e-mail."); abrirSuporte();
+  } catch (err) { erro(err); validarSup(); }
+};
 function pintarConta() {
   const n = (estudio?.nome || user?.email || "").replace(/[^\p{L}\s]/gu, " ").trim().split(/\s+/);
   const ini = ((n[0]?.[0] || "") + (n[1]?.[0] || "")).toUpperCase() || "S";
@@ -1152,7 +1176,7 @@ ROTAS.plano = async () => {
     $("assinar").onclick = () => {
       const link = SELETA.pagamento?.[planoSel]?.[cicloPlano];
       if (link) { window.open(link, "_blank", "noopener"); return; }
-      $("msgPlano").innerHTML = `<div class="msg" style="margin-top:16px">O pagamento online está sendo ativado. Enquanto isso, fale com a gente para assinar: <a href="mailto:brunopasseri@gmail.com?subject=${encodeURIComponent("Quero assinar o plano " + p.nome + " (" + cicloPlano + ")")}">enviar e-mail</a>.</div>`;
+      $("msgPlano").innerHTML = `<div class="msg" style="margin-top:16px">O pagamento online está sendo ativado. Enquanto isso, fale com a gente para assinar: <a href="#" data-suporte>abrir o suporte</a>.</div>`;
     };
   };
   pintar();
