@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app.html
+Disallow: /g.html
+Disallow: /aprovar.html
+
+Sitemap: https://seleta.fot.br/sitemap.xml
