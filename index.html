@@ -238,11 +238,12 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
 
 /* abertura D */
 .heroD{position:relative;margin-top:-71px;padding-top:71px;background:#0d0d0d;color:#fff;overflow:hidden;min-height:min(100vh,920px)}
-.heroBg{position:absolute;inset:0;background:center 30%/cover;transform:scale(1.08);animation:zoomLento 18s ease-out forwards;opacity:.55}
-.heroD::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,10,10,.92) 0%,rgba(10,10,10,.75) 42%,rgba(10,10,10,.35) 100%),linear-gradient(0deg,rgba(10,10,10,.85),transparent 35%)}
+.heroBg{position:absolute;inset:0;background:62% 30%/cover;transform:scale(1.1);animation:zoomLento 22s ease-out forwards;opacity:.7}
+.heroD::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,8,8,.9) 0%,rgba(8,8,8,.62) 45%,rgba(8,8,8,.25) 100%),linear-gradient(0deg,rgba(8,8,8,.9),transparent 40%),linear-gradient(180deg,rgba(8,8,8,.55),transparent 25%)}
 @keyframes zoomLento{to{transform:scale(1)}}
-.heroGrid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:4vw;align-items:center;min-height:calc(min(100vh,920px) - 71px);padding-top:30px;padding-bottom:30px}
-.heroD h1{font-size:clamp(40px,5.4vw,76px);font-weight:300;line-height:1.04;letter-spacing:-.02em;color:#fff}
+.heroGrid{position:relative;z-index:1;display:flex;align-items:center;min-height:calc(min(100vh,920px) - 71px);padding-top:30px;padding-bottom:30px}
+.heroTxt{max-width:640px}
+.heroD h1{font-size:clamp(42px,6.2vw,88px);font-weight:300;line-height:1.04;letter-spacing:-.02em;color:#fff}
 .olhoD{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin:0 0 20px;max-width:34em}
 .rev{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em}.rev>span{display:inline-block;transform:translateY(110%);animation:sobe .9s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes sobe{to{transform:none}}
@@ -256,22 +257,19 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
 .entra{opacity:0;transform:translateY(14px);animation:aparece .8s .6s ease forwards}.entra.d2{animation-delay:.75s}.entra.d3{animation-delay:.9s}
 @keyframes aparece{to{opacity:1;transform:none}}
 .numerosD{display:flex;gap:30px;flex-wrap:wrap;margin-top:36px;font-size:13px;color:rgba(255,255,255,.7)}.numerosD b{display:block;font-size:26px;font-weight:300;color:#fff}
-.colsD{height:min(78vh,720px);display:grid;grid-template-columns:repeat(3,1fr);gap:12px;overflow:hidden;opacity:0;animation:aparece 1.2s .2s ease forwards;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
-.colD{display:flex;flex-direction:column;gap:12px;animation:desce 40s linear infinite}
-.colD:nth-child(2){animation-duration:32s;animation-direction:reverse}.colD:nth-child(3){animation-duration:46s}
-.colsD:hover .colD{animation-play-state:paused}
-@keyframes desce{to{transform:translateY(-50%)}}
-.colD div{aspect-ratio:3/4;border-radius:10px;background:#222 center/cover;position:relative;flex:none;box-shadow:0 20px 40px -24px #000}
-.colD div.alta{aspect-ratio:2/3}
-.colD div.esc::after,.colD div.fav::after{position:absolute;left:10px;bottom:10px;font-size:11px;font-weight:600;padding:5px 9px;border-radius:999px}
-.colD div.esc::after{content:"✓ Escolhida";background:#fff;color:#111}
-.colD div.fav::after{content:"♥ Favorita";background:#111;color:#fff;border:1px solid #444}
-html[lang=en] .colD div.esc::after{content:"✓ Picked"}html[lang=en] .colD div.fav::after{content:"♥ Favorite"}
+.vidroD{position:absolute;z-index:2;right:max(5vw,calc((100vw - 1200px)/2));bottom:9vh;width:290px;padding:18px 20px;border-radius:16px;background:rgba(20,20,20,.35);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18);font-size:13px;color:#fff;opacity:0;animation:aparece 1s 1.3s ease forwards}
+.vidroD b{display:block;font-weight:500;font-size:14px;margin-bottom:2px}.vidroD small{display:block;opacity:.6;font-size:12px;margin-bottom:10px}
+.vidroD .l{display:flex;align-items:center;gap:10px;padding:6px 0;opacity:.55}.vidroD .l.ok{opacity:1}.vidroD .l i{width:8px;height:8px;border-radius:50%;border:1px solid #fff;flex:none}.vidroD .l.ok i{background:#fff}
+.vidroD .l.agora{opacity:1}.vidroD .l.agora i{animation:pisca 1.6s infinite}
+.vidroD .bar{height:3px;border-radius:3px;background:rgba(255,255,255,.2);margin:2px 0 6px 18px}.vidroD .bar i{display:block;height:100%;width:0;border-radius:3px;background:#fff;transition:width 1.2s ease}
+@keyframes pisca{50%{background:#fff}}
+.rolaD{position:absolute;z-index:2;left:50%;bottom:22px;transform:translateX(-50%);font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.6);text-decoration:none;animation:pula 2.2s infinite}
+@keyframes pula{50%{transform:translate(-50%,6px)}}
 nav.sobreFoto:not(.rolou){background:transparent;backdrop-filter:none;color:#fff}
 nav.sobreFoto:not(.rolou) .links a,nav.sobreFoto:not(.rolou) .entrar{color:rgba(255,255,255,.85)}
 nav.sobreFoto:not(.rolou) .btn.fill{background:#fff;color:#111;border-color:#fff}
-@media(max-width:900px){.heroGrid{grid-template-columns:1fr;padding-top:40px}.colsD{height:380px}}
-@media (prefers-reduced-motion:reduce){.rev>span,.entra,.colsD{animation:none;transform:none;opacity:1}.colD,.heroBg,.brilho{animation:none}}
+@media(max-width:900px){.heroGrid{padding-top:40px}.vidroD,.rolaD{display:none}}
+@media (prefers-reduced-motion:reduce){.rev>span,.entra,.vidroD{animation:none;transform:none;opacity:1}.heroBg,.brilho,.rolaD{animation:none}}
 </style>
 </head>
 <body>
@@ -297,8 +295,16 @@ nav.sobreFoto:not(.rolou) .btn.fill{background:#fff;color:#111;border-color:#fff
       <div class="ctas entra d2"><a class="btn claro" href="app.html?criar">Testar 14 dias grátis <span class="seta" aria-hidden="true">→</span></a><a class="btn contorno" href="precos.html">Ver os planos</a></div>
       <div class="numerosD entra d3"><span><b>2 min</b>para criar o estúdio</span><span><b>0</b>prints no WhatsApp</span><span><b>14 dias</b>grátis, sem cartão</span></div>
     </div>
-    <div class="colsD" id="colsD" aria-hidden="true"></div>
   </div>
+  <div class="vidroD" aria-hidden="true">
+    <b>Ensaio Sophia</b><small>Seleção do cliente</small>
+    <div class="l ok"><i></i>Fotos enviadas</div>
+    <div class="l agora"><i></i><span><span id="nEsc">0</span> de 40 escolhidas</span></div>
+    <div class="bar"><i id="bEsc"></i></div>
+    <div class="l"><i></i>Edição</div>
+    <div class="l"><i></i>Entrega</div>
+  </div>
+  <a class="rolaD" href="#como">ROLE ↓</a>
 </header>
 
 <section class="band escura"><div class="wrap duas">
@@ -521,7 +527,7 @@ nav.sobreFoto:not(.rolou) .btn.fill{background:#fff;color:#111;border-color:#fff
   <p class="credito">Fotos de demonstração: Unsplash.</p>
 </div></footer>
 
-<script src="i18n.js?v=7"></script>
+<script src="i18n.js?v=8"></script>
 <script>try{const r=new URLSearchParams(location.search).get("ref");if(r)localStorage.setItem("seleta-ref",r.toLowerCase().replace(/[^a-z0-9-]/g,""))}catch{}</script>
 <script>
 {
@@ -529,16 +535,10 @@ const $ = id => document.getElementById(id);
 const nav = $("nav");
 addEventListener("scroll", () => nav.classList.toggle("rolou", scrollY > 10), { passive: true });
 
-/* mosaico em movimento na abertura */
+/* abertura cinema */
 {
-  const F = ["1625832954356-6ddaffc45853","1560915109-f54ff3d7664c","1578220375772-9a71d4d2ff82","1644901381402-69804395b4e0","1600069265050-3555d89d187b","1612821996907-d3710d7f1351","1520854221256-17451cc331bf","1606216794074-735e91aa2c92"];
-  const U = i => `https://images.unsplash.com/photo-${i}?w=500&q=70&auto=format&fit=crop`;
-  const cols = $("colsD");
-  for (let c = 0; c < 3; c++) {
-    const seq = F.slice(c * 2).concat(F.slice(0, c * 2));
-    const h = seq.map((f, i) => `<div class="${i % 3 === 1 ? "alta " : ""}${(i + c) % 4 === 0 ? "esc" : (i + c) % 5 === 2 ? "fav" : ""}" style="background-image:url(${U(f)})"></div>`).join("");
-    const col = document.createElement("div"); col.className = "colD"; col.innerHTML = h + h; cols.appendChild(col);
-  }
+  let n = 0; const alvo = 32;
+  setTimeout(function passo(){ if (n >= alvo) return; n++; $("nEsc").textContent = n; $("bEsc").style.width = (n/40*100) + "%"; setTimeout(passo, 60 + Math.random()*120); }, 1600);
   const hero = $("topo");
   const sobre = () => nav.classList.toggle("sobreFoto", scrollY < hero.offsetHeight - 80);
   sobre(); addEventListener("scroll", sobre, { passive: true });
