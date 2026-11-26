@@ -120,7 +120,7 @@ $("notifs").addEventListener("click", e => { if (e.target.closest("a")) show("no
 $("menuConta").addEventListener("click", e => { if (e.target.closest("a")) show("menuConta", false); });
 function pintarConta() {
   const n = (estudio?.nome || user?.email || "").replace(/[^\p{L}\s]/gu, " ").trim().split(/\s+/);
-  $("avatar").textContent = ((n[0]?.[0] || "") + (n.length > 1 ? n[n.length - 1][0] : "")).toUpperCase() || "S";
+  $("avatar").textContent = ((n[0]?.[0] || "") + (n[1]?.[0] || "")).toUpperCase() || "S";
   $("contaNome").textContent = estudio?.nome || ""; $("contaEmail").textContent = user?.email || "";
 }
 async function notificacoes() {
