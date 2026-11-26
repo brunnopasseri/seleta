@@ -93,6 +93,21 @@ $("fEntrar").onsubmit = async e => {
   }
   $("bEntrar").disabled = false;
 };
+
+/* olhinho para mostrar/ocultar a senha */
+const OLHO_ABERTO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+const OLHO_FECHADO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+function olhinhos(raiz = document) {
+  raiz.querySelectorAll('input[type="password"]:not([data-olho])').forEach(inp => {
+    inp.dataset.olho = "1";
+    const caixa = document.createElement("span"); caixa.className = "senhaBox";
+    inp.parentNode.insertBefore(caixa, inp); caixa.appendChild(inp);
+    const b = document.createElement("button"); b.type = "button"; b.className = "olho"; b.setAttribute("aria-label", "Mostrar senha"); b.innerHTML = OLHO_ABERTO;
+    b.onclick = () => { const ver = inp.type === "password"; inp.type = ver ? "text" : "password"; b.innerHTML = ver ? OLHO_FECHADO : OLHO_ABERTO; b.setAttribute("aria-label", ver ? "Ocultar senha" : "Mostrar senha"); inp.focus(); };
+    caixa.appendChild(b);
+  });
+}
+olhinhos();
 $("esqueci").onclick = async e => {
   e.preventDefault();
   const email = $("email").value.trim();

@@ -228,8 +228,8 @@ body{background:var(--bg)}
 .miudo{font-size:13px;color:var(--mute);margin-top:12px}
 input[type=range]{accent-color:var(--ink)}
 .prefixo{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
-.prefixo span{padding:0 0 0 14px;color:var(--mute);font-size:15px;white-space:nowrap}
-.prefixo input{border:0;padding-left:2px;background:transparent}
+.prefixo span{padding:0 0 0 14px;color:var(--mute);font-size:15px;white-space:nowrap;flex:none}
+.prefixo input{border:0;padding-left:2px;background:transparent;flex:1;min-width:0;width:auto}
 
 /* faixa com foto desfocada */
 .faixaFoto{position:relative;overflow:hidden;background:#222;color:#fff}
@@ -419,3 +419,8 @@ button.num:hover{border-color:var(--ink)}
 .gcard.st-encerrada{border-color:#e0574d}
 .gcard.st-aberta:hover{border-color:#c9c6bf}.gcard.st-enviada:hover{border-color:#2f9a52}.gcard.st-encerrada:hover{border-color:#cc4237}
 [data-theme=dark] .tag.stG.aberta{background:#2a2a2a;color:#c9c7c2}[data-theme=dark] .tag.stG.enviada{background:#183d24;color:#8fe0a8}[data-theme=dark] .tag.stG.encerrada{background:#45201c;color:#ffaba3}[data-theme=dark] .gcard.st-aberta{border-color:#2e2e2d}
+
+/* olhinho da senha */
+.senhaBox{position:relative;display:block}.senhaBox input{padding-right:46px;width:100%}
+.olho{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:transparent;color:var(--mute);cursor:pointer;display:grid;place-items:center;border-radius:8px}
+.olho:hover{color:var(--ink)}.olho svg{width:20px;height:20px}
