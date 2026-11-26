@@ -102,7 +102,7 @@ $("fSenha").onsubmit = async e => {
 $("sair").onclick = () => sb.auth.signOut();
 
 /* ============ moldura do painel ============ */
-const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", entregas: "Entregas", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança" };
+const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", entregas: "Entregas", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança", conversas: "Conversas", relatorios: "Relatórios", funil: "Funil", indique: "Indique e ganhe" };
 const celular = () => matchMedia("(max-width:860px)").matches;
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -176,6 +176,12 @@ async function carregarEstudio() {
       const { data: livre } = await sb.rpc("slug_livre", { p_slug: tent });
       if (livre) { const r = await sb.from("estudios").update({ slug: tent }).eq("id", user.id).select().single(); if (!r.error) { estudio = r.data; break; } }
     }
+  }
+  const ref = ler("seleta-ref");
+  if (ref && !estudio.indicado_por && ref !== estudio.slug) {
+    const r = await sb.from("estudios").update({ indicado_por: ref }).eq("id", user.id).select().single();
+    if (!r.error) estudio = r.data;
+    try { localStorage.removeItem("seleta-ref"); } catch {}
   }
 }
 async function slugAlbumLivre(titulo, ignorarId) {
@@ -1114,3 +1120,182 @@ ROTAS.plano = async () => {
   pintar();
 };
 }
+
+
+/* ============ CRM: situação de cada álbum ============ */
+const ETAPA_A = {
+  aguardando: ["Ainda não abriu / não marcou", "aberta"],
+  andamento: ["Escolhendo agora", "andamento"],
+  escolheu: ["Já escolheu · editar", "enviada"],
+  entregue: ["Entregue", "encerrada"]
+};
+async function dadosAlbuns() {
+  const [gs, sel] = await Promise.all([
+    q(sb.from("galerias").select("id,slug,titulo,cliente_id,cliente_nome,status,prazo,criado_em,enviada_em,entrega_liberada,fotos_incluidas,preco_extra,permitir_extras,clientes(nome,whatsapp),qtd:fotos!fotos_galeria_id_fkey(count)").eq("so_entrega", false).order("criado_em", { ascending: false })),
+    q(sb.from("selecoes").select("galeria_id"))
+  ]);
+  const n = {}; sel.forEach(x => n[x.galeria_id] = (n[x.galeria_id] || 0) + 1);
+  return gs.map(g => {
+    const marc = n[g.id] || 0;
+    const etapa = g.entrega_liberada || g.status === "encerrada" ? "entregue" : g.status === "enviada" ? "escolheu" : marc ? "andamento" : "aguardando";
+    const atrasado = etapa !== "entregue" && etapa !== "escolheu" && g.prazo && g.prazo < hoje();
+    const dias = Math.floor((Date.now() - new Date(g.enviada_em || g.criado_em)) / 864e5);
+    return { ...g, marc, etapa, atrasado, dias };
+  });
+}
+
+/* --- Relatórios --- */
+let filtroRel = "todos";
+ROTAS.relatorios = async () => {
+  const [als, pags, ts] = await Promise.all([dadosAlbuns(), q(sb.from("pagamentos").select("valor,pago_em,vencimento")), q(sb.from("trabalhos").select("status,valor,tipo"))]);
+  const cont = k => als.filter(a => a.etapa === k).length;
+  const atrasados = als.filter(a => a.atrasado).length;
+  // receita dos últimos 6 meses
+  const meses = [...Array(6)].map((_, i) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 5 + i); return d; });
+  const rec = meses.map(d => pags.filter(p => p.pago_em && p.pago_em.slice(0, 7) === ymd(d).slice(0, 7)).reduce((s, p) => s + +p.valor, 0));
+  const maxR = Math.max(1, ...rec);
+  const orc = ts.length, fech = ts.filter(t => ["confirmado", "realizado", "entregue"].includes(t.status)).length;
+  const extras = als.filter(a => a.permitir_extras !== false && a.etapa !== "aguardando").reduce((s, a) => s + Math.max(0, a.marc - a.fotos_incluidas) * a.preco_extra, 0);
+  const f = { todos: () => true, aguardando: a => a.etapa === "aguardando", andamento: a => a.etapa === "andamento", escolheu: a => a.etapa === "escolheu", entregue: a => a.etapa === "entregue", atrasado: a => a.atrasado };
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Relatórios</h1><p class="mute">Quem já escolheu, quem está escolhendo e quem ainda não abriu o link.</p></div><button class="btn ghost" id="csv">Baixar planilha (CSV)</button></div>
+    <div class="cards">
+      <button class="num" data-k="aguardando"><span>Não escolheram ainda</span><b>${cont("aguardando")}</b><small class="mute">${atrasados ? `${atrasados} com prazo vencido` : "nenhum atrasado"}</small></button>
+      <button class="num" data-k="andamento"><span>Escolhendo agora</span><b>${cont("andamento")}</b><small class="mute">já marcaram fotos</small></button>
+      <button class="num" data-k="escolheu"><span>Já escolheram</span><b>${cont("escolheu")}</b><small class="mute">esperando edição</small></button>
+      <button class="num" data-k="entregue"><span>Entregues</span><b>${cont("entregue")}</b><small class="mute">fotos tratadas liberadas</small></button>
+    </div>
+    <div class="filtros" style="margin-top:22px">${[["todos", "Todos"], ["aguardando", "Não escolheram"], ["andamento", "Escolhendo"], ["escolheu", "Já escolheram"], ["entregue", "Entregues"], ["atrasado", "Prazo vencido"]].map(([k, t]) => `<button class="chip" data-f="${k}">${t} (${als.filter(f[k]).length})</button>`).join("")}</div>
+    <div class="bloco" style="padding:6px 8px"><table class="tabela stack"><thead><tr><th>Cliente</th><th>Álbum</th><th>Situação</th><th class="r">Marcadas</th><th>Prazo</th><th class="r">Parado há</th><th></th></tr></thead><tbody id="tRel"></tbody></table></div>
+    <div class="duas">
+      <div class="bloco"><h2>Recebido nos últimos 6 meses</h2>
+        <div class="barras">${meses.map((d, i) => `<div class="bcol"><span class="bval">${rec[i] ? brl(rec[i]).replace(",00", "") : ""}</span><i style="height:${Math.round(rec[i] / maxR * 100)}%"></i><span class="small mute">${d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></div>`).join("")}</div></div>
+      <div class="bloco"><h2>Resumo</h2>
+        <div class="resumo" style="grid-template-columns:1fr 1fr"><span>Orçamentos que viraram trabalho<b>${orc ? Math.round(fech / orc * 100) : 0}%</b></span><span>Trabalhos cadastrados<b>${orc}</b></span><span>Fotos extras vendidas<b>${brl(extras)}</b></span><span>Álbuns no total<b>${als.length}</b></span></div></div>
+    </div>`;
+  const pintar = () => {
+    const l = als.filter(f[filtroRel]);
+    $("tRel").innerHTML = l.length ? l.map(a => `<tr class="clic" data-s="${esc(a.slug)}">
+      <td><strong style="font-weight:500">${esc(a.cliente_nome || "Sem cliente")}</strong></td><td>${esc(a.titulo)}</td>
+      <td><span class="tag ${ETAPA_A[a.etapa][1]}">${ETAPA_A[a.etapa][0]}</span></td>
+      <td class="r">${a.marc}${a.fotos_incluidas ? ` / ${a.fotos_incluidas}` : ""}</td>
+      <td${a.atrasado ? ' style="color:#b3261e;font-weight:500"' : ""}>${a.prazo ? esc(dataBR(a.prazo)) + (a.atrasado ? " · vencido" : "") : "—"}</td>
+      <td class="r">${a.dias} ${a.dias === 1 ? "dia" : "dias"}</td>
+      <td class="r">${a.clientes?.whatsapp && a.etapa !== "entregue" ? `<a class="btn sm ghost" target="_blank" rel="noopener" data-wa href="https://wa.me/${fone(a.clientes.whatsapp)}?text=${encodeURIComponent(sugestaoMsg(a).texto)}">Lembrar</a>` : ""}</td></tr>`).join("")
+      : `<tr><td colspan="7" class="mute" style="padding:22px 12px">Nada por aqui com esse filtro.</td></tr>`;
+    document.querySelectorAll(".chip[data-f]").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filtroRel));
+  };
+  document.querySelectorAll(".chip[data-f]").forEach(c => c.onclick = () => { filtroRel = c.dataset.f; pintar(); });
+  document.querySelectorAll(".num[data-k]").forEach(c => c.onclick = () => { filtroRel = c.dataset.k; pintar(); });
+  $("tRel").onclick = e => { if (e.target.closest("[data-wa]")) return; const r = e.target.closest("[data-s]"); if (r) ir("#/galeria/" + r.dataset.s); };
+  $("csv").onclick = () => {
+    const linhas = [["Cliente", "Álbum", "Situação", "Marcadas", "Incluídas", "Prazo", "Dias parado"], ...als.map(a => [a.cliente_nome || "", a.titulo, ETAPA_A[a.etapa][0], a.marc, a.fotos_incluidas, a.prazo ? dataBR(a.prazo) : "", a.dias])];
+    const csv = "﻿" + linhas.map(l => l.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\n");
+    const el = document.createElement("a"); el.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); el.download = "relatorio-albuns.csv"; el.click();
+  };
+  pintar();
+};
+
+/* --- Conversas --- */
+function sugestaoMsg(a) {
+  const nome = (a.cliente_nome || "").split(" ")[0], oi = `Oi${nome ? ", " + nome : ""}!`;
+  const link = raizSite() + (estudio.slug ? estudio.slug + "/" : "g.html?g=") + a.slug;
+  if (a.etapa === "aguardando") return { titulo: a.atrasado ? "Prazo vencido" : "Ainda não escolheu", texto: `${oi} Passando pra lembrar que suas fotos estão te esperando 📸${a.prazo ? ` O prazo pra escolher ${a.atrasado ? "era" : "é"} ${dataBR(a.prazo)}.` : ""}\n\n${link}` };
+  if (a.etapa === "andamento") return { titulo: "Escolhendo", texto: `${oi} Vi que você já começou a escolher suas fotos 🤍 Quando terminar, é só clicar em "Enviar seleção" no final da página.\n\n${link}` };
+  if (a.etapa === "escolheu") return { titulo: "Seleção recebida", texto: `${oi} Recebi sua seleção, obrigado! Já vou começar a edição e te aviso assim que as fotos estiverem prontas.` };
+  return { titulo: "Entregue", texto: `${oi} Conseguiu baixar suas fotos? Se puder, me marca quando postar, vou adorar ver 🤍` };
+}
+ROTAS.conversas = async () => {
+  const [als, cs] = await Promise.all([dadosAlbuns(), q(sb.from("clientes").select("id,nome,whatsapp").order("nome"))]);
+  const ult = {}; als.forEach(a => { if (a.cliente_id && !ult[a.cliente_id]) ult[a.cliente_id] = a; });
+  const prior = { aguardando: 0, andamento: 1, escolheu: 2, entregue: 3 };
+  const lista = cs.map(c => ({ c, a: ult[c.id] })).sort((x, y) => (x.a ? prior[x.a.etapa] - (x.a.atrasado ? 1 : 0) : 9) - (y.a ? prior[y.a.etapa] - (y.a.atrasado ? 1 : 0) : 9));
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Conversas</h1><p class="mute">Cada cliente com a mensagem certa para o momento. Um toque abre o WhatsApp já com o texto pronto.</p></div></div>
+    <div class="field busca"><input id="bConv" type="search" placeholder="Buscar cliente"></div>
+    <div class="conversas" id="lConv"></div>`;
+  const pintar = () => {
+    const b = $("bConv").value.toLowerCase();
+    const l = lista.filter(x => x.c.nome.toLowerCase().includes(b));
+    $("lConv").innerHTML = l.length ? l.map(({ c, a }) => {
+      const s = a ? sugestaoMsg(a) : { titulo: "Sem álbum", texto: `Oi, ${c.nome.split(" ")[0]}! Tudo bem?` };
+      const ini = c.nome.split(/\s+/).slice(0, 2).map(p => p[0]).join("").toUpperCase();
+      return `<div class="conv bloco">
+        <span class="avatarC">${esc(ini)}</span>
+        <div class="convTxt"><div class="row" style="gap:8px;flex-wrap:wrap"><strong>${esc(c.nome)}</strong>${a ? `<span class="tag ${ETAPA_A[a.etapa][1]}">${esc(s.titulo)}</span><span class="small mute">${esc(a.titulo)}</span>` : `<span class="small mute">${s.titulo}</span>`}</div>
+          <textarea class="convMsg" aria-label="Mensagem para ${esc(c.nome)}">${esc(s.texto)}</textarea></div>
+        <div class="convAcoes">${c.whatsapp ? `<button class="btn fill sm" data-w="${esc(fone(c.whatsapp))}">Abrir no WhatsApp</button>` : `<a class="btn ghost sm" href="#/cliente/${c.id}">Adicionar WhatsApp</a>`}<button class="btn ghost sm" data-cp>Copiar</button></div>
+      </div>`; }).join("") : `<div class="vazio">${cs.length ? "Nenhum cliente com esse nome." : "Cadastre seus clientes para ver as conversas aqui."}</div>`;
+  };
+  $("bConv").oninput = pintar;
+  $("lConv").onclick = async e => {
+    const box = e.target.closest(".conv"); if (!box) return;
+    const txt = box.querySelector("textarea").value;
+    if (e.target.closest("[data-w]")) window.open(`https://wa.me/${e.target.closest("[data-w]").dataset.w}?text=${encodeURIComponent(txt)}`, "_blank", "noopener");
+    if (e.target.closest("[data-cp]")) { try { await navigator.clipboard.writeText(txt); toast("Mensagem copiada"); } catch { prompt("Copie:", txt); } }
+  };
+  pintar();
+};
+
+/* --- Funil --- */
+const ETAPAS_F = [["orcamento", "Orçamento"], ["confirmado", "Fechado"], ["realizado", "Fotografado"], ["entregue", "Entregue"]];
+ROTAS.funil = async () => {
+  const [ts, gs] = await Promise.all([
+    q(sb.from("trabalhos").select("*, clientes(nome)").neq("status", "cancelado").order("data", { nullsFirst: false })),
+    dadosAlbuns()
+  ]);
+  const albumDo = {}; (await q(sb.from("galerias").select("id,trabalho_id").not("trabalho_id", "is", null))).forEach(g => { const a = gs.find(x => x.id === g.id); if (a) albumDo[g.trabalho_id] = a; });
+  const pintar = () => {
+    $("kanban").innerHTML = ETAPAS_F.map(([k, t]) => {
+      const l = ts.filter(x => x.status === k), tot = l.reduce((s, x) => s + +(x.valor || 0), 0);
+      return `<div class="col" data-col="${k}"><div class="colTopo"><strong>${t}</strong><span class="small mute">${l.length} · ${brl(tot)}</span></div>
+        <div class="colCards">${l.map(x => { const a = albumDo[x.id]; return `<div class="kcard" draggable="true" data-id="${x.id}">
+          <strong>${esc(x.titulo)}</strong><span class="small mute">${esc([x.clientes?.nome, x.data && dataBR(x.data)].filter(Boolean).join(" · "))}</span>
+          <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small">${brl(x.valor)}</span>${a ? `<span class="tag ${ETAPA_A[a.etapa][1]}" style="font-size:10px">${ETAPA_A[a.etapa][0]}</span>` : ""}</div>
+          <select class="kmover" aria-label="Mover ${esc(x.titulo)}">${ETAPAS_F.map(([kk, tt]) => `<option value="${kk}" ${kk === k ? "selected" : ""}>${tt}</option>`).join("")}</select>
+        </div>`; }).join("") || `<p class="small mute" style="padding:8px">Arraste um card para cá</p>`}</div></div>`;
+    }).join("");
+  };
+  const total = ts.length, fech = ts.filter(t => t.status !== "orcamento").length;
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Funil</h1><p class="mute">Do primeiro orçamento à entrega. Arraste os cards para mudar a etapa.</p></div><button class="btn fill" id="nf">Novo orçamento</button></div>
+    <p class="small mute" style="margin:-6px 0 16px">${total} trabalhos · ${total ? Math.round(fech / total * 100) : 0}% dos orçamentos fecharam</p>
+    <div class="kanban" id="kanban"></div>`;
+  const mover = async (id, st) => {
+    const t = ts.find(x => x.id === id); if (!t || t.status === st) return;
+    try { await q(sb.from("trabalhos").update({ status: st }).eq("id", id)); t.status = st; pintar(); toast("Movido para " + ETAPAS_F.find(e => e[0] === st)[1]); } catch (e) { erro(e); }
+  };
+  const k = $("kanban");
+  k.addEventListener("dragstart", e => { const c = e.target.closest(".kcard"); if (c) { e.dataTransfer.setData("text/plain", c.dataset.id); c.classList.add("arrastando"); } });
+  k.addEventListener("dragend", e => e.target.closest?.(".kcard")?.classList.remove("arrastando"));
+  k.addEventListener("dragover", e => { const c = e.target.closest(".col"); if (c) { e.preventDefault(); k.querySelectorAll(".col").forEach(x => x.classList.toggle("alvo", x === c)); } });
+  k.addEventListener("drop", e => { const c = e.target.closest(".col"); k.querySelectorAll(".col").forEach(x => x.classList.remove("alvo")); if (c) { e.preventDefault(); mover(e.dataTransfer.getData("text/plain"), c.dataset.col); } });
+  k.addEventListener("change", e => { if (e.target.classList.contains("kmover")) mover(e.target.closest(".kcard").dataset.id, e.target.value); });
+  k.addEventListener("click", e => { if (e.target.closest("select")) return; const c = e.target.closest(".kcard"); if (c) editarTrabalho(ts.find(x => x.id === c.dataset.id), () => rota()); });
+  $("nf").onclick = () => editarTrabalho({ status: "orcamento" }, () => rota());
+  pintar();
+};
+
+/* --- Indique e ganhe --- */
+ROTAS.indique = async () => {
+  const { data } = await sb.rpc("minhas_indicacoes");
+  const n = data || { total: 0, assinantes: 0 };
+  const link = raizSite() + "?ref=" + encodeURIComponent(estudio.slug || "");
+  const msg = `Tô usando o Seleta pra mandar as prévias e receber a seleção dos clientes, e organizar agenda e financeiro num lugar só. Testa 14 dias grátis pelo meu link:\n${link}`;
+  C().innerHTML = `
+    <div class="indique bloco faixaFoto" style="--foto:url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1600&q=70')">
+      <span class="small" style="opacity:.8;letter-spacing:.2em">INDIQUE E GANHE</span>
+      <h1 style="color:#fff;font-weight:400;margin:10px 0 8px">Indique um fotógrafo e ganhe 1 mês grátis</h1>
+      <p style="opacity:.85;max-width:520px">A cada amigo que assinar um plano pelo seu link, você ganha 1 mês no seu plano. E ele começa com 14 dias de teste.</p>
+    </div>
+    <div class="duas">
+      <div class="bloco"><h2>Seu link de indicação</h2>
+        <div class="field" style="margin-top:12px"><input id="lRef" readonly value="${esc(link)}"></div>
+        <div class="acoes"><button class="btn fill" id="cRef">Copiar link</button><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(msg)}">Mandar no WhatsApp</a></div></div>
+      <div class="bloco"><h2>Suas indicações</h2>
+        <div class="resumo" style="grid-template-columns:1fr 1fr 1fr;margin-top:12px"><span>Cadastros<b>${n.total}</b></span><span>Assinaram<b>${n.assinantes}</b></span><span>Meses ganhos<b>${n.assinantes}</b></span></div></div>
+    </div>
+    <div class="bloco" style="margin-top:18px"><h2>Como funciona</h2>
+      <ol class="passos"><li><b>1</b><span>Mande seu link para outro fotógrafo.</span></li><li><b>2</b><span>Ele cria o estúdio e testa 14 dias grátis.</span></li><li><b>3</b><span>Quando ele assinar, você ganha 1 mês grátis.</span></li></ol></div>`;
+  $("cRef").onclick = async () => { try { await navigator.clipboard.writeText(link); toast("Link copiado"); } catch { $("lRef").select(); } };
+};

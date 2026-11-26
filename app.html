@@ -8,8 +8,8 @@
 <link rel="icon" href="icone.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital@1&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="base.css?v=13">
-<link rel="stylesheet" href="app.css?v=13">
+<link rel="stylesheet" href="base.css?v=14">
+<link rel="stylesheet" href="app.css?v=14">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -32,6 +32,10 @@
 <symbol id="i-sair" viewBox="0 0 24 24"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-externo" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-entregas" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-conversas" viewBox="0 0 24 24"><path d="M3 4h13v9H8l-5 4zM9 16v2h8l4 3V9h-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-relatorios" viewBox="0 0 24 24"><path d="M3 20h18M5 16l5-5 4 3 6-7" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-funil" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="10" y="4" width="5" height="11" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="17" y="4" width="4" height="6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-presente" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 12v9h14v-9M12 8v13M12 8c-1-3-5-4-5-1.5S12 8 12 8zm0 0c1-3 5-4 5-1.5S12 8 12 8z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-plano" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.6"/></symbol>
 </defs></svg>
 
@@ -72,6 +76,11 @@
         <a href="#/galerias" data-r="galerias" title="Álbuns"><svg><use href="#i-galerias"/></svg><span class="rot">Álbuns</span></a>
         <a href="#/entregas" data-r="entregas" title="Entregas"><svg><use href="#i-entregas"/></svg><span class="rot">Entregas</span></a>
       </div></div>
+      <div class="grupo"><button class="gt" aria-expanded="true"><span class="rot">CRM</span><svg><use href="#i-seta"/></svg></button><div class="gi">
+        <a href="#/funil" data-r="funil" title="Funil"><svg><use href="#i-funil"/></svg><span class="rot">Funil</span></a>
+        <a href="#/conversas" data-r="conversas" title="Conversas"><svg><use href="#i-conversas"/></svg><span class="rot">Conversas</span></a>
+        <a href="#/relatorios" data-r="relatorios" title="Relatórios"><svg><use href="#i-relatorios"/></svg><span class="rot">Relatórios</span></a>
+      </div></div>
       <div class="grupo"><button class="gt" aria-expanded="true"><span class="rot">Estúdio</span><svg><use href="#i-seta"/></svg></button><div class="gi">
         <a href="#/clientes" data-r="clientes" title="Clientes"><svg><use href="#i-clientes"/></svg><span class="rot">Clientes</span></a>
         <a href="#/trabalhos" data-r="trabalhos" title="Trabalhos"><svg><use href="#i-trabalhos"/></svg><span class="rot">Trabalhos</span></a>
@@ -82,6 +91,7 @@
     </nav>
     <div class="ladoPe">
       <div class="uso rot" id="uso"></div>
+      <a class="mi" href="#/indique" data-r="indique" title="Indique e ganhe"><svg><use href="#i-presente"/></svg><span class="rot">Indique e ganhe</span></a>
       <a class="mi" href="mailto:brunopasseri@gmail.com?subject=Suporte%20Seleta" title="Suporte"><svg><use href="#i-ajuda"/></svg><span class="rot">Suporte</span></a>
       <a class="mi" href="#/plano" data-r="plano" title="Plano e cobrança"><svg><use href="#i-plano"/></svg><span class="rot">Plano e cobrança</span></a>
       <a class="mi" href="#/config" data-r="config" title="Configurações"><svg><use href="#i-config"/></svg><span class="rot">Configurações</span></a>
@@ -112,7 +122,7 @@
 <div id="toast" class="toast hide" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="config.js?v=14"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

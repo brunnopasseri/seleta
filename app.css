@@ -259,3 +259,30 @@ input[type=range]{accent-color:var(--ink)}
 @media(max-width:860px){.marcaGrid{grid-template-columns:minmax(0,1fr)}}
 
 .avisoPronta{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;border-left:3px solid var(--ink)}
+
+.tag.andamento{background:var(--hover);color:var(--ink)}
+.barras{display:flex;align-items:flex-end;gap:12px;height:180px;margin-top:16px}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
+.bcol i{display:block;width:100%;max-width:44px;background:var(--ink);border-radius:4px 4px 0 0;min-height:2px}
+.bval{font-size:10px;color:var(--mute);white-space:nowrap}
+button.num{display:flex;flex-direction:column;gap:4px;text-align:left;font:inherit;color:inherit;cursor:pointer}
+button.num:hover{border-color:var(--ink)}
+.conversas{display:grid;gap:12px}
+.conv{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:start;padding:16px}
+.avatarC{width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:13px;font-weight:500}
+.convMsg{width:100%;min-height:64px;margin-top:8px;font:13px Montserrat;resize:vertical}
+.convAcoes{display:flex;flex-direction:column;gap:8px}
+@media(max-width:700px){.conv{grid-template-columns:36px 1fr}.convAcoes{grid-column:1/-1;flex-direction:row}.avatarC{width:36px;height:36px}}
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--hover);border-radius:12px;padding:12px;min-height:300px;border:1px dashed transparent;transition:border-color .15s}
+.col.alvo{border-color:var(--ink)}
+.colTopo{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:8px}
+.colCards{display:grid;gap:10px}
+.kcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:grab;display:flex;flex-direction:column;gap:3px}
+.kcard.arrastando{opacity:.4}
+.kmover{margin-top:8px;font-size:12px;padding:4px 6px}
+.indique{min-height:220px;display:flex;flex-direction:column;justify-content:flex-end;padding:32px}
+.passos{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px;padding:0}
+.passos li{display:flex;gap:12px;align-items:flex-start}
+.passos b{width:30px;height:30px;border-radius:50%;border:1px solid var(--ink);display:grid;place-items:center;flex:none;font-weight:500}
+@media(max-width:700px){.passos{grid-template-columns:1fr}}
