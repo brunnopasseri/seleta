@@ -39,9 +39,13 @@ async function abrir(codigo) {
 }
 $("fCodigo").onsubmit = e => { e.preventDefault(); $("cErro").textContent = ""; abrir($("cod").value.trim()); };
 
+const mostra = () => g.mostrar_pacote !== false && g.incluidas > 0;
+const extrasOk = () => g.permitir_extras !== false;
 function medidor() {
-  const n = marc.size, inc = g.incluidas, ex = Math.max(0, n - inc);
-  $("mTxt").textContent = ex ? `${n} fotos · ${ex} extra${ex > 1 ? "s" : ""} (${brl(ex * g.preco_extra)})` : `${n} de ${inc} fotos do pacote`;
+  const n = marc.size, inc = g.incluidas, ex = extrasOk() ? Math.max(0, n - inc) : 0;
+  $("mBar").parentElement.classList.toggle("hide", !mostra());
+  $("mTxt").textContent = !mostra() ? `${n} ${n === 1 ? "foto selecionada" : "fotos selecionadas"}`
+    : ex ? `${n} fotos · ${ex} extra${ex > 1 ? "s" : ""} (${brl(ex * g.preco_extra)})` : `${n} de ${inc} fotos do pacote`;
   $("mBar").style.width = (inc ? Math.min(100, n / inc * 100) : (n ? 100 : 0)) + "%";
   $("mBar").classList.toggle("ex", ex > 0);
   $("enviar").disabled = n === 0;
@@ -59,6 +63,10 @@ function pintar() {
 }
 function alternar(i) {
   const id = g.fotos[i].id;
+  if (!marc.has(id) && !extrasOk() && g.incluidas > 0 && marc.size >= g.incluidas) {
+    $("salvo").textContent = `Seu pacote inclui ${g.incluidas} fotos. Desmarque uma para trocar.`;
+    return;
+  }
   marc.has(id) ? marc.delete(id) : marc.add(id);
   const t = document.querySelector(`.tile[data-i="${i}"]`);
   if (so) pintar();
@@ -127,8 +135,11 @@ $("caixa").addEventListener("touchend", e => { if (x0 == null) return; const d =
 
 /* envio */
 $("enviar").onclick = () => {
-  const n = marc.size, ex = Math.max(0, n - g.incluidas), nc = Object.keys(coms).length;
-  $("mResumo").innerHTML = `<div class="linha"><span>Fotos marcadas</span><b>${n}</b></div><div class="linha"><span>Incluídas no pacote</span><b>${Math.min(n, g.incluidas)}</b></div><div class="linha"><span>Fotos extras</span><b>${ex}</b></div><div class="linha"><span>Valor das extras</span><b>${brl(ex * g.preco_extra)}</b></div>${nc ? `<div class="linha"><span>Comentários</span><b>${nc}</b></div>` : ""}`;
+  const n = marc.size, ex = extrasOk() ? Math.max(0, n - g.incluidas) : 0, nc = Object.keys(coms).length;
+  $("mResumo").innerHTML = `<div class="linha"><span>Fotos selecionadas</span><b>${n}</b></div>`
+    + (mostra() ? `<div class="linha"><span>Incluídas no pacote</span><b>${Math.min(n, g.incluidas)}</b></div>` : "")
+    + (mostra() && ex ? `<div class="linha"><span>Fotos extras</span><b>${ex}</b></div><div class="linha"><span>Valor das extras</span><b>${brl(ex * g.preco_extra)}</b></div>` : "")
+    + (nc ? `<div class="linha"><span>Comentários</span><b>${nc}</b></div>` : "");
   show("modal", true); $("mConfirmar").focus();
 };
 $("mVoltar").onclick = () => show("modal", false);

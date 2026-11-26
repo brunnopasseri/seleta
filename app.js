@@ -290,12 +290,14 @@ async function novaGaleria(pre = {}) {
       { id: "prazo", rotulo: "Prazo para escolher", tipo: "date" },
       { id: "fotos_incluidas", rotulo: "Fotos incluídas no pacote", tipo: "number", valor: 20 },
       { id: "preco_extra", rotulo: "Valor da foto extra (R$)", tipo: "number", valor: 20 },
+      { id: "mostrar_pacote", rotulo: "Mostrar ao cliente quantas fotos o pacote inclui", tipo: "check", valor: true },
+      { id: "permitir_extras", rotulo: "Permitir que o cliente escolha fotos extras (pagas)", tipo: "check", valor: true },
       { id: "mensagem", rotulo: "Recado para o cliente (aparece na galeria)", tipo: "area", largo: true, ph: "Escolha suas favoritas com calma 🤍" }
     ],
     aoSalvar: async v => {
       const cli = cs.find(c => c.id === v.cliente_id);
       const g = await q(sb.from("galerias").insert({ slug: await slugAlbumLivre(v.titulo), titulo: v.titulo, cliente_id: v.cliente_id || null, cliente_nome: cli?.nome || null, trabalho_id: v.trabalho_id || null,
-        prazo: v.prazo || null, fotos_incluidas: Math.round(v.fotos_incluidas), preco_extra: v.preco_extra, mensagem: v.mensagem || null }).select("slug").single());
+        prazo: v.prazo || null, fotos_incluidas: Math.round(v.fotos_incluidas), preco_extra: v.preco_extra, mostrar_pacote: v.mostrar_pacote, permitir_extras: v.permitir_extras, mensagem: v.mensagem || null }).select("slug").single());
       ir("#/galeria/" + g.slug);
     }
   });
@@ -325,7 +327,7 @@ function pintarGaleria() {
   C().innerHTML = `
     <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="#/galerias" style="margin:0">← Álbuns</a><button class="btn sm ghost" id="excluirAlbum">Excluir álbum</button></div>
     <div class="banner" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}">
-      <div class="sobre"><div><h1>${esc(G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${[G.cliente_nome, `${G.fotos_incluidas} no pacote`, `extra ${brl(G.preco_extra)}`, G.prazo && "prazo " + dataBR(G.prazo)].filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${STATUS_G[G.status]}</span></div>
+      <div class="sobre"><div><h1>${esc(G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${[G.cliente_nome, `${G.fotos_incluidas} no pacote`, G.permitir_extras === false ? "sem extras" : `extra ${brl(G.preco_extra)}`, G.prazo && "prazo " + dataBR(G.prazo)].filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${STATUS_G[G.status]}</span></div>
     </div>
     <div class="bloco compart">
       <div><span class="small mute">Link do cliente</span><br><code>${esc(linkCliente())}</code><div style="margin-top:8px"><span class="small mute">Código</span> <span class="codigo">${esc(G.codigo_acesso)}</span></div></div>
@@ -377,14 +379,14 @@ function abaFotos() {
 }
 
 function abaSelecao() {
-  const n = marcadas.size, ex = Math.max(0, n - G.fotos_incluidas);
+  const n = marcadas.size, ex = G.permitir_extras === false ? 0 : Math.max(0, n - G.fotos_incluidas);
   const sel = fotos.filter(f => marcadas.has(f.id));
   const nomes = sel.map(f => semExtensao(f.nome_arquivo));
   const comLista = fotos.filter(f => coments[f.id]);
   $("abaConteudo").innerHTML = `
     <div class="bloco">
       <h2>${G.status === "enviada" ? "Seleção recebida" + (G.enviada_em ? " em " + new Date(G.enviada_em).toLocaleDateString("pt-BR") : "") : n ? "Seleção em andamento (o cliente ainda não enviou)" : "Nenhuma foto marcada ainda"}</h2>
-      <div class="resumo"><span>Marcadas<b>${n}</b></span><span>Incluídas<b>${Math.min(n, G.fotos_incluidas)}</b></span><span>Extras<b>${ex}</b></span><span>Valor das extras<b>${brl(ex * G.preco_extra)}</b></span></div>
+      <div class="resumo"><span>Marcadas<b>${n}</b></span><span>Incluídas<b>${Math.min(n, G.fotos_incluidas)}</b></span>${G.permitir_extras === false ? "" : `<span>Extras<b>${ex}</b></span><span>Valor das extras<b>${brl(ex * G.preco_extra)}</b></span>`}</div>
       <label for="lr">Lista para o Lightroom: na Biblioteca, filtro de Texto → Nome do arquivo → Contém</label>
       <textarea id="lr" readonly>${esc(nomes.join(", "))}</textarea>
       <div class="acoes" style="margin-top:12px">
@@ -528,6 +530,8 @@ async function abaAjustes() {
         <div class="field"><label for="aP">Prazo para escolher</label><input id="aP" type="date" value="${esc(G.prazo || "")}"></div>
         <div class="field"><label for="aI">Fotos incluídas</label><input id="aI" type="number" min="0" value="${G.fotos_incluidas}"></div>
         <div class="field"><label for="aE">Valor da foto extra (R$)</label><input id="aE" type="number" min="0" step="0.01" value="${G.preco_extra}"></div>
+        <div class="field" style="grid-column:1/-1"><label class="switch"><input type="checkbox" id="aMost" ${G.mostrar_pacote !== false ? "checked" : ""}> Mostrar ao cliente quantas fotos o pacote inclui</label></div>
+        <div class="field" style="grid-column:1/-1"><label class="switch"><input type="checkbox" id="aExt" ${G.permitir_extras !== false ? "checked" : ""}> Permitir que o cliente escolha fotos extras (pagas)</label><span class="small mute" style="display:block;margin-left:32px">Desligado: o cliente não consegue passar do número do pacote.</span></div>
         <div class="field" style="grid-column:1/-1"><label for="aM">Recado para o cliente</label><textarea id="aM" style="font-family:Montserrat;min-height:80px">${esc(G.mensagem || "")}</textarea></div>
       </div>
       <div class="acoes"><button class="btn fill">Salvar</button><button type="button" class="btn ghost" id="novoCod">Gerar novo código</button><span class="grow"></span><button type="button" class="link-btn" id="apagar">Excluir galeria</button></div>
@@ -543,7 +547,7 @@ async function abaAjustes() {
         if (!confirm("Mudar o endereço faz o link antigo parar de funcionar. Continuar?")) return;
       }
       Object.assign(G, await q(sb.from("galerias").update({ slug: novoSlug, titulo: $("aT").value.trim(), cliente_id: cli?.id || null, cliente_nome: cli?.nome || null, trabalho_id: $("aTr").value || null,
-        prazo: $("aP").value || null, fotos_incluidas: +$("aI").value || 0, preco_extra: +$("aE").value || 0, mensagem: $("aM").value.trim() || null }).eq("id", G.id).select().single()));
+        prazo: $("aP").value || null, fotos_incluidas: +$("aI").value || 0, preco_extra: +$("aE").value || 0, mostrar_pacote: $("aMost").checked, permitir_extras: $("aExt").checked, mensagem: $("aM").value.trim() || null }).eq("id", G.id).select().single()));
       G.clientes = cli || null; toast("Galeria salva"); pintarGaleria();
     } catch (err) { erro(err); }
   };
@@ -568,21 +572,30 @@ async function excluirAlbum() {
 
 /* --- envio com prévia e marca d'água --- */
 let logoBranco = null;
-async function prepararMarca() {
-  if (!estudio.marca_dagua) return null;
-  if (estudio.logo_url) {
-    if (logoBranco?.src === estudio.logo_url) return logoBranco;
+const FONTES_MARCA = {
+  moderna: { nome: "Moderna", css: t => `400 ${t}px Montserrat, sans-serif`, esp: .4, maiuscula: true, escala: 1 },
+  elegante: { nome: "Elegante", css: t => `italic 400 ${t}px "Playfair Display", serif`, esp: .06, maiuscula: false, escala: 1.35 },
+  assinatura: { nome: "Assinatura", css: t => `400 ${t}px "Great Vibes", cursive`, esp: 0, maiuscula: false, escala: 2.1 }
+};
+/* cfg: tipo (texto|imagem), texto, fonte, url — por padrão, o que está salvo no estúdio */
+async function prepararMarca(cfg = {}) {
+  const tipo = cfg.tipo ?? estudio.marca_tipo ?? "texto";
+  const url = cfg.url ?? estudio.marca_url ?? estudio.logo_url;
+  if (tipo === "imagem" && url) {
+    if (logoBranco?.src === url) return logoBranco;
     try {
-      const img = await new Promise((ok, falha) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = falha; i.src = estudio.logo_url; });
+      const img = await new Promise((ok, falha) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = falha; i.src = url; });
       const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight;
       const x = c.getContext("2d"); x.drawImage(img, 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
-      logoBranco = { src: estudio.logo_url, canvas: c }; return logoBranco;
+      logoBranco = { src: url, canvas: c }; return logoBranco;
     } catch { /* cai para o texto */ }
   }
-  await document.fonts.load("500 40px Montserrat").catch(() => {});
-  return { texto: (estudio.nome || "").toUpperCase() };
+  const fonte = FONTES_MARCA[cfg.fonte ?? estudio.marca_fonte] || FONTES_MARCA.moderna;
+  await Promise.all([document.fonts.load(fonte.css(40)), document.fonts.load("400 40px Montserrat")]).catch(() => {});
+  const txt = (cfg.texto ?? estudio.marca_texto) || estudio.nome || "";
+  return { texto: fonte.maiuscula ? txt.toUpperCase() : txt, fonte };
 }
-/* Marca discreta: pequena, fina e espaçada. posicao: rodape | canto | centro */
+/* Marca discreta. posicao: rodape | canto | centro */
 function desenharMarca(x, marca, W, H, posicao = "rodape") {
   const lado = Math.min(W, H), m = lado * 0.05;
   const lugar = (w, h) => posicao === "centro" ? [(W - w) / 2, (H - h) / 2] : posicao === "canto" ? [W - w - m, H - h - m] : [(W - w) / 2, H - h - m * 1.2];
@@ -590,8 +603,9 @@ function desenharMarca(x, marca, W, H, posicao = "rodape") {
     const w = W * (posicao === "centro" ? 0.22 : posicao === "canto" ? 0.1 : 0.13), h = w * marca.canvas.height / marca.canvas.width;
     const [px, py] = lugar(w, h); x.drawImage(marca.canvas, px, py, w, h);
   } else if (marca.texto) {
-    let tam = Math.max(9, Math.round(lado * (posicao === "centro" ? 0.032 : 0.022)));
-    const medir = () => { x.font = `400 ${tam}px Montserrat, sans-serif`; try { x.letterSpacing = Math.round(tam * 0.4) + "px"; } catch {} return x.measureText(marca.texto).width; };
+    const f = marca.fonte || FONTES_MARCA.moderna;
+    let tam = Math.max(9, Math.round(lado * (posicao === "centro" ? 0.032 : 0.022) * f.escala));
+    const medir = () => { x.font = f.css(tam); try { x.letterSpacing = Math.round(tam * f.esp) + "px"; } catch {} return x.measureText(marca.texto).width; };
     while (medir() > W * (posicao === "canto" ? 0.4 : 0.6) && tam > 8) tam--;
     const w = medir(), [px, py] = lugar(w, tam);
     x.fillStyle = "#fff"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText(marca.texto, px, py);
@@ -613,7 +627,7 @@ async function enviarFotos(files) {
   files = [...files].filter(f => /image\/(jpeg|png|webp)/.test(f.type));
   if (!files.length) return;
   files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-  const marca = await prepararMarca();
+  const marca = estudio.marca_dagua ? await prepararMarca() : null;
   let feitos = 0, falhas = 0, ordem = fotos.reduce((m, f) => Math.max(m, f.ordem), 0);
   const fila = files.map(f => ({ f, ordem: ++ordem })), gid = G.id;
   const passo = () => { if ($("progresso")) $("progresso").textContent = `Enviando ${feitos} de ${files.length}…` + (falhas ? ` (${falhas} com erro)` : ""); };
@@ -838,31 +852,67 @@ ROTAS.config = async () => {
         <p class="small mute" style="margin-bottom:12px">Use PNG com fundo transparente. Ele aparece no topo da galeria do cliente e é usado na marca d'água.</p>
         <div class="acoes"><label class="btn ghost" for="cLogo">Escolher logo</label><input id="cLogo" type="file" accept="image/png,image/jpeg,image/webp" class="hide">${estudio.logo_url ? `<button class="btn ghost" id="tirarLogo">Remover</button>` : ""}</div>
       </div>
-      <form class="bloco" id="fMarca"><h2>Marca d'água nas prévias</h2>
-        <div class="field"><label class="switch"><input type="checkbox" id="mOn" ${estudio.marca_dagua ? "checked" : ""}> Aplicar marca d'água nas fotos que eu subir</label></div>
-        <div class="field"><label for="mPos">Posição</label><select id="mPos">${[["rodape", "Discreta, no rodapé"], ["canto", "Pequena, no canto"], ["centro", "No centro"]].map(([v, t]) => `<option value="${v}" ${(estudio.marca_posicao || "rodape") === v ? "selected" : ""}>${t}</option>`).join("")}</select></div>
-        <div class="field"><label for="mOp">Intensidade: <span id="mOpTxt">${Math.round((+estudio.marca_opacidade || .35) * 100)}%</span></label><input id="mOp" type="range" min="0.1" max="0.8" step="0.05" value="${+estudio.marca_opacidade || .35}" style="padding:0"></div>
-        <canvas class="previa" id="mPrev" width="600" height="400" aria-label="Prévia da marca d'água"></canvas>
-        <p class="small mute" style="margin:10px 0 14px">Vale para as próximas fotos enviadas. As que já estão na galeria não mudam.</p>
-        <button class="btn fill">Salvar</button>
+      <form class="bloco" id="fMarca" style="grid-column:1/-1"><h2>Marca d'água nas prévias</h2>
+        <div class="marcaGrid">
+          <div>
+            <div class="field"><label class="switch"><input type="checkbox" id="mOn" ${estudio.marca_dagua ? "checked" : ""}> Aplicar marca d'água nas fotos que eu subir</label></div>
+            <div class="field"><span class="rotulo">Tipo</span><div class="ciclo" role="group" aria-label="Tipo de marca d'água" style="margin:6px 0 0"><button type="button" data-tipo="texto">Texto</button><button type="button" data-tipo="imagem">Minha imagem</button></div></div>
+            <div id="mTexto">
+              <div class="field"><label for="mTxt">Texto da marca</label><input id="mTxt" maxlength="40" value="${esc(estudio.marca_texto || "")}" placeholder="${esc(estudio.nome || "Bruno Fotografia")}"></div>
+              <div class="field"><span class="rotulo">Estilo da letra</span><div class="estilos">${Object.entries(FONTES_MARCA).map(([k, f]) => `<button type="button" class="estilo" data-fonte="${k}" style="font:${f.css(17).replace(/\d+px/, "17px")}">${f.maiuscula ? "AaBb" : "Aa Bb"}<small>${f.nome}</small></button>`).join("")}</div></div>
+            </div>
+            <div id="mImagem" class="hide">
+              <div class="field"><span class="rotulo">Sua marca d'água</span>
+                <div class="quadroMarca">${(estudio.marca_url || estudio.logo_url) ? `<img src="${esc(estudio.marca_url || estudio.logo_url)}" alt="Marca d'água atual">` : `<span class="small mute">Nenhuma imagem</span>`}</div>
+                <div class="acoes" style="margin-top:10px"><label class="btn ghost sm" for="mArq">Enviar imagem (PNG)</label><input id="mArq" type="file" accept="image/png,image/webp" class="hide"></div>
+                <p class="small mute" style="margin-top:8px">Use PNG com fundo transparente. Ela é aplicada em branco, pra aparecer em qualquer foto.</p></div>
+            </div>
+            <div class="field"><label for="mPos">Posição</label><select id="mPos">${[["rodape", "Discreta, no rodapé"], ["canto", "Pequena, no canto"], ["centro", "No centro"]].map(([v, t]) => `<option value="${v}" ${(estudio.marca_posicao || "rodape") === v ? "selected" : ""}>${t}</option>`).join("")}</select></div>
+            <div class="field"><label for="mOp">Intensidade: <span id="mOpTxt">${Math.round((+estudio.marca_opacidade || .35) * 100)}%</span></label><input id="mOp" type="range" min="0.1" max="0.9" step="0.05" value="${+estudio.marca_opacidade || .35}" style="padding:0"></div>
+          </div>
+          <div><canvas class="previa" id="mPrev" width="900" height="600" aria-label="Prévia da marca d'água numa foto"></canvas>
+            <p class="small mute" style="margin:10px 0 14px">Prévia numa foto. Vale para as próximas fotos enviadas.</p>
+            <button class="btn fill">Salvar marca d'água</button></div>
+        </div>
       </form>
       <div class="bloco"><h2>Conta</h2><p>${esc(user.email)}</p><p class="small mute" style="margin:6px 0 16px">Plano de teste · 1 GB de armazenamento</p><button class="btn ghost" id="sair2">Sair</button></div>
     </div>`;
+  let mTipo = estudio.marca_tipo || "texto", mFonte = estudio.marca_fonte || "moderna", mUrl = estudio.marca_url || estudio.logo_url || null, fotoPrev = null;
+  const capaRec = await sb.from("fotos").select("caminho").order("criado_em", { ascending: false }).limit(1).maybeSingle();
+  const srcPrev = capaRec.data?.caminho ? urlFoto(capaRec.data.caminho) : "https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1200&q=80&auto=format&fit=crop";
+  fotoPrev = await new Promise(ok => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = () => ok(null); i.src = srcPrev; });
   const desenhar = async () => {
-    const c = $("mPrev"), x = c.getContext("2d");
-    const g = x.createLinearGradient(0, 0, 600, 400); g.addColorStop(0, "#8a7a66"); g.addColorStop(1, "#2b2722"); x.fillStyle = g; x.fillRect(0, 0, 600, 400);
-    x.fillStyle = "#e8d6b8"; x.beginPath(); x.arc(150, 120, 46, 0, 7); x.fill();
+    const c = $("mPrev"), x = c.getContext("2d"), W = c.width, H = c.height;
+    x.fillStyle = "#333"; x.fillRect(0, 0, W, H);
+    if (fotoPrev) { const k = Math.max(W / fotoPrev.width, H / fotoPrev.height), w = fotoPrev.width * k, h = fotoPrev.height * k; x.drawImage(fotoPrev, (W - w) / 2, (H - h) * 0.3, w, h); }
     if (!$("mOn").checked) return;
-    const salvo = estudio.marca_opacidade; estudio.marca_opacidade = +$("mOp").value;
-    const m = await prepararMarca().catch(() => null) || { texto: (estudio.nome || "").toUpperCase() };
-    x.globalAlpha = estudio.marca_opacidade;
-    desenharMarca(x, m, 600, 400, $("mPos").value);
-    x.globalAlpha = 1; estudio.marca_opacidade = salvo;
+    const m = await prepararMarca({ tipo: mTipo, fonte: mFonte, texto: $("mTxt").value.trim(), url: mUrl }).catch(() => null);
+    if (!m) return;
+    x.globalAlpha = +$("mOp").value; desenharMarca(x, m, W, H, $("mPos").value); x.globalAlpha = 1;
   };
-  const marcaOn = estudio.marca_dagua; estudio.marca_dagua = true; await desenhar(); estudio.marca_dagua = marcaOn;
-  $("mOp").oninput = () => { $("mOpTxt").textContent = Math.round($("mOp").value * 100) + "%"; const o = estudio.marca_dagua; estudio.marca_dagua = true; desenhar().then(() => estudio.marca_dagua = o); };
-  $("mPos").onchange = () => { const o = estudio.marca_dagua; estudio.marca_dagua = true; desenharMarca && desenhar().then(() => estudio.marca_dagua = o); };
-  $("mOn").onchange = () => { const o = estudio.marca_dagua; estudio.marca_dagua = true; desenhar().then(() => estudio.marca_dagua = o); };
+  const pintarMarcaUI = () => {
+    C().querySelectorAll("[data-tipo]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tipo === mTipo));
+    C().querySelectorAll("[data-fonte]").forEach(b => b.classList.toggle("on", b.dataset.fonte === mFonte));
+    show("mTexto", mTipo === "texto"); show("mImagem", mTipo === "imagem");
+    desenhar();
+  };
+  C().querySelectorAll("[data-tipo]").forEach(b => b.onclick = () => { mTipo = b.dataset.tipo; pintarMarcaUI(); });
+  C().querySelectorAll("[data-fonte]").forEach(b => b.onclick = () => { mFonte = b.dataset.fonte; pintarMarcaUI(); });
+  ["mTxt", "mOp"].forEach(id => $(id).oninput = () => { $("mOpTxt").textContent = Math.round($("mOp").value * 100) + "%"; desenhar(); });
+  ["mPos", "mOn"].forEach(id => $(id).onchange = desenhar);
+  $("mArq").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 3 * 1048576) return toast("Use um arquivo de até 3 MB");
+    try {
+      const cam = `${user.id}/estudio/marca-${Date.now()}.${f.type === "image/webp" ? "webp" : "png"}`;
+      const up = await sb.storage.from("fotos").upload(cam, f, { contentType: f.type, cacheControl: "31536000" });
+      if (up.error) throw up.error;
+      mUrl = urlFoto(cam); logoBranco = null;
+      C().querySelector(".quadroMarca").innerHTML = `<img src="${esc(mUrl)}" alt="Marca d'água">`;
+      toast("Imagem carregada. Clique em Salvar para usar."); desenhar();
+    } catch (err) { erro(err); }
+  };
+  pintarMarcaUI();
   $("fEst").onsubmit = async e => {
     e.preventDefault();
     const ns = slugify($("cSlug").value);
@@ -876,7 +926,7 @@ ROTAS.config = async () => {
   };
   $("fMarca").onsubmit = async e => {
     e.preventDefault();
-    try { Object.assign(estudio, await q(sb.from("estudios").update({ marca_dagua: $("mOn").checked, marca_opacidade: +$("mOp").value, marca_posicao: $("mPos").value }).eq("id", user.id).select().single())); toast("Marca d'água salva"); }
+    try { Object.assign(estudio, await q(sb.from("estudios").update({ marca_dagua: $("mOn").checked, marca_opacidade: +$("mOp").value, marca_posicao: $("mPos").value, marca_tipo: mTipo, marca_fonte: mFonte, marca_texto: $("mTxt").value.trim() || null, marca_url: mUrl }).eq("id", user.id).select().single())); logoBranco = null; toast("Marca d'água salva"); }
     catch (err) { erro(err); }
   };
   $("cLogo").onchange = async e => {
