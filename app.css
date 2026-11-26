@@ -186,8 +186,7 @@ body{background:var(--bg)}
 }
 
 /* entrar */
-.entrar{max-width:460px;margin:9vh auto;padding:0 20px}
-.entrar hr{border:0;border-top:1px solid var(--line);margin:22px 0 28px}
+.entrar{max-width:480px;margin:-56px auto 60px;padding:34px 30px 30px;position:relative;z-index:2;background:var(--bg);border-radius:16px;box-shadow:0 30px 60px -40px rgba(0,0,0,.45)}
 .entrar h1{font-size:44px;font-weight:400;margin-bottom:8px}
 .entrar #eSub{margin-bottom:26px;font-size:17px}
 .rotSenha{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -231,3 +230,20 @@ input[type=range]{accent-color:var(--ink)}
 .prefixo{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
 .prefixo span{padding:0 0 0 14px;color:var(--mute);font-size:15px;white-space:nowrap}
 .prefixo input{border:0;padding-left:2px;background:transparent}
+
+/* faixa com foto desfocada */
+.faixaFoto{position:relative;overflow:hidden;background:#222;color:#fff}
+.faixaFoto::before{content:"";position:absolute;inset:-30px;background:var(--foto) center 35%/cover no-repeat;filter:blur(14px) saturate(.9);transform:scale(1.08)}
+.faixaFoto::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.55))}
+.faixaFoto>*{position:relative;z-index:1}
+.telaEntrar .faixaFoto{height:min(38vh,320px);display:flex;align-items:center;justify-content:center;text-align:center}
+.faixaTxt{padding:0 20px 40px}
+.faixaTxt p{margin-top:14px;font-size:16px;color:rgba(255,255,255,.85)}
+.logo.claro{color:#fff;justify-content:center;font-size:17px}
+.logo.claro svg{width:26px;height:26px}
+.faixaPainel{border-radius:16px;padding:34px 30px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;min-height:170px}
+.faixaPainel h1{color:#fff}
+.faixaPainel p{color:rgba(255,255,255,.82);margin-top:6px}
+.faixaPainel .btn{border-color:rgba(255,255,255,.75);color:#fff;background:rgba(255,255,255,.06);backdrop-filter:blur(4px)}
+.faixaPainel .btn.fill{background:#fff;color:#111;border-color:#fff}
+@media(max-width:600px){.entrar{margin-top:-40px;padding:26px 20px;border-radius:14px 14px 0 0}.faixaPainel{padding:24px 20px}}

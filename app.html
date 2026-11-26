@@ -8,8 +8,8 @@
 <link rel="icon" href="icone.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="base.css?v=8">
-<link rel="stylesheet" href="app.css?v=8">
+<link rel="stylesheet" href="base.css?v=9">
+<link rel="stylesheet" href="app.css?v=9">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -35,9 +35,11 @@
 </defs></svg>
 
 <!-- Entrar / criar conta -->
-<section id="vEntrar" class="entrar hide">
-  <a class="logo" href="index.html"><svg><use href="#s"/></svg>SELETA</a>
-  <hr>
+<section id="vEntrar" class="telaEntrar hide">
+  <div class="faixaFoto" style="--foto:url('https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1600&q=70&auto=format&fit=crop')">
+    <div class="faixaTxt"><a class="logo claro" href="index.html"><svg><use href="#s"/></svg>SELETA</a><p>Galeria de seleção e gestão do estúdio, num só lugar.</p></div>
+  </div>
+  <div class="entrar">
   <h1 id="eTitulo">Entrar</h1>
   <p class="mute" id="eSub">Acesse o seu estúdio.</p>
   <div id="msgEntrar" class="msg hide" role="status"></div>
@@ -49,6 +51,7 @@
     <button class="btn fill bloco-btn" id="bEntrar">Entrar</button>
   </form>
   <p class="trocar" id="trocar">Primeira vez aqui? <a href="#" id="lTrocar">Crie o seu estúdio.</a></p>
+  </div>
 </section>
 
 <section id="vSenha" class="entrar hide">
@@ -107,7 +110,7 @@
 <div id="toast" class="toast hide" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<script src="config.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

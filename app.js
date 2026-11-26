@@ -230,9 +230,11 @@ ROTAS.inicio = async () => {
   const atrasado = atras.reduce((s, p) => s + +p.valor, 0);
   const recebidas = gals.filter(g => g.status === "enviada"), aguardando = gals.filter(g => g.status === "aberta");
   const nome = (estudio.nome || "").split(" ")[0];
+  const capa = await sb.from("galerias").select("capa:fotos!galerias_capa_foto_id_fkey(caminho)").not("capa_foto_id", "is", null).order("criado_em", { ascending: false }).limit(1).maybeSingle();
+  const fotoFaixa = capa.data?.capa?.caminho ? urlFoto(capa.data.capa.caminho) : "https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1600&q=70&auto=format&fit=crop";
   C().innerHTML = `${avisoPlano()}
-    <div class="cabeca"><div><h1>Olá${nome ? ", " + esc(nome) : ""}</h1><p class="mute">${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p></div>
-      <div class="acoes"><button class="btn ghost" id="aTrab">Novo trabalho</button><button class="btn ghost" id="aCli">Novo cliente</button><button class="btn fill" id="aGal">Nova galeria</button></div></div>
+    <div class="faixaFoto faixaPainel" style="--foto:url('${esc(fotoFaixa)}')"><div><h1>Olá${nome ? ", " + esc(nome) : ""}</h1><p>${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p></div>
+      <div class="acoes"><button class="btn" id="aTrab">Novo trabalho</button><button class="btn" id="aCli">Novo cliente</button><button class="btn fill" id="aGal">Novo álbum</button></div></div>
     <div class="cards">
       <div class="num escuro"><span>Recebido em ${esc(new Date().toLocaleDateString("pt-BR", { month: "long" }))}</span><b>${brl(recebido)}</b></div>
       <div class="num"><span>A receber no mês</span><b>${brl(aReceber)}</b></div>
