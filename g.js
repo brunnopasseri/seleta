@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 const show = (id, on) => $(id).classList.toggle("hide", !on);
 const slug = window.CAMINHO_GALERIA || new URLSearchParams(location.search).get("g") || "";
 const chaveCod = "seleta-cod-" + slug;
-let cod = "", g = null, marc = new Set(), coms = {}, so = false, atual = -1, timer = null, enviando = false;
+let cod = "", g = null, marc = new Set(), coms = {}, so = false, soDest = false, atual = -1, timer = null, enviando = false;
 
 const lerCod = () => { try { return sessionStorage.getItem(chaveCod) || ""; } catch { return ""; } };
 const gravarCod = v => { try { sessionStorage.setItem(chaveCod, v); } catch {} };
@@ -15,6 +15,7 @@ async function abrir(codigo) {
   if (error) { show("vCodigo", true); $("cErro").textContent = codigo ? "Código incorreto. Confira a mensagem do fotógrafo." : ""; return; }
   cod = codigo; gravarCod(codigo); g = data; marc = new Set(g.marcadas || []); coms = g.comentarios || {};
   show("vCodigo", false);
+  aplicarDesign(g.design || {});
   if (g.entrega_liberada && (g.entrega_fotos || []).length) return abrirEntrega();
   if (!g.fotos.length && !g.entrega) {
     document.title = g.titulo; $("hTopo").innerHTML = marcaEstudio(g.estudio); $("hTitulo").textContent = g.titulo;
@@ -31,6 +32,14 @@ async function abrir(codigo) {
   $("hSub").textContent = aberta
     ? [`${g.fotos.length} fotos`, g.prazo && "escolha até " + new Date(g.prazo + "T12:00").toLocaleDateString("pt-BR")].filter(Boolean).join(" · ")
     : g.entrega ? "Suas fotos finais estão prontas" : "Sua seleção já foi enviada";
+  if (aberta && g.prazo) {
+    const h = new Date(); h.setHours(12, 0, 0, 0);
+    const d = Math.round((new Date(g.prazo + "T12:00") - h) / 864e5);
+    const t = d < 0 ? "O prazo para escolher terminou. Fale com o fotógrafo." : d === 0 ? "Último dia para escolher" : d === 1 ? "Falta 1 dia para escolher" : `Faltam ${d} dias para escolher`;
+    $("hSub").insertAdjacentHTML("beforeend", `<br><span class="prazoTag${d <= 2 ? " urg" : ""}">${t}</span>`);
+  }
+  const temDest = g.fotos.some(f => f.destaque);
+  $("fDest").classList.toggle("hide", !temDest);
   $("recado").textContent = g.mensagem || "";
   show("recado", !!g.mensagem);
   if (g.entrega) {
@@ -57,14 +66,15 @@ function medidor() {
   $("enviar").disabled = n === 0;
 }
 function pintar() {
-  const lista = g.fotos.map((f, i) => ({ f, i })).filter(o => !so || marc.has(o.f.id));
+  const lista = g.fotos.map((f, i) => ({ f, i })).filter(o => (!so || marc.has(o.f.id)) && (!soDest || o.f.destaque));
   $("grade").innerHTML = lista.length ? lista.map(({ f, i }) => `
     <div class="tile${marc.has(f.id) ? " on" : ""}" data-i="${i}">
       <img src="${esc(urlFoto(f.caminho))}" alt="Foto ${i + 1}" loading="lazy" data-ver="${i}">
       <button class="marca" data-marcar="${i}" aria-pressed="${marc.has(f.id)}" aria-label="Selecionar foto ${i + 1}"></button>
+      ${f.destaque ? `<span class="fav" title="O fotógrafo amou esta">♥ Favorita</span>` : ""}
       ${coms[f.id] ? `<span class="com" title="${esc(coms[f.id])}">✎</span>` : ""}
       <span class="nome">${esc(semExtensao(f.nome))}</span>
-    </div>`).join("") : `<div class="vazio" style="grid-column:1/-1">${so ? "Nenhuma foto marcada ainda." : "O fotógrafo ainda não subiu as fotos."}</div>`;
+    </div>`).join("") : `<div class="vazio" style="grid-column:1/-1">${so ? "Nenhuma foto marcada ainda." : soDest ? "Nenhuma favorita." : "O fotógrafo ainda não subiu as fotos."}</div>`;
   medidor();
 }
 function alternar(i) {
@@ -91,8 +101,8 @@ $("grade").onclick = e => {
   const m = e.target.closest("[data-marcar]"); if (m) return alternar(+m.dataset.marcar);
   const v = e.target.closest("[data-ver]"); if (v) caixa(+v.dataset.ver);
 };
-const filtro = v => { so = v; $("fTodas").setAttribute("aria-pressed", !v); $("fMarc").setAttribute("aria-pressed", v); pintar(); };
-$("fTodas").onclick = () => filtro(false); $("fMarc").onclick = () => filtro(true);
+const filtro = m => { so = m === "marc"; soDest = m === "dest"; $("fTodas").setAttribute("aria-pressed", m === "todas"); $("fMarc").setAttribute("aria-pressed", so); $("fDest").setAttribute("aria-pressed", soDest); pintar(); };
+$("fTodas").onclick = () => filtro("todas"); $("fMarc").onclick = () => filtro("marc"); $("fDest").onclick = () => filtro("dest");
 
 /* foto ampliada + comentário */
 function caixa(i) {
@@ -240,4 +250,25 @@ $("eGrade").onclick = e => {
   if (modoSel) { selE.has(i) ? selE.delete(i) : selE.add(i); pintarE(); }
   else window.open(urlE(g.entrega_fotos[i].caminho), "_blank", "noopener");
 };
+}
+
+/* ============ design + proteção ============ */
+function aplicarDesign(d) {
+  const b = document.body;
+  b.classList.add("t-" + (d.tema || "escuro"), "f-" + (d.fonte || "moderna"), "c-" + (d.capa || "cheia"), "g-" + (d.grade || "grade"));
+  if (d.protecao !== false) protegerFotos();
+}
+let protegido = false;
+function protegerFotos() {
+  if (protegido) return; protegido = true;
+  const b = document.body; b.classList.add("protegido");
+  const ehFoto = el => el && (el.tagName === "IMG" || el.closest?.(".tile,.hero,.caixa,.heroE"));
+  document.addEventListener("contextmenu", e => { if (ehFoto(e.target) && !document.getElementById("vEntrega").offsetParent) e.preventDefault(); });
+  document.addEventListener("dragstart", e => { if (e.target.tagName === "IMG" && !document.getElementById("vEntrega").offsetParent) e.preventDefault(); });
+  const borrar = on => { if (!document.getElementById("vEntrega").offsetParent) b.classList.toggle("borrado", on); };
+  window.addEventListener("blur", () => borrar(true));
+  window.addEventListener("focus", () => borrar(false));
+  document.addEventListener("visibilitychange", () => borrar(document.hidden));
+  document.addEventListener("keyup", e => { if (e.key === "PrintScreen") { borrar(true); try { navigator.clipboard.writeText(""); } catch {} setTimeout(() => borrar(false), 1500); } });
+  document.addEventListener("keydown", e => { if ((e.metaKey && e.shiftKey && /[345s]/i.test(e.key)) || ((e.ctrlKey || e.metaKey) && /^[sp]$/i.test(e.key))) { borrar(true); setTimeout(() => borrar(false), 1500); if (/^[sp]$/i.test(e.key)) e.preventDefault(); } });
 }

@@ -19,7 +19,7 @@
 <title>Seleção de fotos</title>
 <link rel="icon" href="icone.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&family=Playfair+Display:wght@400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="base.css?v=8">
 <style>
 body{background:#141414;color:#f2f2f2}
@@ -90,6 +90,53 @@ main{padding:28px 0 100px}
 .modoSel .tile.on .chk{background:#fff}
 .barraSel{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(20,20,20,.96);backdrop-filter:blur(10px);border-top:1px solid #2a2a2a;padding:12px max(5vw,16px);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 @media(max-width:640px){.barra .btn{width:100%}.hero{height:70vh}}
+
+/* ===== design personalizável ===== */
+body.t-claro{background:#f7f5f1;color:#171717}
+.t-claro .mute{color:#6b6b6b}
+.t-claro .btn{border-color:#171717;color:#171717}.t-claro .btn.fill{background:#171717;color:#f7f5f1}.t-claro .btn.ghost{border-color:#d6d3cd}
+.t-claro .hero .btn,.t-claro .heroE .btn{border-color:#fff;color:#fff}.t-claro .hero .btn.fill,.t-claro .heroE .btn.fill{background:#fff;color:#111}
+.t-claro input,.t-claro textarea{background:#fff;border-color:#d6d3cd;color:#171717}
+.t-claro .recado{color:#555}
+.t-claro .barra{background:rgba(247,245,241,.94);border-bottom-color:#e3e0da}
+.t-claro .medidor{color:#444}.t-claro .medidor .b{background:#e0ddd6}.t-claro .medidor .b i{background:#171717}
+.t-claro .seg{border-color:#d6d3cd}.t-claro .seg button{color:#444}.t-claro .seg button[aria-pressed=true]{background:#171717;color:#f7f5f1}
+.t-claro .tile{background:#e8e5df}.t-claro .tile.on{outline-color:#171717}
+.t-claro .modal .card{background:#fff;border-color:#e3e0da}.t-claro .modal .card .linha{border-bottom-color:#eee}
+.t-claro .entrega{border-color:#e3e0da}.t-claro .rodape{color:#999}
+.t-claro .barraSel{background:rgba(247,245,241,.96);border-top-color:#e3e0da}
+.t-claro .codigo{color:#171717}
+.f-classica .hero h1,.f-classica .heroE h1,.f-classica .codigo h1{font-family:"Playfair Display",serif;font-weight:400;letter-spacing:0}
+.f-elegante .hero h1,.f-elegante .heroE h1,.f-elegante .codigo h1{font-family:"Cormorant Garamond",serif;font-weight:500;font-style:italic;letter-spacing:0;font-size:clamp(38px,7vw,70px)}
+.c-centro .hero{align-items:center}.c-centro .hero::after{background:rgba(0,0,0,.42)}.c-centro .hero .txt{padding-bottom:0}
+.c-dividida .hero{background-size:50% 100%;background-position:left center;background-color:#141414;height:min(82vh,780px);align-items:center}
+.t-claro.c-dividida .hero{background-color:#f7f5f1}
+.c-dividida .hero::after{display:none}
+.c-dividida .hero .txt{margin-left:50%;width:50%;padding:40px 5vw}
+.c-dividida .hero .topo{left:50%}
+.t-claro.c-dividida .hero p{color:#555}.t-claro.c-dividida .hero .btn.fill{background:#171717;color:#fff;border-color:#171717}
+.t-claro.c-moldura .hero .topo,.t-claro.c-minimal .hero .topo,.t-claro.c-dividida .hero .topo{color:#171717}
+.c-moldura .hero{background-origin:content-box;background-clip:content-box;padding:clamp(14px,3.5vw,44px);background-color:transparent;height:min(86vh,820px)}
+.c-moldura .hero::after{inset:clamp(14px,3.5vw,44px)}
+.c-moldura .hero .topo{top:calc(clamp(14px,3.5vw,44px) + 18px)}
+.c-moldura .hero .txt{padding-bottom:calc(7vh + 20px)}
+.c-minimal .hero{background-image:none!important;height:auto;min-height:0;padding:16vh 0 4vh;background:transparent}
+.c-minimal .hero::after{display:none}
+.c-minimal .hero p{color:inherit;opacity:.7}
+.t-claro.c-minimal .hero .btn.fill{background:#171717;color:#fff;border-color:#171717}
+@media(max-width:760px){.c-dividida .hero{background-size:100% 55%;background-position:top center;align-items:flex-end;height:auto;min-height:86vh}.c-dividida .hero .txt{margin:55vh 0 0;width:100%;padding:24px 16px 40px}.c-dividida .hero .topo{left:0}}
+.g-mosaico .fotos{display:block;columns:4 220px;column-gap:10px}
+.g-mosaico .fotos .tile{aspect-ratio:auto;margin-bottom:10px;break-inside:avoid}
+.g-mosaico .fotos .tile img{height:auto}
+.g-ampla .fotos{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+@media(max-width:640px){.g-mosaico .fotos{columns:2}.g-ampla .fotos{grid-template-columns:1fr}}
+.tile .fav{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);color:#111;font-size:11px;font-weight:500;border-radius:999px;padding:3px 9px 3px 7px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.prazoTag{display:inline-block;margin-top:10px;font-size:12px;letter-spacing:.08em;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.15);backdrop-filter:blur(6px)}
+.prazoTag.urg{background:#fff;color:#111;font-weight:500}
+/* proteção */
+.protegido img{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}
+.protegido.borrado .tile img,.protegido.borrado #cImg,.protegido.borrado .hero{filter:blur(28px)!important;transition:filter .05s}
+@media print{.protegido img,.protegido .hero{display:none!important}}
 </style>
 </head>
 <body>
@@ -126,7 +173,7 @@ main{padding:28px 0 100px}
   <div id="selecao">
     <div class="barra" id="fotos"><div class="wrap">
       <div class="medidor"><span id="mTxt"></span><div class="b"><i id="mBar"></i></div></div>
-      <div class="seg" role="group" aria-label="Filtro"><button id="fTodas" aria-pressed="true">Todas</button><button id="fMarc" aria-pressed="false">Selecionadas</button></div>
+      <div class="seg" role="group" aria-label="Filtro"><button id="fTodas" aria-pressed="true">Todas</button><button id="fMarc" aria-pressed="false">Selecionadas</button><button id="fDest" aria-pressed="false" class="hide">♥ Favoritas do fotógrafo</button></div>
       <span class="salvo" id="salvo" role="status"></span>
       <button class="btn fill" id="enviar">Enviar seleção</button>
     </div></div>
@@ -163,7 +210,7 @@ main{padding:28px 0 100px}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="config.js?v=11"></script>
-<script src="g.js?v=11"></script>
+<script src="config.js?v=12"></script>
+<script src="g.js?v=12"></script>
 </body>
 </html>

@@ -56,6 +56,7 @@ const setModo = criar => {
   $("eTitulo").textContent = criar ? "Criar estúdio" : "Entrar";
   $("eSub").textContent = criar ? "14 dias grátis, sem cartão de crédito." : "Acesse o seu estúdio.";
   show("campoNome", criar); show("esqueci", !criar);
+  show("aceite", criar);
   $("bEntrar").textContent = criar ? "Criar meu estúdio" : "Entrar";
   $("senha").autocomplete = criar ? "new-password" : "current-password";
   $("trocar").innerHTML = criar ? 'Já tem conta? <a href="#" id="lTrocar">Entrar.</a>' : 'Primeira vez aqui? <a href="#" id="lTrocar">Crie o seu estúdio.</a>';
@@ -102,7 +103,7 @@ $("fSenha").onsubmit = async e => {
 $("sair").onclick = () => sb.auth.signOut();
 
 /* ============ moldura do painel ============ */
-const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", entregas: "Entregas", diagramacoes: "Aprovação de álbum", diagramacao: "Aprovação de álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança", conversas: "Conversas", relatorios: "Relatórios", funil: "Funil", indique: "Indique e ganhe" };
+const TITULOS = { inicio: "Painel", galerias: "Galerias", galeria: "Galeria", entregas: "Entregas", diagramacoes: "Aprovação de álbum", diagramacao: "Aprovação de álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações", plano: "Plano e cobrança", conversas: "Conversas", relatorios: "Relatórios", funil: "Funil", indique: "Indique e ganhe" };
 const celular = () => matchMedia("(max-width:860px)").matches;
 const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -163,18 +164,21 @@ function pintarConta() {
 }
 async function notificacoes() {
   try {
-    const [sel, atr, tar, dg] = await Promise.all([
+    const em2 = new Date(); em2.setDate(em2.getDate() + 2);
+    const [sel, atr, tar, dg, pz] = await Promise.all([
       q(sb.from("galerias").select("slug,titulo,cliente_nome,enviada_em").eq("status", "enviada").order("enviada_em", { ascending: false }).limit(8)),
       q(sb.from("pagamentos").select("descricao,valor,vencimento").is("pago_em", null).lt("vencimento", hoje()).order("vencimento").limit(8)),
       q(sb.from("tarefas").select("id,titulo,vencimento").eq("feita", false).lte("vencimento", hoje()).order("vencimento").limit(8)),
-      q(sb.from("diagramacoes").select("slug,titulo,cliente_nome,status,respondido_em").eq("status", "alteracoes").order("respondido_em", { ascending: false }).limit(8))
+      q(sb.from("diagramacoes").select("slug,titulo,cliente_nome,status,respondido_em").eq("status", "alteracoes").order("respondido_em", { ascending: false }).limit(8)),
+      q(sb.from("galerias").select("slug,titulo,cliente_nome,prazo").eq("status", "aberta").eq("so_entrega", false).not("prazo", "is", null).lte("prazo", ymd(em2)).order("prazo").limit(8))
     ]);
-    const total = sel.length + atr.length + tar.length + dg.length;
+    const total = sel.length + atr.length + tar.length + dg.length + pz.length;
     $("badge").textContent = total > 9 ? "9+" : total; show("badge", total > 0);
     $("contTarefas").textContent = tar.length || "";
     $("notifs").innerHTML = total ? `
       ${sel.length ? `<h3>Seleções recebidas</h3>${sel.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")}${g.enviada_em ? " · " + new Date(g.enviada_em).toLocaleDateString("pt-BR") : ""}</span></div></a>`).join("")}` : ""}
-      ${dg.length ? `<h3>Álbuns com pedido de alteração</h3>${dg.map(d => `<a class="item" href="#/diagramacao/${esc(d.slug)}"><div class="txt"><strong>${esc(d.titulo)}</strong><span>${esc(d.cliente_nome || "")}</span></div></a>`).join("")}` : ""}
+      ${pz.length ? `<h3>Prazos de escolha</h3>${pz.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")} · ${g.prazo < hoje() ? "venceu " : g.prazo === hoje() ? "vence hoje" : "vence "}${g.prazo === hoje() ? "" : esc(dataBR(g.prazo))}</span></div><span class="small">Lembrar</span></a>`).join("")}` : ""}
+      ${dg.length ? `<h3>Álbuns diagramados com pedido de alteração</h3>${dg.map(d => `<a class="item" href="#/diagramacao/${esc(d.slug)}"><div class="txt"><strong>${esc(d.titulo)}</strong><span>${esc(d.cliente_nome || "")}</span></div></a>`).join("")}` : ""}
       ${atr.length ? `<h3>Pagamentos atrasados</h3>${atr.map(p => `<a class="item" href="#/financeiro"><div class="txt"><strong>${esc(p.descricao)}</strong><span>venceu ${esc(dataBR(p.vencimento))}</span></div><span class="val">${brl(p.valor)}</span></a>`).join("")}` : ""}
       ${tar.length ? `<h3>Tarefas para hoje</h3>${tar.map(t => `<a class="item" href="#/tarefas"><div class="txt"><strong>${esc(t.titulo)}</strong><span>${t.vencimento < hoje() ? "atrasada · " : ""}${esc(dataBR(t.vencimento))}</span></div></a>`).join("")}` : ""}`
       : `<p class="vazioP" style="padding:14px 10px">Tudo em dia por aqui.</p>`;
@@ -269,7 +273,7 @@ ROTAS.inicio = async () => {
   const fotoFaixa = capa.data?.capa?.caminho ? urlFoto(capa.data.capa.caminho) : "https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1600&q=70&auto=format&fit=crop";
   C().innerHTML = `${avisoPlano()}
     <div class="faixaFoto faixaPainel" style="--foto:url('${esc(fotoFaixa)}')"><div><h1>Olá${nome ? ", " + esc(nome) : ""}</h1><p>${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p></div>
-      <div class="acoes"><button class="btn" id="aTrab">Novo trabalho</button><button class="btn" id="aCli">Novo cliente</button><button class="btn fill" id="aGal">Novo álbum</button></div></div>
+      <div class="acoes"><button class="btn" id="aTrab">Novo trabalho</button><button class="btn" id="aCli">Novo cliente</button><button class="btn fill" id="aGal">Nova galeria</button></div></div>
     <div class="cards">
       <div class="num escuro"><span>Recebido em ${esc(new Date().toLocaleDateString("pt-BR", { month: "long" }))}</span><b>${brl(recebido)}</b></div>
       <div class="num"><span>A receber no mês</span><b>${brl(aReceber)}</b></div>
@@ -281,8 +285,8 @@ ROTAS.inicio = async () => {
         ${prox.length ? prox.map(t => `<a class="item" href="#/agenda/${t.data.slice(0, 7)}"><div class="data"><b>${dia(t.data).getDate()}</b><span>${dia(t.data).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></div>
           <div class="txt"><strong>${esc(t.titulo)}</strong><span>${[t.clientes?.nome, t.hora?.slice(0, 5), t.local].filter(Boolean).map(esc).join(" · ")}</span></div><span class="st">${STATUS_T[t.status]}</span></a>`).join("") : `<p class="vazioP">Nada marcado. Que tal cadastrar o próximo ensaio?</p>`}
       </div>
-      <div class="bloco"><h2>Álbuns <a href="#/galerias">Ver todos</a></h2>
-        ${[...recebidas, ...aguardando].slice(0, 6).map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "Sem cliente")}</span></div><span class="tag ${g.status}">${STATUS_G[g.status]}</span></a>`).join("") || `<p class="vazioP">Nenhum álbum aberto.</p>`}
+      <div class="bloco"><h2>Galerias <a href="#/galerias">Ver todas</a></h2>
+        ${[...recebidas, ...aguardando].slice(0, 6).map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "Sem cliente")}</span></div><span class="tag ${g.status}">${STATUS_G[g.status]}</span></a>`).join("") || `<p class="vazioP">Nenhuma galeria aberta.</p>`}
       </div>
     </div>
     <div class="bloco" style="margin-top:18px"><h2>Tarefas <span class="acoes"><button class="btn sm ghost" id="aTar">Nova tarefa</button><a href="#/tarefas">Ver todas</a></span></h2>
@@ -306,7 +310,7 @@ ROTAS.galerias = async () => {
     document.querySelectorAll(".chip[data-f]").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filtroGal));
   };
   C().innerHTML = `
-    <div class="cabeca"><div><h1>Álbuns</h1><p class="mute">Suba as prévias, mande o link e receba a escolha do cliente.</p></div><button class="btn fill" id="aGal">Nova galeria</button></div>
+    <div class="cabeca"><div><h1>Galerias</h1><p class="mute">Suba as prévias, mande o link e receba a escolha do cliente.</p></div><button class="btn fill" id="aGal">Nova galeria</button></div>
     <div class="filtros">${[["todas", "Todas"], ["aberta", "Aguardando cliente"], ["enviada", "Seleção recebida"], ["encerrada", "Encerradas"]].map(([k, t]) => `<button class="chip" data-f="${k}">${t} (${gs.filter(f[k]).length})</button>`).join("")}</div>
     <div class="galerias" id="gLista"></div>`;
   document.querySelectorAll(".chip[data-f]").forEach(c => c.onclick = () => { filtroGal = c.dataset.f; pintar(); });
@@ -395,12 +399,12 @@ function pintarGaleria() {
   const capaP = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
   const capaUrl = G.so_entrega ? (G.entrega_capa ? urlEntrega(G.entrega_capa) : "") : capaP ? urlFoto(capaP.caminho) : "";
   const abas = G.so_entrega ? [["entrega", "Fotos tratadas"], ["ajustes", "Ajustes"]]
-    : [["fotos", `Prévias (${fotos.length})`], ["selecao", `Seleção (${marcadas.size})`], ["entrega", "Fotos tratadas"], ["ajustes", "Ajustes"]];
+    : [["fotos", `Prévias (${fotos.length})`], ["selecao", `Seleção (${marcadas.size})`], ["design", "Design"], ["entrega", "Fotos tratadas"], ["ajustes", "Ajustes"]];
   const pronta = !G.so_entrega && G.status === "enviada" && !G.entrega_liberada && abaG !== "entrega";
   const sub = G.so_entrega ? [G.cliente_nome, "entrega de fotos tratadas", G.entrega_liberada ? "liberada" : "rascunho"]
     : [G.cliente_nome, `${G.fotos_incluidas} no pacote`, G.permitir_extras === false ? "sem extras" : `extra ${brl(G.preco_extra)}`, G.prazo && "prazo " + dataBR(G.prazo)];
   C().innerHTML = `
-    <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="${G.so_entrega ? "#/entregas" : "#/galerias"}" style="margin:0">← ${G.so_entrega ? "Entregas" : "Álbuns"}</a><button class="btn sm ghost" id="excluirAlbum">Excluir álbum</button></div>
+    <div class="row" style="justify-content:space-between;margin-bottom:10px"><a class="volta" href="${G.so_entrega ? "#/entregas" : "#/galerias"}" style="margin:0">← ${G.so_entrega ? "Entregas" : "Galerias"}</a><button class="btn sm ghost" id="excluirAlbum">Excluir galeria</button></div>
     <div class="banner" style="${capaUrl ? `background-image:url('${esc(capaUrl)}')` : ""}">
       <div class="sobre"><div><h1>${esc(G.so_entrega ? G.entrega_titulo || G.titulo : G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${sub.filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${G.so_entrega ? (G.entrega_liberada ? "Entregue" : "Rascunho") : STATUS_G[G.status]}</span></div>
     </div>
@@ -415,7 +419,7 @@ function pintarGaleria() {
   document.querySelectorAll(".abasG button").forEach(b => b.onclick = () => { abaG = b.dataset.a; pintarGaleria(); });
   $("excluirAlbum").onclick = excluirAlbum;
   if ($("irEntrega")) $("irEntrega").onclick = () => { abaG = "entrega"; pintarGaleria(); };
-  ({ fotos: abaFotos, selecao: abaSelecao, entrega: abaEntrega, ajustes: abaAjustes })[abaG]();
+  ({ fotos: abaFotos, selecao: abaSelecao, design: abaDesign, entrega: abaEntrega, ajustes: abaAjustes })[abaG]();
 }
 
 function abaFotos() {
@@ -428,7 +432,8 @@ function abaFotos() {
       <div class="tile${marcadas.has(f.id) ? " on" : ""}">
         <img src="${esc(urlFoto(f.caminho))}" alt="${esc(f.nome_arquivo)}" loading="lazy">
         ${f.id === G.capa_foto_id ? '<span class="capaTag">Capa</span>' : ""}
-        <div class="acts"><button data-capa="${f.id}" title="Usar como capa" aria-label="Usar ${esc(f.nome_arquivo)} como capa">★</button><button data-del="${f.id}" title="Excluir" aria-label="Excluir ${esc(f.nome_arquivo)}">×</button></div>
+        ${f.destaque ? '<span class="favTag" title="Favorita do fotógrafo">♥</span>' : ""}
+        <div class="acts"><button data-fav="${f.id}" title="${f.destaque ? "Tirar das favoritas" : "Marcar como favorita do fotógrafo"}" aria-label="Favorita: ${esc(f.nome_arquivo)}" aria-pressed="${!!f.destaque}">${f.destaque ? "♥" : "♡"}</button><button data-capa="${f.id}" title="Usar como capa" aria-label="Usar ${esc(f.nome_arquivo)} como capa">★</button><button data-del="${f.id}" title="Excluir" aria-label="Excluir ${esc(f.nome_arquivo)}">×</button></div>
         ${marcadas.has(f.id) ? '<span class="marca"></span>' : ""}
         ${coments[f.id] ? `<span class="com" title="${esc(coments[f.id])}"><svg><use href="#i-coment"/></svg></span>` : ""}
         <span class="nome">${esc(f.nome_arquivo)}</span>
@@ -441,6 +446,8 @@ function abaFotos() {
   $("grade").onclick = async e => {
     const cp = e.target.closest("[data-capa]"), dl = e.target.closest("[data-del]");
     try {
+      const fv = e.target.closest("[data-fav]");
+      if (fv) { const f = fotos.find(x => x.id === fv.dataset.fav); f.destaque = !f.destaque; await q(sb.from("fotos").update({ destaque: f.destaque }).eq("id", f.id)); toast(f.destaque ? "Marcada como sua favorita: o cliente vê um ♥" : "Removida das favoritas"); pintarGaleria(); return; }
       if (cp) { await q(sb.from("galerias").update({ capa_foto_id: cp.dataset.capa }).eq("id", G.id)); G.capa_foto_id = cp.dataset.capa; toast("Capa atualizada"); pintarGaleria(); }
       if (dl) {
         const f = fotos.find(x => x.id === dl.dataset.del);
@@ -602,8 +609,8 @@ async function abaAjustes() {
   $("abaConteudo").innerHTML = `
     <form class="bloco" id="fAj" style="max-width:820px">
       <div class="grid2">
-        <div class="field"><label for="aT">Nome do álbum</label><input id="aT" required value="${esc(G.titulo)}"></div>
-        <div class="field"><label for="aSlug">Endereço do álbum</label><input id="aSlug" value="${esc(G.slug)}" pattern="[a-z0-9-]+" title="Só letras minúsculas, números e hífen"></div>
+        <div class="field"><label for="aT">Nome da galeria</label><input id="aT" required value="${esc(G.titulo)}"></div>
+        <div class="field"><label for="aSlug">Endereço da galeria</label><input id="aSlug" value="${esc(G.slug)}" pattern="[a-z0-9-]+" title="Só letras minúsculas, números e hífen"></div>
         <div class="field"><label for="aC">Cliente</label>${sel("aC", opcClientes(cs), G.cliente_id)}</div>
         <div class="field"><label for="aTr">Trabalho da agenda</label>${sel("aTr", opcTrabalhos(ts), G.trabalho_id)}</div>
         <div class="field${G.so_entrega ? ' hide' : ''}"><label for="aP">Prazo para escolher</label><input id="aP" type="date" value="${esc(G.prazo || "")}"></div>
@@ -638,14 +645,14 @@ async function abaAjustes() {
 }
 
 async function excluirAlbum() {
-  if (!confirm(`Excluir o álbum “${G.titulo}” e as ${fotos.length} fotos?\n\nO link do cliente para de funcionar. Isso não pode ser desfeito.`)) return;
+  if (!confirm(`Excluir a galeria “${G.titulo}” e as ${fotos.length} fotos?\n\nO link do cliente para de funcionar. Isso não pode ser desfeito.`)) return;
   try {
     const cam = fotos.map(f => f.caminho);
     for (let i = 0; i < cam.length; i += 100) await sb.storage.from("fotos").remove(cam.slice(i, i + 100));
     const ent = (await q(sb.from("entregas").select("caminho").eq("galeria_id", G.id))).map(e => e.caminho);
     for (let i = 0; i < ent.length; i += 100) await sb.storage.from("entregas").remove(ent.slice(i, i + 100));
     await q(sb.from("galerias").delete().eq("id", G.id));
-    atualizarUso(); toast("Álbum excluído"); ir("#/galerias");
+    atualizarUso(); toast("Galeria excluída"); ir("#/galerias");
   } catch (e) { erro(e); }
 }
 
@@ -1185,8 +1192,8 @@ ROTAS.tarefas = async () => {
 
 /* ============ PLANO E COBRANÇA ============ */
 const PLANOS = [
-  { id: "essencial", nome: "Essencial", m: 24.9, desc: "Para quem está começando a entregar com profissionalismo.", itens: ["20 GB de armazenamento", "15 álbuns ativos", "Seleção com limite do pacote e fotos extras", "Lista pronta pro Lightroom", "Marca d'água com o nome do estúdio"] },
-  { id: "profissional", nome: "Profissional", m: 44.9, rec: true, desc: "Para o estúdio que quer crescer: sua marca nas prévias, clientes, agenda e financeiro.", itens: ["80 GB de armazenamento", "Álbuns ilimitados", "Clientes, trabalhos, agenda, tarefas e financeiro", "Marca d'água com o seu logo", "Entrega das fotos finais"] },
+  { id: "essencial", nome: "Essencial", m: 24.9, desc: "Para quem está começando a entregar com profissionalismo.", itens: ["20 GB de armazenamento", "15 galerias ativas", "Seleção com limite do pacote e fotos extras", "Lista pronta pro Lightroom", "Marca d'água com o nome do estúdio"] },
+  { id: "profissional", nome: "Profissional", m: 44.9, rec: true, desc: "Para o estúdio que quer crescer: sua marca nas prévias, clientes, agenda e financeiro.", itens: ["80 GB de armazenamento", "Galerias ilimitadas", "Clientes, trabalhos, agenda, tarefas e financeiro", "Marca d'água com o seu logo", "Entrega das fotos finais"] },
   { id: "estudio", nome: "Estúdio", m: 84.9, desc: "Para estúdios com alto volume e equipe.", itens: ["250 GB de armazenamento", "Tudo do Profissional", "Domínio próprio", "Sem a marca Seleta na galeria", "Até 3 usuários"] }
 ];
 const diasTeste = () => estudio?.teste_ate ? Math.ceil((dia(estudio.teste_ate) - dia(hoje())) / 864e5) : 14;
@@ -1206,7 +1213,7 @@ ROTAS.plano = async () => {
       <h1>${atual ? "Seu plano" : d > 0 ? "Escolha seu plano" : "Seu teste terminou"}</h1>
       <p class="mute" style="margin:10px 0 26px;font-size:16px">${atual ? `Você está no plano <strong style="font-weight:500">${esc(atual.nome)}</strong>.` : d > 0 ? `Seu teste grátis vai até ${esc(dataBR(estudio.teste_ate))} (${d} ${d === 1 ? "dia" : "dias"}). Assine quando quiser: nada do que você já fez se perde.` : `Seu teste terminou em ${esc(dataBR(estudio.teste_ate))}. Tudo foi mantido; escolha um plano para continuar.`}</p>
       <div class="ciclo" role="group" aria-label="Cobrança"><button data-c="mensal" aria-pressed="${cicloPlano === "mensal"}">Mensal</button><button data-c="anual" aria-pressed="${cicloPlano === "anual"}">Anual</button></div>
-      <p class="mute small" style="margin-bottom:16px">Todos os planos incluem álbuns com seleção do cliente, comentários por foto, marca d'água e lista pro Lightroom.</p>
+      <p class="mute small" style="margin-bottom:16px">Todos os planos incluem galerias com seleção do cliente, comentários por foto, marca d'água e lista pro Lightroom.</p>
       ${PLANOS.map(x => `<label class="opPlano${x.id === planoSel ? " sel" : ""}"><div class="lin"><input type="radio" name="plano" value="${x.id}" ${x.id === planoSel ? "checked" : ""}><div style="flex:1;min-width:0"><span class="nome">${x.nome}</span>${x.rec ? '<span class="rec">Recomendado</span>' : ""}<p>${x.desc}</p><details><summary>Ver detalhes</summary><ul>${x.itens.map(i => `<li>${i}</li>`).join("")}</ul></details></div><span class="pr">${brl(preco(x))}/mês${cicloPlano === "anual" ? `<br><span class="small">${brl(x.m * 10)} por ano</span>` : ""}</span></div></label>`).join("")}
       <p class="miudo">No plano anual você paga 10 meses e usa 12 (economia de cerca de 17%).</p>
       <button class="btn fill assinar" id="assinar">Assinar ${p.nome} · ${brl(preco(p))}/mês</button>
@@ -1269,12 +1276,12 @@ ROTAS.relatorios = async () => {
       <button class="num" data-k="entregue"><span>Entregues</span><b>${cont("entregue")}</b><small class="mute">fotos tratadas liberadas</small></button>
     </div>
     <div class="filtros" style="margin-top:22px">${[["todos", "Todos"], ["aguardando", "Não escolheram"], ["andamento", "Escolhendo"], ["escolheu", "Já escolheram"], ["entregue", "Entregues"], ["atrasado", "Prazo vencido"]].map(([k, t]) => `<button class="chip" data-f="${k}">${t} (${als.filter(f[k]).length})</button>`).join("")}</div>
-    <div class="bloco" style="padding:6px 8px"><table class="tabela stack"><thead><tr><th>Cliente</th><th>Álbum</th><th>Situação</th><th class="r">Marcadas</th><th>Prazo</th><th class="r">Parado há</th><th></th></tr></thead><tbody id="tRel"></tbody></table></div>
+    <div class="bloco" style="padding:6px 8px"><table class="tabela stack"><thead><tr><th>Cliente</th><th>Galeria</th><th>Situação</th><th class="r">Marcadas</th><th>Prazo</th><th class="r">Parado há</th><th></th></tr></thead><tbody id="tRel"></tbody></table></div>
     <div class="duas">
       <div class="bloco"><h2>Recebido nos últimos 6 meses</h2>
         <div class="barras">${meses.map((d, i) => `<div class="bcol"><span class="bval">${rec[i] ? brl(rec[i]).replace(",00", "") : ""}</span><i style="height:${Math.round(rec[i] / maxR * 100)}%"></i><span class="small mute">${d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></div>`).join("")}</div></div>
       <div class="bloco"><h2>Resumo</h2>
-        <div class="resumo" style="grid-template-columns:1fr 1fr"><span>Orçamentos que viraram trabalho<b>${orc ? Math.round(fech / orc * 100) : 0}%</b></span><span>Trabalhos cadastrados<b>${orc}</b></span><span>Fotos extras vendidas<b>${brl(extras)}</b></span><span>Álbuns no total<b>${als.length}</b></span></div></div>
+        <div class="resumo" style="grid-template-columns:1fr 1fr"><span>Orçamentos que viraram trabalho<b>${orc ? Math.round(fech / orc * 100) : 0}%</b></span><span>Trabalhos cadastrados<b>${orc}</b></span><span>Fotos extras vendidas<b>${brl(extras)}</b></span><span>Galerias no total<b>${als.length}</b></span></div></div>
     </div>`;
   const pintar = () => {
     const l = als.filter(f[filtroRel]);
@@ -1292,9 +1299,9 @@ ROTAS.relatorios = async () => {
   document.querySelectorAll(".num[data-k]").forEach(c => c.onclick = () => { filtroRel = c.dataset.k; pintar(); });
   $("tRel").onclick = e => { if (e.target.closest("[data-wa]")) return; const r = e.target.closest("[data-s]"); if (r) ir("#/galeria/" + r.dataset.s); };
   $("csv").onclick = () => {
-    const linhas = [["Cliente", "Álbum", "Situação", "Marcadas", "Incluídas", "Prazo", "Dias parado"], ...als.map(a => [a.cliente_nome || "", a.titulo, ETAPA_A[a.etapa][0], a.marc, a.fotos_incluidas, a.prazo ? dataBR(a.prazo) : "", a.dias])];
+    const linhas = [["Cliente", "Galeria", "Situação", "Marcadas", "Incluídas", "Prazo", "Dias parado"], ...als.map(a => [a.cliente_nome || "", a.titulo, ETAPA_A[a.etapa][0], a.marc, a.fotos_incluidas, a.prazo ? dataBR(a.prazo) : "", a.dias])];
     const csv = "﻿" + linhas.map(l => l.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\n");
-    const el = document.createElement("a"); el.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); el.download = "relatorio-albuns.csv"; el.click();
+    const el = document.createElement("a"); el.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); el.download = "relatorio-galerias.csv"; el.click();
   };
   pintar();
 };
@@ -1321,7 +1328,7 @@ ROTAS.conversas = async () => {
     const b = $("bConv").value.toLowerCase();
     const l = lista.filter(x => x.c.nome.toLowerCase().includes(b));
     $("lConv").innerHTML = l.length ? l.map(({ c, a }) => {
-      const s = a ? sugestaoMsg(a) : { titulo: "Sem álbum", texto: `Oi, ${c.nome.split(" ")[0]}! Tudo bem?` };
+      const s = a ? sugestaoMsg(a) : { titulo: "Sem galeria", texto: `Oi, ${c.nome.split(" ")[0]}! Tudo bem?` };
       const ini = c.nome.split(/\s+/).slice(0, 2).map(p => p[0]).join("").toUpperCase();
       return `<div class="conv bloco">
         <span class="avatarC">${esc(ini)}</span>
@@ -1523,5 +1530,54 @@ async function enviarLaminas(files, versao, inicio, silencioso) {
   atualizarUso();
   if (!silencioso) { toast(`${ok} lâminas enviadas`); rota(); }
   return ok > 0;
+}
+
+/* ============ DESIGN DA GALERIA ============ */
+const PADRAO_D = { capa: "cheia", tema: "escuro", fonte: "moderna", grade: "grade", protecao: true };
+const OPC_D = {
+  capa: [["cheia", "Tela cheia", "Foto inteira, título embaixo"], ["centro", "Centralizada", "Título no meio da foto"], ["dividida", "Dividida", "Foto de um lado, título do outro"], ["moldura", "Moldura", "Foto com margem, ar de revista"], ["minimal", "Minimalista", "Só o título, direto nas fotos"]],
+  tema: [["escuro", "Escuro", "Fundo preto, fotos em destaque"], ["claro", "Claro", "Fundo off-white, leve"]],
+  fonte: [["moderna", "Moderna", "Montserrat"], ["classica", "Clássica", "Playfair Display"], ["elegante", "Elegante", "Cormorant"]],
+  grade: [["grade", "Grade", "Quadros iguais"], ["mosaico", "Mosaico", "Cada foto no formato original"], ["ampla", "Ampla", "Fotos maiores, menos por linha"]]
+};
+const designDe = g => ({ ...PADRAO_D, ...(estudio.design_padrao || {}), ...(g?.design || {}) });
+function previaDesign(d, capaUrl, imgs) {
+  return `<div class="prevG t-${d.tema} f-${d.fonte} c-${d.capa} g-${d.grade}">
+    <div class="pvHero" style="${capaUrl ? `--img:url('${esc(capaUrl)}')` : ""}"><div class="pvFoto"></div><div class="pvTxt"><small>${esc(estudio.nome || "Seu estúdio")}</small><b>${esc(G?.titulo || "Ensaio Sophia")}</b><span>32 fotos · escolha até 30/11</span><i>Ver fotos</i></div></div>
+    <div class="pvGrade">${imgs.slice(0, 8).map((u, i) => `<span style="background-image:url('${esc(u)}')" class="${i % 3 === 1 ? "alta" : ""}">${i === 1 ? "<em>♥</em>" : ""}</span>`).join("")}</div></div>`;
+}
+let dEdit = null;
+function abaDesign() {
+  dEdit = designDe(G);
+  const capa = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
+  const capaUrl = capa ? urlFoto(capa.caminho) : "https://images.unsplash.com/photo-1578220375772-9a71d4d2ff82?w=1200&q=70&auto=format&fit=crop";
+  const imgs = fotos.length ? fotos.map(f => urlFoto(f.caminho)) : ["1625832954356-6ddaffc45853", "1560915109-f54ff3d7664c", "1644901381402-69804395b4e0", "1600069265050-3555d89d187b", "1612821996907-d3710d7f1351", "1578220375772-9a71d4d2ff82"].map(i => `https://images.unsplash.com/photo-${i}?w=400&q=60&auto=format&fit=crop`);
+  const grupo = (k, titulo) => `<div class="field"><span class="rotulo">${titulo}</span><div class="opD opD-${k}" role="radiogroup" aria-label="${titulo}">${OPC_D[k].map(([v, n, dsc]) => `<button type="button" role="radio" data-k="${k}" data-v="${v}" aria-checked="${dEdit[k] === v}"><span class="ico-${k}-${v}"></span><b>${n}</b><small>${dsc}</small></button>`).join("")}</div></div>`;
+  $("abaConteudo").innerHTML = `
+    <div class="designGrid">
+      <div class="bloco">
+        <h2>Visual da galeria</h2><p class="small mute" style="margin:4px 0 16px">Escolha como o cliente vê esta galeria. A prévia ao lado muda na hora.</p>
+        ${grupo("capa", "Capa")}${grupo("tema", "Tema")}${grupo("fonte", "Fonte do título")}${grupo("grade", "Fotos")}
+        <div class="field"><label class="switch"><input type="checkbox" id="dProt" ${dEdit.protecao !== false ? "checked" : ""}> Proteção contra print e download</label>
+          <span class="small mute" style="display:block;margin-left:32px">Bloqueia o botão direito e arrastar a foto, e desfoca as fotos quando a pessoa tenta tirar print no computador. No celular, o print não pode ser bloqueado: aí a marca d'água é a proteção.</span></div>
+        <div class="acoes"><button class="btn fill" id="dSalvar">Salvar nesta galeria</button><button class="btn ghost" id="dPadrao">Usar como padrão do estúdio</button></div>
+        <p class="small mute" style="margin-top:10px">O padrão vale para todas as galerias que não tiverem um visual próprio.</p>
+      </div>
+      <div class="prevWrap"><div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="small mute">Prévia</span><a class="small" target="_blank" rel="noopener" href="${esc(linkCliente())}">Abrir como cliente ↗</a></div><div id="dPrev"></div></div>
+    </div>`;
+  const pintarPrev = () => { $("dPrev").innerHTML = previaDesign(dEdit, capaUrl, imgs); };
+  $("abaConteudo").querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
+    dEdit[b.dataset.k] = b.dataset.v;
+    $("abaConteudo").querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute("aria-checked", x === b));
+    pintarPrev();
+  });
+  $("dProt").onchange = () => { dEdit.protecao = $("dProt").checked; };
+  $("dSalvar").onclick = async () => { try { G.design = { ...dEdit }; await q(sb.from("galerias").update({ design: G.design }).eq("id", G.id)); toast("Visual salvo nesta galeria"); } catch (e) { erro(e); } };
+  $("dPadrao").onclick = async () => {
+    try { Object.assign(estudio, await q(sb.from("estudios").update({ design_padrao: { ...dEdit } }).eq("id", user.id).select().single()));
+      G.design = {}; await q(sb.from("galerias").update({ design: {} }).eq("id", G.id));
+      toast("Agora este é o visual padrão das suas galerias"); } catch (e) { erro(e); }
+  };
+  pintarPrev();
 }
 }
