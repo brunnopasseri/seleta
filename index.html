@@ -235,6 +235,43 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
 .btnsMock{display:flex;gap:8px;margin-top:10px}.btnsMock span{flex:1;text-align:center;font-size:12px;padding:9px;border:1px solid #444;border-radius:7px;color:#eee}.btnsMock .a{background:#fff;color:#111;border-color:#fff}
 @media(max-width:560px){.estilos3{grid-template-columns:1fr 1fr}.estilos3 .e3{display:none}}
 #nav .links a{white-space:nowrap}
+
+/* abertura D */
+.heroD{position:relative;margin-top:-71px;padding-top:71px;background:#0d0d0d;color:#fff;overflow:hidden;min-height:min(100vh,920px)}
+.heroBg{position:absolute;inset:0;background:center 30%/cover;transform:scale(1.08);animation:zoomLento 18s ease-out forwards;opacity:.55}
+.heroD::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,10,10,.92) 0%,rgba(10,10,10,.75) 42%,rgba(10,10,10,.35) 100%),linear-gradient(0deg,rgba(10,10,10,.85),transparent 35%)}
+@keyframes zoomLento{to{transform:scale(1)}}
+.heroGrid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:4vw;align-items:center;min-height:calc(min(100vh,920px) - 71px);padding-top:30px;padding-bottom:30px}
+.heroD h1{font-size:clamp(40px,5.4vw,76px);font-weight:300;line-height:1.04;letter-spacing:-.02em;color:#fff}
+.olhoD{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin:0 0 20px}
+.rev{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em}.rev>span{display:inline-block;transform:translateY(110%);animation:sobe .9s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes sobe{to{transform:none}}
+.brilho{font-weight:500;background:linear-gradient(90deg,#fff 0%,#9a9a9a 50%,#fff 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:brilho 4s linear infinite}
+@keyframes brilho{to{background-position:-200% 0}}
+.heroD p.lead{font-size:18px;line-height:1.6;color:rgba(255,255,255,.78);margin:24px 0 32px;max-width:30em}
+.heroD .ctas{gap:12px}
+.heroD .btn.claro{background:#fff;color:#111;border-color:#fff;gap:10px}
+.heroD .btn.contorno{border-color:rgba(255,255,255,.7);color:#fff;background:transparent}
+.heroD .btn .seta{transition:transform .25s}.heroD .btn:hover .seta{transform:translateX(4px)}
+.entra{opacity:0;transform:translateY(14px);animation:aparece .8s .6s ease forwards}.e2{animation-delay:.75s}.e3{animation-delay:.9s}
+@keyframes aparece{to{opacity:1;transform:none}}
+.numerosD{display:flex;gap:30px;flex-wrap:wrap;margin-top:36px;font-size:13px;color:rgba(255,255,255,.7)}.numerosD b{display:block;font-size:26px;font-weight:300;color:#fff}
+.colsD{height:min(78vh,720px);display:grid;grid-template-columns:repeat(3,1fr);gap:12px;overflow:hidden;opacity:0;animation:aparece 1.2s .2s ease forwards;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
+.colD{display:flex;flex-direction:column;gap:12px;animation:desce 40s linear infinite}
+.colD:nth-child(2){animation-duration:32s;animation-direction:reverse}.colD:nth-child(3){animation-duration:46s}
+.colsD:hover .colD{animation-play-state:paused}
+@keyframes desce{to{transform:translateY(-50%)}}
+.colD div{aspect-ratio:3/4;border-radius:10px;background:#222 center/cover;position:relative;flex:none;box-shadow:0 20px 40px -24px #000}
+.colD div.alta{aspect-ratio:2/3}
+.colD div.esc::after,.colD div.fav::after{position:absolute;left:10px;bottom:10px;font-size:11px;font-weight:600;padding:5px 9px;border-radius:999px}
+.colD div.esc::after{content:"✓ Escolhida";background:#fff;color:#111}
+.colD div.fav::after{content:"♥ Favorita";background:#111;color:#fff;border:1px solid #444}
+html[lang=en] .colD div.esc::after{content:"✓ Picked"}html[lang=en] .colD div.fav::after{content:"♥ Favorite"}
+nav.sobreFoto:not(.rolou){background:transparent;backdrop-filter:none;color:#fff}
+nav.sobreFoto:not(.rolou) .links a,nav.sobreFoto:not(.rolou) .entrar{color:rgba(255,255,255,.85)}
+nav.sobreFoto:not(.rolou) .btn.fill{background:#fff;color:#111;border-color:#fff}
+@media(max-width:900px){.heroGrid{grid-template-columns:1fr;padding-top:40px}.colsD{height:380px}}
+@media (prefers-reduced-motion:reduce){.rev>span,.entra,.colsD{animation:none;transform:none;opacity:1}.colD,.heroBg,.brilho{animation:none}}
 </style>
 </head>
 <body>
@@ -250,21 +287,19 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
   <a class="btn fill" href="app.html">Começar grátis</a>
 </div></nav>
 
-<header class="hero" id="topo"><div class="wrap">
-  <div>
-    <p class="olho">Sistema para fotógrafos</p>
-    <h1>Do primeiro clique à entrega, tudo num só lugar.</h1>
-    <p class="lead">Galeria de seleção, clientes, agenda e financeiro do seu estúdio. Você manda o link, o cliente escolhe pelo celular e a lista chega pronta pro Lightroom.</p>
-    <div class="ctas"><a class="btn fill" href="app.html?criar">Criar meu estúdio grátis</a><a class="lnk" href="#planos">Ver os planos</a></div>
-    <p class="nota">14 dias grátis, sem cartão de crédito. Cancele quando quiser.</p>
+<header class="heroD" id="topo">
+  <div class="heroBg" style="background-image:url('https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=2000&q=80&auto=format&fit=crop')" role="img" aria-label="Mulher em um campo com o cabelo ao vento"></div>
+  <div class="wrap heroGrid">
+    <div class="heroTxt">
+      <p class="olhoD"><span class="rev"><span>Para fotógrafos de ensaios, casamentos e eventos</span></span></p>
+      <h1><span class="rev"><span style="animation-delay:.1s">Seu cliente</span></span><br><span class="rev"><span style="animation-delay:.22s">escolhe as fotos.</span></span><br><span class="rev"><span style="animation-delay:.34s"><span class="brilho">Você só edita.</span></span></span></h1>
+      <p class="lead entra">Galeria de seleção, entrega, aprovação de álbum e a gestão do estúdio num só lugar. Feito por um fotógrafo, para fotógrafos.</p>
+      <div class="ctas entra e2"><a class="btn claro" href="app.html?criar">Testar 14 dias grátis <span class="seta" aria-hidden="true">→</span></a><a class="btn contorno" href="precos.html">Ver os planos</a></div>
+      <div class="numerosD entra e3"><span><b>2 min</b>para criar o estúdio</span><span><b>0</b>prints no WhatsApp</span><span><b>14 dias</b>grátis, sem cartão</span></div>
+    </div>
+    <div class="colsD" id="colsD" aria-hidden="true"></div>
   </div>
-  <div class="foto">
-    <div class="img" style="background-image:url('https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1400&q=85&auto=format&fit=crop')" role="img" aria-label="Mulher em um campo com o cabelo ao vento"></div>
-    <ul class="linha-tempo" id="tempo" aria-label="Etapas de um trabalho">
-      <li>Ensaio agendado</li><li>Galeria enviada</li><li>Seleção recebida</li><li>Pagamento registrado</li><li>Fotos entregues</li>
-    </ul>
-  </div>
-</div></header>
+</header>
 
 <section class="band escura"><div class="wrap duas">
   <div>
@@ -486,7 +521,7 @@ footer .base{margin-top:48px;padding-top:22px;border-top:1px solid #2c2c2b;displ
   <p class="credito">Fotos de demonstração: Unsplash.</p>
 </div></footer>
 
-<script src="i18n.js?v=6"></script>
+<script src="i18n.js?v=7"></script>
 <script>try{const r=new URLSearchParams(location.search).get("ref");if(r)localStorage.setItem("seleta-ref",r.toLowerCase().replace(/[^a-z0-9-]/g,""))}catch{}</script>
 <script>
 {
@@ -494,11 +529,20 @@ const $ = id => document.getElementById(id);
 const nav = $("nav");
 addEventListener("scroll", () => nav.classList.toggle("rolou", scrollY > 10), { passive: true });
 
-/* etapas acendendo no topo */
-const li = [...$("tempo").children]; let k = 0;
-const passo = () => { li.forEach((l, i) => l.classList.toggle("on", i <= k)); k = (k + 1) % (li.length + 1); };
-passo();
-if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(passo, 1100); else li.forEach(l => l.classList.add("on"));
+/* mosaico em movimento na abertura */
+{
+  const F = ["1625832954356-6ddaffc45853","1560915109-f54ff3d7664c","1578220375772-9a71d4d2ff82","1644901381402-69804395b4e0","1600069265050-3555d89d187b","1612821996907-d3710d7f1351","1520854221256-17451cc331bf","1606216794074-735e91aa2c92"];
+  const U = i => `https://images.unsplash.com/photo-${i}?w=500&q=70&auto=format&fit=crop`;
+  const cols = $("colsD");
+  for (let c = 0; c < 3; c++) {
+    const seq = F.slice(c * 2).concat(F.slice(0, c * 2));
+    const h = seq.map((f, i) => `<div class="${i % 3 === 1 ? "alta " : ""}${(i + c) % 4 === 0 ? "esc" : (i + c) % 5 === 2 ? "fav" : ""}" style="background-image:url(${U(f)})"></div>`).join("");
+    const col = document.createElement("div"); col.className = "colD"; col.innerHTML = h + h; cols.appendChild(col);
+  }
+  const hero = $("topo");
+  const sobre = () => nav.classList.toggle("sobreFoto", scrollY < hero.offsetHeight - 80);
+  sobre(); addEventListener("scroll", sobre, { passive: true });
+}
 
 
 /* demo de seleção */
