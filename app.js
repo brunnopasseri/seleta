@@ -5,7 +5,7 @@ const show = (id, on) => $(id).classList.toggle("hide", !on);
 const C = () => $("conteudo");
 const hoje = () => new Date().toISOString().slice(0, 10);
 const dataBR = d => d ? new Date(d + "T12:00").toLocaleDateString("pt-BR") : "";
-const mesAno = d => d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+const mesAno = d => { const t = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); return t[0].toUpperCase() + t.slice(1); };
 const dia = d => new Date(d + "T12:00");
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const fone = w => { const d = String(w || "").replace(/\D/g, ""); return d ? (d.length <= 11 ? "55" + d : d) : ""; };
@@ -225,6 +225,7 @@ ROTAS.galeria = async slug => {
     q(sb.from("comentarios").select("foto_id,texto").eq("galeria_id", G.id))
   ]);
   fotos = f; marcadas = new Set(s.map(x => x.foto_id)); coments = Object.fromEntries(c.map(x => [x.foto_id, x.texto]));
+  if (!G.capa_foto_id && fotos[0]) { G.capa_foto_id = fotos[0].id; sb.from("galerias").update({ capa_foto_id: fotos[0].id }).eq("id", G.id).then(() => {}); }
   if (G.status === "enviada" && abaG === "fotos" && pintarGaleria.ultima !== G.id) abaG = "selecao";
   pintarGaleria.ultima = G.id;
   pintarGaleria();
@@ -394,6 +395,12 @@ async function prepararMarca() {
   await document.fonts.load("500 40px Montserrat").catch(() => {});
   return { texto: (estudio.nome || "").toUpperCase() };
 }
+function textoMarca(x, texto, W, H) {
+  let tam = Math.round(W * 0.045);
+  const medir = () => { x.font = `500 ${tam}px Montserrat, sans-serif`; try { x.letterSpacing = Math.round(tam * 0.25) + "px"; } catch {} return x.measureText(texto).width; };
+  while (medir() > W * 0.7 && tam > 8) tam--;
+  x.fillStyle = "#fff"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(texto, W / 2, H / 2);
+}
 async function previa(file, marca) {
   const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
   const k = Math.min(1, SELETA.ladoMaximo / Math.max(bmp.width, bmp.height));
@@ -405,10 +412,7 @@ async function previa(file, marca) {
       const w = c.width * 0.38, h = w * marca.canvas.height / marca.canvas.width;
       x.drawImage(marca.canvas, (c.width - w) / 2, (c.height - h) / 2, w, h);
     } else if (marca.texto) {
-      const tam = Math.round(c.width * 0.045);
-      x.font = `500 ${tam}px Montserrat, sans-serif`; x.fillStyle = "#fff"; x.textAlign = "center"; x.textBaseline = "middle";
-      try { x.letterSpacing = Math.round(tam * 0.25) + "px"; } catch {}
-      x.fillText(marca.texto, c.width / 2, c.height / 2);
+      textoMarca(x, marca.texto, c.width, c.height);
     }
     x.globalAlpha = 1;
   }
@@ -660,7 +664,7 @@ ROTAS.config = async () => {
     const m = await prepararMarca().catch(() => null) || { texto: (estudio.nome || "").toUpperCase() };
     x.globalAlpha = estudio.marca_opacidade;
     if (m.canvas) { const w = 600 * .38, h = w * m.canvas.height / m.canvas.width; x.drawImage(m.canvas, 300 - w / 2, 200 - h / 2, w, h); }
-    else { x.font = "500 27px Montserrat"; x.fillStyle = "#fff"; x.textAlign = "center"; x.textBaseline = "middle"; try { x.letterSpacing = "7px"; } catch {} x.fillText(m.texto, 300, 200); }
+    else textoMarca(x, m.texto, 600, 400);
     x.globalAlpha = 1; estudio.marca_opacidade = salvo;
   };
   const marcaOn = estudio.marca_dagua; estudio.marca_dagua = true; await desenhar(); estudio.marca_dagua = marcaOn;
