@@ -1119,7 +1119,6 @@ ROTAS.plano = async () => {
   };
   pintar();
 };
-}
 
 
 /* ============ CRM: situação de cada álbum ============ */
@@ -1299,3 +1298,4 @@ ROTAS.indique = async () => {
       <ol class="passos"><li><b>1</b><span>Mande seu link para outro fotógrafo.</span></li><li><b>2</b><span>Ele cria o estúdio e testa 14 dias grátis.</span></li><li><b>3</b><span>Quando ele assinar, você ganha 1 mês grátis.</span></li></ol></div>`;
   $("cRef").onclick = async () => { try { await navigator.clipboard.writeText(link); toast("Link copiado"); } catch { $("lRef").select(); } };
 };
+}
