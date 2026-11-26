@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<script>
+(function () {
+  var p = location.pathname, raiz = "/";
+  if (/\.github\.io$/.test(location.hostname)) { var seg = p.split("/")[1]; raiz = "/" + seg + "/"; }
+  var resto = p.slice(raiz.length).replace(/^\/+|\/+$/g, "");
+  if (!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(resto)) { location.replace(raiz); return; }
+  window.CAMINHO_GALERIA = resto;
+  document.write('<base href="' + raiz + '">');
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Seleção de fotos</title>
+<link rel="icon" href="icone.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css?v=8">
+<style>
+body{background:#141414;color:#f2f2f2}
+.mute{color:#a3a3a3}
+.btn{border-color:#f2f2f2;color:#f2f2f2}
+.btn.fill{background:#f2f2f2;color:#111}
+.btn.ghost{border-color:#444}
+input,textarea{background:#1d1d1d;border-color:#333;color:#f2f2f2}
+textarea{font:400 15px/1.5 Montserrat,sans-serif;min-height:70px}
+.codigo{max-width:380px;margin:14vh auto;padding:0 16px;text-align:center}
+.codigo img{max-height:56px;max-width:220px;margin:0 auto 18px;display:block}
+.codigo input{text-align:center;font:500 28px Montserrat;letter-spacing:.3em;margin:24px 0 14px}
+.hero{position:relative;height:min(78vh,760px);background:#222 center 25%/cover no-repeat;display:flex;align-items:flex-end}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,.75) 100%)}
+.hero .topo{position:absolute;top:22px;left:0;right:0;z-index:1;display:flex;justify-content:center}
+.hero .topo img{max-height:44px;max-width:200px}
+.hero .topo span{font-weight:500;letter-spacing:.24em;font-size:14px;text-transform:uppercase}
+.hero .txt{position:relative;z-index:1;padding:0 max(5vw,16px) 7vh;width:100%;text-align:center}
+.hero h1{font-size:clamp(32px,6vw,58px);font-weight:300;letter-spacing:.02em}
+.hero p{margin:12px auto 26px;max-width:560px;color:#e0e0e0}
+.recado{max-width:640px;margin:40px auto 0;padding:0 16px;text-align:center;white-space:pre-line;color:#cfcfcf}
+.barra{position:sticky;top:0;z-index:10;background:rgba(20,20,20,.94);backdrop-filter:blur(10px);border-bottom:1px solid #2a2a2a}
+.barra .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;min-height:72px;padding-block:10px}
+.medidor{flex:1 1 200px;max-width:340px;font-size:13px;color:#cfcfcf}
+.medidor .b{height:5px;background:#333;border-radius:9px;overflow:hidden;margin-top:6px}
+.medidor .b i{display:block;height:100%;background:#f2f2f2;transition:width .25s}
+.medidor .b i.ex{background:#9a9a9a}
+.seg{display:flex;border:1px solid #444;border-radius:999px;overflow:hidden}
+.seg button{min-height:40px;padding:0 16px;border:0;background:transparent;color:#cfcfcf;font:400 14px Montserrat;cursor:pointer}
+.seg button[aria-pressed=true]{background:#f2f2f2;color:#111}
+.tile{background:#222}
+.tile.on{outline-color:#f2f2f2}
+.btn:disabled{opacity:.5}
+.tile .marca{cursor:pointer;padding:0}
+.tile img{cursor:zoom-in}
+.tile .com{position:absolute;bottom:8px;right:8px;width:24px;height:24px;border-radius:50%;background:#f2f2f2;color:#111;display:grid;place-items:center;font-size:12px}
+main{padding:28px 0 100px}
+.salvo{font-size:12px;color:#8a8a8a;white-space:nowrap}
+.caixa{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.94);display:flex;flex-direction:column}
+.caixa .img{flex:1;display:flex;align-items:center;justify-content:center;padding:12px;min-height:0}
+.caixa img{max-width:100%;max-height:100%;object-fit:contain}
+.caixa .pe{display:flex;gap:10px;justify-content:center;align-items:center;padding:12px 14px 16px;flex-wrap:wrap}
+.caixa .comentar{width:100%;max-width:560px;display:flex;gap:8px}
+.caixa .comentar textarea{min-height:44px;height:44px;flex:1;resize:none}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.75);display:grid;place-items:center;padding:16px}
+.modal .card{background:#1d1d1d;border-color:#333;max-width:440px;width:100%}
+.modal .card .linha{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2c2c2c}
+.entrega{max-width:640px;margin:36px auto 0;padding:26px;border:1px solid #333;border-radius:16px;text-align:center}
+.contato{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.rodape{text-align:center;font-size:12px;color:#777;margin-top:48px;display:flex;justify-content:center;gap:6px;align-items:center}
+.rodape svg{width:11px;height:11px}
+@media(max-width:640px){.barra .btn{width:100%}.hero{height:70vh}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="square"/></symbol></defs></svg>
+
+<section id="vCodigo" class="codigo hide">
+  <div id="cMarca"></div>
+  <h1 style="margin-top:8px">Digite o código que você recebeu</h1>
+  <form id="fCodigo"><label for="cod" class="hide">Código de acesso</label><input id="cod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required><button class="btn fill" style="width:100%">Ver minhas fotos</button></form>
+  <p id="cErro" class="small" style="margin-top:14px;color:#ff9b9b" role="alert"></p>
+</section>
+
+<div id="vGal" class="hide">
+  <header class="hero" id="hero">
+    <div class="topo" id="hTopo"></div>
+    <div class="txt"><h1 id="hTitulo"></h1><p id="hSub"></p><a class="btn fill" href="#fotos" id="hBtn">Ver fotos</a></div>
+  </header>
+  <p class="recado" id="recado"></p>
+  <div id="blocoEntrega"></div>
+
+  <div id="selecao">
+    <div class="barra" id="fotos"><div class="wrap">
+      <div class="medidor"><span id="mTxt"></span><div class="b"><i id="mBar"></i></div></div>
+      <div class="seg" role="group" aria-label="Filtro"><button id="fTodas" aria-pressed="true">Todas</button><button id="fMarc" aria-pressed="false">Selecionadas</button></div>
+      <span class="salvo" id="salvo" role="status"></span>
+      <button class="btn fill" id="enviar">Enviar seleção</button>
+    </div></div>
+    <main class="wrap">
+      <p class="mute small" style="margin-bottom:16px">Toque no círculo pra selecionar, ou na foto pra ver maior, comentar ou escolher a capa. Sua escolha fica salva enquanto você navega.</p>
+      <div class="fotos" id="grade"></div>
+    </main>
+  </div>
+  <div class="wrap"><div class="contato" id="contato"></div>
+  <p class="rodape">Galeria feita com <svg><use href="#s"/></svg><strong style="letter-spacing:.22em;font-weight:500">SELETA</strong></p></div>
+</div>
+
+<div id="caixa" class="caixa hide" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+  <div class="img"><img id="cImg" alt=""></div>
+  <div class="pe">
+    <button class="btn ghost" id="cAnt" aria-label="Foto anterior">←</button>
+    <button class="btn fill" id="cMarcar">Selecionar</button>
+    <button class="btn ghost" id="cCapa">Usar como capa</button>
+    <button class="btn ghost" id="cProx" aria-label="Próxima foto">→</button>
+    <button class="btn ghost" id="cFechar">Fechar</button>
+    <div class="comentar" id="cComentar"><label for="cTexto" class="hide">Comentário</label><textarea id="cTexto" maxlength="500" placeholder="Comentário pro fotógrafo (ex.: tirar a marquinha)"></textarea><button class="btn ghost" id="cSalvarCom">Salvar</button></div>
+    <span class="small mute" id="cNome" style="width:100%;text-align:center"></span>
+  </div>
+</div>
+
+<div id="modal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="mTitulo">
+  <div class="card">
+    <h2 id="mTitulo" style="margin-bottom:14px">Enviar sua seleção?</h2>
+    <div id="mResumo"></div>
+    <p class="small mute" style="margin:14px 0">Depois de enviar, o fotógrafo recebe a lista. Se precisar mudar algo, é só falar com ele.</p>
+    <div class="row"><button class="btn fill" id="mConfirmar">Enviar</button><button class="btn ghost" id="mVoltar">Voltar e revisar</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=8"></script>
+<script src="g.js?v=8"></script>
+</body>
+</html>

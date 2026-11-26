@@ -228,3 +228,6 @@ body{background:var(--bg)}
 .assinar{min-height:52px;font-size:16px;padding:0 26px;margin-top:10px}
 .miudo{font-size:13px;color:var(--mute);margin-top:12px}
 input[type=range]{accent-color:var(--ink)}
+.prefixo{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+.prefixo span{padding:0 0 0 14px;color:var(--mute);font-size:15px;white-space:nowrap}
+.prefixo input{border:0;padding-left:2px;background:transparent}

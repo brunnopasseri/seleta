@@ -9,6 +9,8 @@ const mesAno = d => { const t = d.toLocaleDateString("pt-BR", { month: "long", y
 const dia = d => new Date(d + "T12:00");
 const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const fone = w => { const d = String(w || "").replace(/\D/g, ""); return d ? (d.length <= 11 ? "55" + d : d) : ""; };
+const slugify = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "album";
+const raizSite = () => new URL("./", location.href).href;
 const TIPOS = ["ensaio", "casamento", "evento", "aniversário", "estúdio", "corporativo", "outro"];
 const STATUS_T = { orcamento: "Orçamento", confirmado: "Confirmado", realizado: "Realizado", entregue: "Entregue", cancelado: "Cancelado" };
 const STATUS_G = { aberta: "Aguardando cliente", enviada: "Seleção recebida", encerrada: "Encerrada" };
@@ -167,6 +169,20 @@ async function entrar() {
 async function carregarEstudio() {
   estudio = await q(sb.from("estudios").select("*").eq("id", user.id).maybeSingle()) || { id: user.id, nome: "Meu estúdio", marca_dagua: true, marca_opacidade: 0.35 };
   pintarConta();
+  if (!estudio.slug) {
+    const base = slugify(estudio.nome || user.email.split("@")[0]);
+    for (let i = 0; i < 30; i++) {
+      const tent = i ? `${base}-${i + 1}` : base;
+      const { data: livre } = await sb.rpc("slug_livre", { p_slug: tent });
+      if (livre) { const r = await sb.from("estudios").update({ slug: tent }).eq("id", user.id).select().single(); if (!r.error) { estudio = r.data; break; } }
+    }
+  }
+}
+async function slugAlbumLivre(titulo, ignorarId) {
+  const base = slugify(titulo);
+  const usados = new Set((await q(sb.from("galerias").select("id,slug").like("slug", base + "%"))).filter(g => g.id !== ignorarId).map(g => g.slug));
+  let s = base, i = 2; while (usados.has(s)) s = `${base}-${i++}`;
+  return s;
 }
 async function atualizarUso() {
   const { data } = await sb.rpc("espaco_usado");
@@ -276,7 +292,7 @@ async function novaGaleria(pre = {}) {
     ],
     aoSalvar: async v => {
       const cli = cs.find(c => c.id === v.cliente_id);
-      const g = await q(sb.from("galerias").insert({ titulo: v.titulo, cliente_id: v.cliente_id || null, cliente_nome: cli?.nome || null, trabalho_id: v.trabalho_id || null,
+      const g = await q(sb.from("galerias").insert({ slug: await slugAlbumLivre(v.titulo), titulo: v.titulo, cliente_id: v.cliente_id || null, cliente_nome: cli?.nome || null, trabalho_id: v.trabalho_id || null,
         prazo: v.prazo || null, fotos_incluidas: Math.round(v.fotos_incluidas), preco_extra: v.preco_extra, mensagem: v.mensagem || null }).select("slug").single());
       ir("#/galeria/" + g.slug);
     }
@@ -299,8 +315,8 @@ ROTAS.galeria = async slug => {
   pintarGaleria.ultima = G.id;
   pintarGaleria();
 };
-const linkCliente = () => new URL("g.html?g=" + G.slug, location.href).href;
-const msgCliente = () => `Oi${G.cliente_nome ? ", " + G.cliente_nome.split(" ")[0] : ""}! Suas fotos estão prontas pra escolher 📸\n\nLink: ${linkCliente()}\nCódigo: ${G.codigo_acesso}\n\nSeu pacote inclui ${G.fotos_incluidas} fotos${+G.preco_extra > 0 ? `; cada foto extra sai por ${brl(G.preco_extra)}` : ""}.${G.prazo ? `\nEscolha até ${dataBR(G.prazo)}.` : ""}`;
+const linkCliente = () => raizSite() + (estudio.slug ? estudio.slug + "/" : "g.html?g=") + G.slug;
+const msgCliente = () => `Oi${G.cliente_nome ? ", " + G.cliente_nome.split(" ")[0] : ""}! Suas fotos estão prontas 📸\n\n${linkCliente()}\nCódigo: ${G.codigo_acesso}`;
 function pintarGaleria() {
   const capa = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
   const abas = [["fotos", `Fotos (${fotos.length})`], ["selecao", `Seleção (${marcadas.size})`], ["entrega", "Entrega"], ["ajustes", "Ajustes"]];
@@ -415,7 +431,8 @@ async function abaAjustes() {
   $("abaConteudo").innerHTML = `
     <form class="bloco" id="fAj" style="max-width:820px">
       <div class="grid2">
-        <div class="field"><label for="aT">Nome da galeria</label><input id="aT" required value="${esc(G.titulo)}"></div>
+        <div class="field"><label for="aT">Nome do álbum</label><input id="aT" required value="${esc(G.titulo)}"></div>
+        <div class="field"><label for="aSlug">Endereço do álbum</label><input id="aSlug" value="${esc(G.slug)}" pattern="[a-z0-9-]+" title="Só letras minúsculas, números e hífen"></div>
         <div class="field"><label for="aC">Cliente</label>${sel("aC", opcClientes(cs), G.cliente_id)}</div>
         <div class="field"><label for="aTr">Trabalho da agenda</label>${sel("aTr", opcTrabalhos(ts), G.trabalho_id)}</div>
         <div class="field"><label for="aP">Prazo para escolher</label><input id="aP" type="date" value="${esc(G.prazo || "")}"></div>
@@ -429,7 +446,13 @@ async function abaAjustes() {
     e.preventDefault();
     const cli = cs.find(c => c.id === $("aC").value);
     try {
-      Object.assign(G, await q(sb.from("galerias").update({ titulo: $("aT").value.trim(), cliente_id: cli?.id || null, cliente_nome: cli?.nome || null, trabalho_id: $("aTr").value || null,
+      const novoSlug = slugify($("aSlug").value || $("aT").value);
+      if (novoSlug !== G.slug) {
+        const livre = await slugAlbumLivre(novoSlug, G.id);
+        if (livre !== novoSlug) { toast("Esse endereço já está em uso. Sugestão: " + livre); $("aSlug").value = livre; return; }
+        if (!confirm("Mudar o endereço faz o link antigo parar de funcionar. Continuar?")) return;
+      }
+      Object.assign(G, await q(sb.from("galerias").update({ slug: novoSlug, titulo: $("aT").value.trim(), cliente_id: cli?.id || null, cliente_nome: cli?.nome || null, trabalho_id: $("aTr").value || null,
         prazo: $("aP").value || null, fotos_incluidas: +$("aI").value || 0, preco_extra: +$("aE").value || 0, mensagem: $("aM").value.trim() || null }).eq("id", G.id).select().single()));
       G.clientes = cli || null; toast("Galeria salva"); pintarGaleria();
     } catch (err) { erro(err); }
@@ -713,6 +736,7 @@ ROTAS.config = async () => {
     <div class="duas" style="margin-top:0">
       <form class="bloco" id="fEst"><h2>Estúdio</h2>
         <div class="field"><label for="cNome">Nome do estúdio</label><input id="cNome" required value="${esc(estudio.nome || "")}"></div>
+        <div class="field"><label for="cSlug">Endereço das suas galerias</label><div class="prefixo"><span>${esc(raizSite().replace(/^https?:\/\//, ""))}</span><input id="cSlug" value="${esc(estudio.slug || "")}" pattern="[a-z0-9-]+" title="Só letras minúsculas, números e hífen" required></div></div>
         <div class="field"><label for="cW">WhatsApp</label><input id="cW" type="tel" placeholder="(61) 99999-9999" value="${esc(estudio.whatsapp || "")}"></div>
         <div class="field"><label for="cI">Instagram</label><input id="cI" placeholder="@seuperfil" value="${esc(estudio.instagram || "")}"></div>
         <button class="btn fill">Salvar</button>
@@ -749,7 +773,13 @@ ROTAS.config = async () => {
   $("mOn").onchange = () => { const o = estudio.marca_dagua; estudio.marca_dagua = true; desenhar().then(() => estudio.marca_dagua = o); };
   $("fEst").onsubmit = async e => {
     e.preventDefault();
-    try { Object.assign(estudio, await q(sb.from("estudios").update({ nome: $("cNome").value.trim(), whatsapp: $("cW").value.trim() || null, instagram: $("cI").value.trim() || null }).eq("id", user.id).select().single())); pintarConta(); toast("Estúdio salvo"); }
+    const ns = slugify($("cSlug").value);
+    if (ns !== estudio.slug) {
+      const { data: livre } = await sb.rpc("slug_livre", { p_slug: ns });
+      if (!livre) return toast("Esse endereço já é de outro estúdio. Tente outro.");
+      if (estudio.slug && !confirm("Mudar o endereço faz os links já enviados pararem de funcionar. Continuar?")) return;
+    }
+    try { Object.assign(estudio, await q(sb.from("estudios").update({ slug: ns, nome: $("cNome").value.trim(), whatsapp: $("cW").value.trim() || null, instagram: $("cI").value.trim() || null }).eq("id", user.id).select().single())); pintarConta(); toast("Estúdio salvo"); }
     catch (err) { erro(err); }
   };
   $("fMarca").onsubmit = async e => {

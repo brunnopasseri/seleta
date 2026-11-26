@@ -1,7 +1,7 @@
 {
 const $ = id => document.getElementById(id);
 const show = (id, on) => $(id).classList.toggle("hide", !on);
-const slug = new URLSearchParams(location.search).get("g") || "";
+const slug = window.CAMINHO_GALERIA || new URLSearchParams(location.search).get("g") || "";
 const chaveCod = "seleta-cod-" + slug;
 let cod = "", g = null, marc = new Set(), coms = {}, so = false, atual = -1, timer = null, enviando = false;
 
