@@ -403,21 +403,50 @@ function abaSelecao() {
   };
 }
 
-function abaEntrega() {
+const urlEntrega = c => sb.storage.from("entregas").getPublicUrl(c).data.publicUrl;
+const mb = b => (b / 1048576).toFixed(b > 104857600 ? 0 : 1).replace(".", ",") + " MB";
+let entregas = [];
+async function abaEntrega() {
+  entregas = await q(sb.from("entregas").select("*").eq("galeria_id", G.id).order("ordem"));
+  const total = entregas.reduce((s, e) => s + +e.bytes, 0);
+  const capa = G.entrega_capa || entregas[0]?.caminho;
   $("abaConteudo").innerHTML = `
-    <form class="bloco" id="fEntrega" style="max-width:720px">
-      <h2>Entrega das fotos finais</h2>
-      <p class="mute small" style="margin-bottom:16px">Depois de editar, cole aqui o link da pasta com as fotos em alta (Google Drive, Dropbox, WeTransfer…). Quando você liberar, aparece um botão “Baixar minhas fotos” na galeria do cliente.</p>
-      <div class="field"><label for="eLink">Link das fotos finais</label><input id="eLink" type="url" placeholder="https://drive.google.com/…" value="${esc(G.link_entrega || "")}"></div>
-      <div class="field"><label class="switch"><input type="checkbox" id="eLib" ${G.entrega_liberada ? "checked" : ""}> Liberar o download para o cliente</label></div>
-      <div class="field"><label class="switch"><input type="checkbox" id="eEnc" ${G.status === "encerrada" ? "checked" : ""}> Marcar trabalho como encerrado</label></div>
-      <button class="btn fill">Salvar entrega</button>
-    </form>`;
+    <div class="duas" style="margin-top:0;align-items:start">
+      <form class="bloco" id="fEntrega">
+        <h2>Página de entrega</h2>
+        <p class="mute small" style="margin-bottom:16px">O cliente abre o mesmo link e código. Quando liberada, ele vê a capa, o título e as fotos para baixar.</p>
+        <div class="field"><label for="eTit">Título da entrega</label><input id="eTit" value="${esc(G.entrega_titulo || G.titulo)}" placeholder="Ex.: Ensaio Sophia · Novembro 2026"></div>
+        <div class="field"><label class="switch"><input type="checkbox" id="eLib" ${G.entrega_liberada ? "checked" : ""}> Liberar o download para o cliente</label></div>
+        <details style="margin-bottom:14px"><summary class="small" style="cursor:pointer">Prefere entregar por link externo (Drive, WeTransfer)?</summary>
+          <div class="field" style="margin-top:10px"><label for="eLink">Link externo (opcional)</label><input id="eLink" type="url" placeholder="https://drive.google.com/…" value="${esc(G.link_entrega || "")}"></div></details>
+        <div class="field"><label class="switch"><input type="checkbox" id="eEnc" ${G.status === "encerrada" ? "checked" : ""}> Marcar trabalho como encerrado</label></div>
+        <div class="acoes"><button class="btn fill">Salvar entrega</button>${G.entrega_liberada ? `<button type="button" class="btn ghost" id="copEntrega">Copiar mensagem de entrega</button>` : ""}</div>
+      </form>
+      <div class="bloco faixaFoto" style="--foto:url('${capa ? esc(urlEntrega(capa)) : ""}');min-height:230px;display:flex;flex-direction:column;justify-content:flex-end;padding:24px">
+        <span class="small" style="opacity:.8">Prévia da capa</span><h2 style="color:#fff;font-size:24px;font-weight:400;margin-top:6px">${esc(G.entrega_titulo || G.titulo)}</h2>
+        <span class="small" style="opacity:.8">${entregas.length} fotos · ${mb(total)}</span>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="cabeca" style="margin-bottom:12px"><h2>Fotos finais (${entregas.length})</h2>
+        <div class="row"><label for="eQual" class="small mute">Qualidade</label><select id="eQual" style="width:auto"><option value="otimizada">Otimizada · até 3000 px (recomendado)</option><option value="original">Original · arquivo como está</option></select></div></div>
+      <label class="soltar" id="soltarE" for="arqE"><strong>Arraste as fotos editadas aqui ou clique pra escolher</strong><br>
+        <span class="small mute">Sem marca d'água. Na opção otimizada, cada foto fica com uns 1,5 MB, ótima pra imprimir e postar.</span>
+        <input id="arqE" type="file" accept="image/jpeg,image/png,image/webp,image/tiff" multiple class="hide"></label>
+      <p class="small mute" id="progE" role="status" style="margin-bottom:12px"></p>
+      <div class="fotos" id="gradeE">${entregas.length ? entregas.map(e => `
+        <div class="tile">
+          <img src="${esc(urlEntrega(e.caminho))}" alt="${esc(e.nome_arquivo)}" loading="lazy">
+          ${e.caminho === capa ? '<span class="capaTag">Capa</span>' : ""}
+          <div class="acts"><button data-capa="${esc(e.caminho)}" title="Usar como capa da entrega" aria-label="Usar ${esc(e.nome_arquivo)} como capa">★</button><button data-del="${e.id}" title="Excluir" aria-label="Excluir ${esc(e.nome_arquivo)}">×</button></div>
+          <span class="nome">${esc(e.nome_arquivo)} · ${mb(e.bytes)}</span>
+        </div>`).join("") : `<div class="vazio" style="grid-column:1/-1">Nenhuma foto final ainda.</div>`}</div>
+    </div>`;
   $("fEntrega").onsubmit = async e => {
     e.preventDefault();
-    const link = $("eLink").value.trim(), lib = $("eLib").checked;
-    if (lib && !link) return toast("Cole o link antes de liberar");
-    const upd = { link_entrega: link || null, entrega_liberada: lib };
+    const lib = $("eLib").checked, link = $("eLink").value.trim();
+    if (lib && !entregas.length && !link) return toast("Suba as fotos finais (ou cole um link) antes de liberar");
+    const upd = { entrega_titulo: $("eTit").value.trim() || null, link_entrega: link || null, entrega_liberada: lib, entrega_capa: G.entrega_capa || entregas[0]?.caminho || null };
     if ($("eEnc").checked) upd.status = "encerrada"; else if (G.status === "encerrada") upd.status = "enviada";
     try {
       Object.assign(G, await q(sb.from("galerias").update(upd).eq("id", G.id).select().single()));
@@ -425,6 +454,65 @@ function abaEntrega() {
       toast(lib ? "Entrega liberada para o cliente" : "Entrega salva"); pintarGaleria();
     } catch (err) { erro(err); }
   };
+  if ($("copEntrega")) $("copEntrega").onclick = async () => {
+    const m = `Oi${G.cliente_nome ? ", " + G.cliente_nome.split(" ")[0] : ""}! Suas fotos finais estão prontas pra baixar 🤍\n\n${linkCliente()}\nCódigo: ${G.codigo_acesso}`;
+    try { await navigator.clipboard.writeText(m); toast("Mensagem copiada"); } catch { prompt("Copie a mensagem:", m); }
+  };
+  $("arqE").onchange = ev => { enviarEntrega(ev.target.files); ev.target.value = ""; };
+  const z = $("soltarE");
+  ["dragenter", "dragover"].forEach(t => z.addEventListener(t, ev => { ev.preventDefault(); z.classList.add("ativo"); }));
+  ["dragleave", "drop"].forEach(t => z.addEventListener(t, ev => { ev.preventDefault(); z.classList.remove("ativo"); }));
+  z.addEventListener("drop", ev => enviarEntrega(ev.dataTransfer.files));
+  $("gradeE").onclick = async ev => {
+    const cp = ev.target.closest("[data-capa]"), dl = ev.target.closest("[data-del]");
+    try {
+      if (cp) { await q(sb.from("galerias").update({ entrega_capa: cp.dataset.capa }).eq("id", G.id)); G.entrega_capa = cp.dataset.capa; toast("Capa da entrega atualizada"); abaEntrega(); }
+      if (dl) {
+        const f = entregas.find(x => x.id === dl.dataset.del);
+        if (!confirm(`Excluir ${f.nome_arquivo} da entrega?`)) return;
+        await sb.storage.from("entregas").remove([f.caminho]);
+        await q(sb.from("entregas").delete().eq("id", f.id));
+        if (G.entrega_capa === f.caminho) { G.entrega_capa = null; await sb.from("galerias").update({ entrega_capa: null }).eq("id", G.id); }
+        atualizarUso(); abaEntrega();
+      }
+    } catch (err) { erro(err); }
+  };
+}
+async function otimizarFinal(file) {
+  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const k = Math.min(1, 3000 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+  return await new Promise(r => c.toBlob(r, "image/jpeg", 0.9));
+}
+async function enviarEntrega(files) {
+  files = [...files].filter(f => /image\//.test(f.type));
+  if (!files.length) return;
+  const otim = $("eQual").value === "otimizada", gid = G.id;
+  files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  let feitos = 0, falhas = 0, grandes = 0, ordem = entregas.reduce((m, f) => Math.max(m, f.ordem), 0);
+  const fila = files.map(f => ({ f, ordem: ++ordem }));
+  const passo = () => { if ($("progE")) $("progE").textContent = `Enviando ${feitos} de ${files.length}…` + (falhas ? ` (${falhas} com erro)` : ""); };
+  passo();
+  const trab = async () => {
+    while (fila.length) {
+      const { f, ordem } = fila.shift();
+      try {
+        const blob = otim && /jpeg|png|webp/.test(f.type) ? await otimizarFinal(f) : f;
+        if (blob.size > 50 * 1048576) { grandes++; throw new Error("maior que 50 MB"); }
+        const ext = blob.type === "image/jpeg" ? "jpg" : (f.name.split(".").pop() || "jpg").toLowerCase();
+        const caminho = `${user.id}/${gid}/${crypto.randomUUID()}.${ext}`;
+        const up = await sb.storage.from("entregas").upload(caminho, blob, { contentType: blob.type || f.type, cacheControl: "31536000" });
+        if (up.error) throw up.error;
+        const nome = otim ? f.name.replace(/\.[^.]+$/, "") + ".jpg" : f.name;
+        entregas.push(await q(sb.from("entregas").insert({ galeria_id: gid, nome_arquivo: nome, caminho, bytes: blob.size, ordem }).select().single()));
+      } catch (err) { falhas++; console.error(f.name, err); }
+      feitos++; passo();
+    }
+  };
+  await Promise.all([trab(), trab()]);
+  atualizarUso();
+  if (G?.id === gid) { toast(falhas ? `${files.length - falhas} enviadas, ${falhas} com erro${grandes ? " (arquivo acima de 50 MB)" : ""}` : `${files.length} fotos finais enviadas`); if (abaG === "entrega") abaEntrega(); }
 }
 
 async function abaAjustes() {
@@ -471,6 +559,8 @@ async function excluirAlbum() {
   try {
     const cam = fotos.map(f => f.caminho);
     for (let i = 0; i < cam.length; i += 100) await sb.storage.from("fotos").remove(cam.slice(i, i + 100));
+    const ent = (await q(sb.from("entregas").select("caminho").eq("galeria_id", G.id))).map(e => e.caminho);
+    for (let i = 0; i < ent.length; i += 100) await sb.storage.from("entregas").remove(ent.slice(i, i + 100));
     await q(sb.from("galerias").delete().eq("id", G.id));
     atualizarUso(); toast("Álbum excluído"); ir("#/galerias");
   } catch (e) { erro(e); }

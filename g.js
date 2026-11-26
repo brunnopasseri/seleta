@@ -15,6 +15,7 @@ async function abrir(codigo) {
   if (error) { show("vCodigo", true); $("cErro").textContent = codigo ? "Código incorreto. Confira a mensagem do fotógrafo." : ""; return; }
   cod = codigo; gravarCod(codigo); g = data; marc = new Set(g.marcadas || []); coms = g.comentarios || {};
   show("vCodigo", false);
+  if (g.entrega_liberada && (g.entrega_fotos || []).length) return abrirEntrega();
   document.title = g.titulo + (g.estudio?.nome ? " · " + g.estudio.nome : "");
   const capa = g.capa || g.fotos[0]?.caminho; capaAtual = capa;
   if (capa) $("hero").style.backgroundImage = `url('${urlFoto(capa)}')`;
@@ -146,4 +147,80 @@ $("mConfirmar").onclick = async () => {
 
 if (!slug) { show("vCodigo", true); $("cErro").textContent = "Link incompleto. Abra o link exatamente como o fotógrafo enviou."; $("fCodigo").classList.add("hide"); }
 else { const c = lerCod(); c ? abrir(c) : show("vCodigo", true); }
+
+/* ============ entrega das fotos finais ============ */
+const urlE = c => sb.storage.from("entregas").getPublicUrl(c).data.publicUrl;
+const mbE = b => (b / 1048576).toFixed(b > 104857600 ? 0 : 1).replace(".", ",") + " MB";
+const svgBaixar = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+let selE = new Set(), modoSel = false, baixando = false;
+function abrirEntrega() {
+  const fs = g.entrega_fotos, total = fs.reduce((s, f) => s + +f.bytes, 0);
+  document.title = g.entrega_titulo + (g.estudio?.nome ? " · " + g.estudio.nome : "");
+  $("eHero").style.setProperty("--foto", `url('${urlE(g.entrega_capa || fs[0].caminho)}')`);
+  $("eTopo").innerHTML = marcaEstudio(g.estudio);
+  $("eTitulo").textContent = g.entrega_titulo;
+  $("eInfo").textContent = `${fs.length} ${fs.length === 1 ? "foto" : "fotos"} · ${mbE(total)}`;
+  const w = fone(g.estudio?.whatsapp), ig = String(g.estudio?.instagram || "").replace(/^@/, "");
+  $("eContato").innerHTML = (g.entrega ? `<a class="btn ghost" href="${esc(g.entrega)}" target="_blank" rel="noopener">Abrir pasta externa</a>` : "") + (w ? `<a class="btn ghost" href="https://wa.me/${w}" target="_blank" rel="noopener">Falar no WhatsApp</a>` : "") + (ig ? `<a class="btn ghost" href="https://instagram.com/${encodeURIComponent(ig)}" target="_blank" rel="noopener">@${esc(ig)}</a>` : "");
+  pintarE();
+  show("vEntrega", true);
+}
+function pintarE() {
+  $("eGrade").classList.toggle("modoSel", modoSel);
+  $("eGrade").innerHTML = g.entrega_fotos.map((f, i) => `
+    <div class="tile${selE.has(i) ? " on" : ""}" data-i="${i}">
+      <img src="${esc(urlE(f.caminho))}" alt="${esc(f.nome)}" loading="lazy">
+      <span class="chk"></span>
+      <button class="baixar" data-b="${i}" aria-label="Baixar ${esc(f.nome)}">${svgBaixar}</button>
+      <span class="nome">${esc(f.nome)}</span>
+    </div>`).join("");
+  $("selTxt").textContent = `${selE.size} ${selE.size === 1 ? "selecionada" : "selecionadas"}`;
+  $("selBaixar").disabled = !selE.size || baixando;
+  $("selTodas").textContent = selE.size === g.entrega_fotos.length ? "Limpar seleção" : "Selecionar todas";
+  show("barraSel", modoSel);
+  $("eSel").textContent = modoSel ? "Cancelar seleção" : "Selecionar fotos";
+}
+async function baixarArquivo(blob, nome) {
+  const u = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = u; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+async function baixarUma(i) {
+  const f = g.entrega_fotos[i];
+  $("eProg").textContent = "Baixando " + f.nome + "…";
+  try { const r = await fetch(urlE(f.caminho)); await baixarArquivo(await r.blob(), f.nome); $("eProg").textContent = ""; }
+  catch { window.open(urlE(f.caminho), "_blank"); $("eProg").textContent = ""; }
+}
+async function baixarVarias(idx) {
+  if (baixando) return;
+  if (idx.length === 1) return baixarUma(idx[0]);
+  baixando = true; pintarE();
+  try {
+    const zip = new JSZip(), usados = {};
+    let n = 0;
+    for (const i of idx) {
+      const f = g.entrega_fotos[i];
+      $("eProg").textContent = `Preparando ${++n} de ${idx.length}…`;
+      const r = await fetch(urlE(f.caminho));
+      let nome = f.nome; if (usados[nome]) nome = nome.replace(/(\.[^.]+)?$/, `-${++usados[f.nome]}$1`); else usados[nome] = 1;
+      zip.file(nome, await r.blob());
+    }
+    $("eProg").textContent = "Compactando…";
+    const blob = await zip.generateAsync({ type: "blob" }, m => { $("eProg").textContent = `Compactando ${Math.round(m.percent)}%…`; });
+    await baixarArquivo(blob, (g.entrega_titulo || "fotos").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w]+/g, "-").replace(/^-|-$/g, "") + ".zip");
+    $("eProg").textContent = "Download iniciado ✔";
+  } catch (e) { $("eProg").textContent = "Não deu certo: " + e.message; }
+  baixando = false; pintarE();
+}
+$("eTudo").onclick = () => baixarVarias(g.entrega_fotos.map((_, i) => i));
+$("eSel").onclick = () => { modoSel = !modoSel; if (!modoSel) selE.clear(); pintarE(); };
+$("selTodas").onclick = () => { if (selE.size === g.entrega_fotos.length) selE.clear(); else g.entrega_fotos.forEach((_, i) => selE.add(i)); pintarE(); };
+$("selBaixar").onclick = () => baixarVarias([...selE].sort((a, b) => a - b));
+$("eGrade").onclick = e => {
+  const b = e.target.closest("[data-b]"); if (b && !modoSel) return baixarUma(+b.dataset.b);
+  const t = e.target.closest(".tile"); if (!t) return;
+  const i = +t.dataset.i;
+  if (modoSel) { selE.has(i) ? selE.delete(i) : selE.add(i); pintarE(); }
+  else window.open(urlE(g.entrega_fotos[i].caminho), "_blank", "noopener");
+};
 }

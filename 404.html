@@ -69,6 +69,24 @@ main{padding:28px 0 100px}
 .contato{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
 .rodape{text-align:center;font-size:12px;color:#777;margin-top:48px;display:flex;justify-content:center;gap:6px;align-items:center}
 .rodape svg{width:11px;height:11px}
+.heroE{position:relative;min-height:min(72vh,680px);display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:#1b1b1b}
+.heroE::before{content:"";position:absolute;inset:-20px;background:var(--foto) center 30%/cover no-repeat;filter:blur(5px) brightness(.55);transform:scale(1.05)}
+.heroE>*{position:relative;z-index:1}
+.heroE .topo{position:absolute;top:22px;left:0;right:0;display:flex;justify-content:center}
+.heroE .topo img{max-height:44px;max-width:200px}
+.heroE .topo span{font-weight:500;letter-spacing:.24em;font-size:14px;text-transform:uppercase}
+.heroE .txt{padding:90px 18px 40px}
+.heroE h1{font-size:clamp(30px,5.5vw,56px);font-weight:300}
+.heroE #eInfo{margin:12px 0 26px;color:#ddd}
+.btn.claro{border-color:rgba(255,255,255,.8)}
+#vEntrega main{padding:28px 0 110px}
+.tile .baixar{position:absolute;bottom:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:grid;place-items:center}
+.tile .baixar svg{width:16px;height:16px}
+.modoSel .tile .baixar{display:none}
+.tile .chk{display:none}
+.modoSel .tile .chk{display:block;position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:1.5px solid #fff;background:rgba(0,0,0,.15);box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.modoSel .tile.on .chk{background:#fff}
+.barraSel{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(20,20,20,.96);backdrop-filter:blur(10px);border-top:1px solid #2a2a2a;padding:12px max(5vw,16px);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 @media(max-width:640px){.barra .btn{width:100%}.hero{height:70vh}}
 </style>
 </head>
@@ -81,6 +99,19 @@ main{padding:28px 0 100px}
   <form id="fCodigo"><label for="cod" class="hide">Código de acesso</label><input id="cod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required><button class="btn fill" style="width:100%">Ver minhas fotos</button></form>
   <p id="cErro" class="small" style="margin-top:14px;color:#ff9b9b" role="alert"></p>
 </section>
+
+<div id="vEntrega" class="hide">
+  <header class="heroE" id="eHero">
+    <div class="topo" id="eTopo"></div>
+    <div class="txt"><h1 id="eTitulo"></h1><p id="eInfo"></p>
+      <div class="row" style="justify-content:center"><button class="btn fill" id="eTudo">Baixar tudo</button><button class="btn ghost claro" id="eSel">Selecionar fotos</button></div>
+      <p class="small" id="eProg" role="status" style="margin-top:14px;min-height:1.4em"></p></div>
+  </header>
+  <main class="wrap"><div class="fotos" id="eGrade"></div>
+  <div class="contato" id="eContato"></div>
+  <p class="rodape">Galeria feita com <svg><use href="#s"/></svg><strong style="letter-spacing:.22em;font-weight:500">SELETA</strong></p></main>
+  <div class="barraSel hide" id="barraSel"><span id="selTxt">0 selecionadas</span><div class="row"><button class="btn ghost" id="selTodas">Selecionar todas</button><button class="btn fill" id="selBaixar" disabled>Baixar selecionadas</button></div></div>
+</div>
 
 <div id="vGal" class="hide">
   <header class="hero" id="hero">
@@ -129,7 +160,8 @@ main{padding:28px 0 100px}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=8"></script>
-<script src="g.js?v=8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="config.js?v=9"></script>
+<script src="g.js?v=9"></script>
 </body>
 </html>
