@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel · Seleta</title>
+<link rel="icon" href="icone.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+.entrar{max-width:420px;margin:8vh auto;padding:0 16px}
+.entrar .abas{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:24px 0}
+.entrar .abas button{flex:1;min-height:44px;border:0;background:transparent;font:500 14px Montserrat;cursor:pointer}
+.entrar .abas button[aria-pressed=true]{background:var(--ink);color:#fff}
+.uso{font-size:13px;color:var(--mute);white-space:nowrap}
+.uso .barra{display:block;width:120px;height:4px;background:var(--line);border-radius:9px;margin-top:4px;overflow:hidden}
+.uso .barra i{display:block;height:100%;background:var(--ink)}
+main{padding:32px 0 80px}
+.cabeca{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.gal{text-align:left;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;gap:6px}
+.gal:hover{border-color:#bbb}
+.gal h3{font-size:18px;font-weight:500}
+.link{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.link code{font:500 14px ui-monospace,monospace;overflow-wrap:anywhere}
+.codigo{font:500 28px Montserrat;letter-spacing:.2em}
+.soltar{border:1.5px dashed #bbb;border-radius:14px;padding:28px;text-align:center;cursor:pointer;display:block}
+.soltar.ativo{border-color:var(--ink);background:var(--soft)}
+.excluir{position:absolute;top:8px;left:8px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font:500 16px Montserrat;cursor:pointer}
+.sec{margin-top:32px}
+.resumo{display:flex;gap:28px;flex-wrap:wrap}
+.resumo b{display:block;font-size:26px;font-weight:500}
+@media(max-width:640px){.link{grid-template-columns:minmax(0,1fr)}.uso{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="square"/></symbol></defs></svg>
+
+<!-- Entrar / criar conta -->
+<section id="vEntrar" class="entrar hide">
+  <a class="logo" href="index.html"><svg><use href="#s"/></svg>SELETA</a>
+  <div class="abas" role="group" aria-label="Acesso">
+    <button id="abaEntrar" aria-pressed="true">Entrar</button>
+    <button id="abaCriar" aria-pressed="false">Criar conta</button>
+  </div>
+  <div id="msgEntrar" class="msg hide" role="status"></div>
+  <form id="fEntrar">
+    <div class="field hide" id="campoNome"><label for="nome">Nome do seu estúdio</label><input id="nome" autocomplete="organization" placeholder="Ex.: Brunno Passeri Fotografia"></div>
+    <div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required></div>
+    <div class="field" id="campoSenha"><label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" minlength="6" required></div>
+    <button class="btn fill" style="width:100%" id="bEntrar">Entrar</button>
+  </form>
+  <p class="small mute" style="margin-top:16px"><a href="#" id="esqueci">Esqueci minha senha</a></p>
+</section>
+
+<!-- Nova senha (link de recuperação) -->
+<section id="vSenha" class="entrar hide">
+  <a class="logo" href="index.html"><svg><use href="#s"/></svg>SELETA</a>
+  <h1 style="margin:24px 0">Crie uma nova senha</h1>
+  <form id="fSenha"><div class="field"><label for="nova">Nova senha</label><input id="nova" type="password" minlength="6" required autocomplete="new-password"></div><button class="btn fill">Salvar senha</button></form>
+</section>
+
+<!-- Painel -->
+<div id="vPainel" class="hide">
+  <header class="top"><div class="wrap">
+    <a class="logo" href="#" id="irLista"><svg><use href="#s"/></svg>SELETA</a>
+    <span class="grow"></span>
+    <span class="uso" id="uso"></span>
+    <span class="small" id="nomeEstudio"></span>
+    <button class="btn sm ghost" id="sair">Sair</button>
+  </div></header>
+
+  <main class="wrap">
+    <!-- Lista de galerias -->
+    <section id="vLista">
+      <div class="cabeca"><div><h1>Suas galerias</h1><p class="mute">Crie uma galeria, suba as prévias e mande o link pro cliente.</p></div><button class="btn fill" id="novaGal">Nova galeria</button></div>
+      <form id="fNova" class="card hide" style="margin-bottom:24px">
+        <h2 style="margin-bottom:18px">Nova galeria</h2>
+        <div class="grid2">
+          <div class="field"><label for="nTitulo">Nome da galeria</label><input id="nTitulo" required placeholder="Ensaio Sophia"></div>
+          <div class="field"><label for="nCliente">Nome do cliente</label><input id="nCliente" placeholder="Sophia"></div>
+          <div class="field"><label for="nInc">Fotos incluídas no pacote</label><input id="nInc" type="number" min="0" value="20" inputmode="numeric"></div>
+          <div class="field"><label for="nExtra">Valor da foto extra (R$)</label><input id="nExtra" type="number" min="0" step="0.01" value="20" inputmode="decimal"></div>
+          <div class="field"><label for="nPrazo">Prazo para escolher (opcional)</label><input id="nPrazo" type="date"></div>
+        </div>
+        <div class="row"><button class="btn fill">Criar galeria</button><button type="button" class="btn ghost" id="cancNova">Cancelar</button></div>
+      </form>
+      <div id="lista" class="lista"></div>
+    </section>
+
+    <!-- Uma galeria -->
+    <section id="vGal" class="hide">
+      <div class="cabeca">
+        <div><p class="small mute"><a href="#" id="voltar">← Suas galerias</a></p><h1 id="gTitulo" style="margin-top:8px"></h1><p class="mute" id="gInfo"></p></div>
+        <div class="row"><span class="tag" id="gStatus"></span><button class="btn sm ghost" id="editar">Editar</button><button class="btn sm ghost" id="apagarGal">Excluir galeria</button></div>
+      </div>
+
+      <form id="fEditar" class="card hide" style="margin-bottom:24px">
+        <div class="grid2">
+          <div class="field"><label for="eTitulo">Nome da galeria</label><input id="eTitulo" required></div>
+          <div class="field"><label for="eCliente">Nome do cliente</label><input id="eCliente"></div>
+          <div class="field"><label for="eInc">Fotos incluídas</label><input id="eInc" type="number" min="0"></div>
+          <div class="field"><label for="eExtra">Valor da foto extra (R$)</label><input id="eExtra" type="number" min="0" step="0.01"></div>
+          <div class="field"><label for="ePrazo">Prazo</label><input id="ePrazo" type="date"></div>
+        </div>
+        <div class="row"><button class="btn fill">Salvar</button><button type="button" class="btn ghost" id="cancEditar">Cancelar</button></div>
+      </form>
+
+      <div class="card link">
+        <div><p class="small mute">Link para o cliente</p><code id="gLink"></code><p class="small mute" style="margin-top:10px">Código de acesso</p><div class="codigo" id="gCodigo"></div></div>
+        <div class="row"><button class="btn fill" id="copiarMsg">Copiar mensagem</button><a class="btn ghost" id="whats" target="_blank" rel="noopener">Enviar no WhatsApp</a></div>
+      </div>
+
+      <div class="card sec" id="selecao"></div>
+
+      <div class="sec">
+        <div class="cabeca" style="margin-bottom:14px"><h2 id="gQtd">Fotos</h2><span class="small mute" id="progresso" role="status"></span></div>
+        <label class="soltar" id="soltar" for="arquivos">
+          <strong>Arraste as fotos aqui ou clique pra escolher</strong><br>
+          <span class="small mute">Pode mandar em alta: o site reduz pra uma prévia leve antes de enviar.</span>
+          <input id="arquivos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hide">
+        </label>
+        <div class="fotos sec" id="gFotos"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
