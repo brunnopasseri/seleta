@@ -3,7 +3,7 @@
 const $ = id => document.getElementById(id);
 const show = (id, on) => $(id).classList.toggle("hide", !on);
 const C = () => $("conteudo");
-const hoje = () => new Date().toISOString().slice(0, 10);
+const hoje = () => ymd(new Date());
 const dataBR = d => d ? new Date(d + "T12:00").toLocaleDateString("pt-BR") : "";
 const mesAno = d => { const t = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }); return t[0].toUpperCase() + t.slice(1); };
 const dia = d => new Date(d + "T12:00");
