@@ -1272,7 +1272,7 @@ ROTAS.plano = async () => {
       ${PLANOS.map(x => `<label class="opPlano${x.id === planoSel ? " sel" : ""}"><div class="lin"><input type="radio" name="plano" value="${x.id}" ${x.id === planoSel ? "checked" : ""}><div style="flex:1;min-width:0"><span class="nome">${x.nome}</span>${x.rec ? '<span class="rec">Recomendado</span>' : ""}${atual?.id === x.id ? '<span class="rec">Seu plano</span>' : ""}<p>${x.desc}</p>
         <ul class="itensPlano">${x.itens.map(i => `<li>${esc(i)}</li>`).join("")}</ul>${temAnual ? `<p class="small mute">ou ${brl(x.m * 10 / 12)} por mês no plano anual · economize 17%</p>` : ""}</div>
         <span class="pr">${brl(preco(x))}/mês${cicloPlano === "anual" ? `<br><span class="small">${brl(x.m * 10)} por ano</span>` : ""}</span></div></label>`).join("")}
-      <button class="btn fill assinar" id="assinar">${atual?.id === planoSel ? "Pagar ou atualizar cartão" : "Assinar " + p.nome} · ${brl(preco(p))}/mês</button>
+      <button class="btn fill assinar" id="assinar">${atual?.id === planoSel ? "Pagar ou atualizar cartão" : "Assinar " + p.nome} · ${cicloPlano === "anual" ? brl(p.m * 10) + "/ano" : brl(p.m) + "/mês"}</button>
       <p class="miudo">Pagamento seguro pela InfinitePay · Pix ou cartão em até 12x · Cancele quando quiser</p>
       <p class="miudo">Já pagou? A liberação é feita em até 1 dia útil. Se demorar, <a href="#" data-suporte>fale com o suporte</a>.</p>
       <div id="msgPlano"></div>

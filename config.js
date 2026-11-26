@@ -7,9 +7,9 @@ window.SELETA = {
   qualidade: 0.82,
   // Links de assinatura (Mercado Pago ou outro). Deixe "" enquanto não estiver configurado.
   pagamento: {
-    essencial: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/i0SoWK9m5p", anual: "" },
-    profissional: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/cDSZLZaCDh", anual: "" },
-    estudio: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/kmtkPTSOrv", anual: "" }
+    essencial: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/i0SoWK9m5p", anual: "https://invoice.infinitepay.io/plans/brunnopasseri/EZ5qbBr2Ag" },
+    profissional: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/cDSZLZaCDh", anual: "https://invoice.infinitepay.io/plans/brunnopasseri/cmLBSuM9ft" },
+    estudio: { mensal: "https://invoice.infinitepay.io/plans/brunnopasseri/kmtkPTSOrv", anual: "https://invoice.infinitepay.io/plans/brunnopasseri/2EuLsGU3bK" }
   }
 };
 window.sb = window.supabase.createClient(SELETA.url, SELETA.chave);
