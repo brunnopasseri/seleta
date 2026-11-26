@@ -286,3 +286,21 @@ button.num:hover{border-color:var(--ink)}
 .passos li{display:flex;gap:12px;align-items:flex-start}
 .passos b{width:30px;height:30px;border-radius:50%;border:1px solid var(--ink);display:grid;place-items:center;flex:none;font-weight:500}
 @media(max-width:700px){.passos{grid-template-columns:1fr}}
+
+.avatar{overflow:hidden;padding:0;display:grid;place-items:center}
+.avatar img,.fotoConta img{width:100%;height:100%;object-fit:cover;display:block}
+.contaTopo{display:flex;gap:12px;align-items:center;padding:10px 10px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.contaTopo strong{padding:0!important}
+.contaTopo span.small{display:block;padding:0!important;border:0!important;margin:2px 0 0!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
+.fotoConta{width:44px;height:44px;border-radius:50%;flex:none;overflow:hidden;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:14px;font-weight:500;margin:0!important;padding:0!important}
+.perfilTopo{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;padding:24px}
+.fotoPerfil{position:relative;width:96px;height:96px;border-radius:50%;overflow:hidden;background:var(--ink);color:var(--bg);display:grid;place-items:center;cursor:pointer;font-size:30px;font-weight:400;letter-spacing:.04em;box-shadow:0 0 0 4px var(--card),0 0 0 5px var(--line)}
+.fotoPerfil img{width:100%;height:100%;object-fit:cover}
+.fotoPerfil i{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.45);color:#fff;opacity:0;transition:opacity .2s}
+.fotoPerfil:hover i,.fotoPerfil:focus-within i{opacity:1}
+.fotoPerfil i svg{width:24px;height:24px}
+.perfilTxt h2{font-size:20px;font-weight:500;margin-bottom:2px}
+.planoMini{display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);border-radius:12px;padding:14px 18px;text-decoration:none;color:var(--ink);min-width:220px;transition:border-color .15s}
+.planoMini:hover{border-color:var(--ink)}
+.planoMini strong{font-weight:500;font-size:16px}
+@media(max-width:760px){.perfilTopo{grid-template-columns:auto 1fr}.planoMini{grid-column:1/-1}.fotoPerfil{width:76px;height:76px;font-size:24px}}

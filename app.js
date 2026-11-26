@@ -131,7 +131,10 @@ $("notifs").addEventListener("click", e => { if (e.target.closest("a")) show("no
 $("menuConta").addEventListener("click", e => { if (e.target.closest("a")) show("menuConta", false); });
 function pintarConta() {
   const n = (estudio?.nome || user?.email || "").replace(/[^\p{L}\s]/gu, " ").trim().split(/\s+/);
-  $("avatar").textContent = ((n[0]?.[0] || "") + (n[1]?.[0] || "")).toUpperCase() || "S";
+  const ini = ((n[0]?.[0] || "") + (n[1]?.[0] || "")).toUpperCase() || "S";
+  const conteudo = estudio?.foto_url ? `<img src="${esc(estudio.foto_url)}" alt="">` : esc(ini);
+  $("avatar").innerHTML = conteudo; $("avatar").classList.toggle("comFoto", !!estudio?.foto_url);
+  $("contaFoto").innerHTML = conteudo; $("contaFoto").classList.toggle("comFoto", !!estudio?.foto_url);
   $("contaNome").textContent = estudio?.nome || ""; $("contaEmail").textContent = user?.email || "";
 }
 async function notificacoes() {
@@ -202,7 +205,7 @@ async function rota() {
   if (!user) return;
   const [nome, arg] = location.hash.replace(/^#\/?/, "").split("/");
   const r = ROTAS[nome] ? nome : "inicio";
-  const ativo = r === "galeria" ? "galerias" : r === "cliente" ? "clientes" : r;
+  const ativo = r === "galeria" ? "galerias" : r === "cliente" ? "clientes" : r === "plano" ? "config" : r;
   document.querySelectorAll("#menu a, .ladoPe a[data-r]").forEach(a => a.classList.toggle("on", a.dataset.r === ativo));
   $("tituloPag").textContent = TITULOS[r] || "";
   document.title = (TITULOS[r] || "Painel") + " · Seleta";
@@ -886,10 +889,23 @@ ROTAS.financeiro = async arg => {
 };
 
 /* ============ CONFIGURAÇÕES ============ */
-ROTAS.config = async () => {
+ROTAS.config = async sub => {
+  const pl = typeof PLANOS !== "undefined" && PLANOS.find?.(p => p.id === estudio.plano);
+  const dT = typeof diasTeste === "function" ? diasTeste() : 0;
+  const n = (estudio?.nome || user?.email || "").replace(/[^\p{L}\s]/gu, " ").trim().split(/\s+/);
+  const ini = ((n[0]?.[0] || "") + (n[1]?.[0] || "")).toUpperCase() || "S";
   C().innerHTML = `
-    <div class="cabeca"><div><h1>Configurações</h1><p class="mute">Como seu estúdio aparece para os clientes.</p></div></div>
-    <div class="duas" style="margin-top:0">
+    <div class="cabeca"><div><h1>Configurações</h1><p class="mute">Seu perfil, seu plano e como o estúdio aparece para os clientes.</p></div></div>
+    <div class="perfilTopo bloco" id="perfil">
+      <label class="fotoPerfil${estudio.foto_url ? " comFoto" : ""}" for="cFoto" title="Trocar foto de perfil">
+        ${estudio.foto_url ? `<img src="${esc(estudio.foto_url)}" alt="Sua foto de perfil">` : `<span>${esc(ini)}</span>`}
+        <i><svg><use href="#i-camera"/></svg></i>
+        <input id="cFoto" type="file" accept="image/jpeg,image/png,image/webp" class="hide"></label>
+      <div class="perfilTxt"><h2>${esc(estudio.nome || "Meu estúdio")}</h2><span class="mute small">${esc(user.email)}</span>
+        <div class="acoes" style="margin-top:12px"><label class="btn sm ghost" for="cFoto">${estudio.foto_url ? "Trocar foto" : "Adicionar foto de perfil"}</label>${estudio.foto_url ? `<button class="btn sm ghost" id="tirarFoto">Remover</button>` : ""}</div></div>
+      <a class="planoMini" href="#/plano"><span class="small mute">Plano e cobrança</span><strong>${pl ? esc(pl.nome) : dT > 0 ? `Teste grátis · ${dT} ${dT === 1 ? "dia" : "dias"}` : "Teste encerrado"}</strong><span class="small">Ver planos e pagamento →</span></a>
+    </div>
+    <div class="duas">
       <form class="bloco" id="fEst"><h2>Estúdio</h2>
         <div class="field"><label for="cNome">Nome do estúdio</label><input id="cNome" required value="${esc(estudio.nome || "")}"></div>
         <div class="field"><label for="cSlug">Endereço das suas galerias</label><div class="prefixo"><span>${esc(raizSite().replace(/^https?:\/\//, ""))}</span><input id="cSlug" value="${esc(estudio.slug || "")}" pattern="[a-z0-9-]+" title="Só letras minúsculas, números e hífen" required></div></div>
@@ -993,6 +1009,28 @@ ROTAS.config = async () => {
   };
   if ($("tirarLogo")) $("tirarLogo").onclick = async () => { try { Object.assign(estudio, await q(sb.from("estudios").update({ logo_url: null }).eq("id", user.id).select().single())); logoBranco = null; rota(); } catch (err) { erro(err); } };
   $("sair2").onclick = () => sb.auth.signOut();
+  $("cFoto").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const bmp = await createImageBitmap(f, { imageOrientation: "from-image" });
+      const lado = Math.min(bmp.width, bmp.height), c = document.createElement("canvas"); c.width = c.height = 400;
+      c.getContext("2d").drawImage(bmp, (bmp.width - lado) / 2, (bmp.height - lado) / 2, lado, lado, 0, 0, 400, 400); bmp.close?.();
+      const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.88));
+      const cam = `${user.id}/estudio/perfil-${Date.now()}.jpg`;
+      const up = await sb.storage.from("fotos").upload(cam, blob, { contentType: "image/jpeg", cacheControl: "31536000" });
+      if (up.error) throw up.error;
+      const antigo = estudio.foto_url;
+      Object.assign(estudio, await q(sb.from("estudios").update({ foto_url: urlFoto(cam) }).eq("id", user.id).select().single()));
+      if (antigo) { const m = antigo.split("/fotos/")[1]; if (m) sb.storage.from("fotos").remove([decodeURIComponent(m)]); }
+      pintarConta(); toast("Foto de perfil atualizada"); rota();
+    } catch (err) { erro(err); }
+  };
+  if ($("tirarFoto")) $("tirarFoto").onclick = async () => {
+    try { const antigo = estudio.foto_url; Object.assign(estudio, await q(sb.from("estudios").update({ foto_url: null }).eq("id", user.id).select().single()));
+      const m = antigo?.split("/fotos/")[1]; if (m) sb.storage.from("fotos").remove([decodeURIComponent(m)]);
+      pintarConta(); rota(); } catch (err) { erro(err); }
+  };
+  if (sub === "perfil") $("perfil").scrollIntoView({ block: "start" });
 };
 
 /* ============ TRABALHOS ============ */
@@ -1098,7 +1136,7 @@ ROTAS.plano = async () => {
   const preco = p => cicloPlano === "anual" ? p.m * 10 / 12 : p.m;
   const pintar = () => {
     const p = PLANOS.find(x => x.id === planoSel);
-    C().innerHTML = `<div class="planosApp">
+    C().innerHTML = `<a class="volta" href="#/config">← Configurações</a><div class="planosApp">
       <h1>${atual ? "Seu plano" : d > 0 ? "Escolha seu plano" : "Seu teste terminou"}</h1>
       <p class="mute" style="margin:10px 0 26px;font-size:16px">${atual ? `Você está no plano <strong style="font-weight:500">${esc(atual.nome)}</strong>.` : d > 0 ? `Seu teste grátis vai até ${esc(dataBR(estudio.teste_ate))} (${d} ${d === 1 ? "dia" : "dias"}). Assine quando quiser: nada do que você já fez se perde.` : `Seu teste terminou em ${esc(dataBR(estudio.teste_ate))}. Tudo foi mantido; escolha um plano para continuar.`}</p>
       <div class="ciclo" role="group" aria-label="Cobrança"><button data-c="mensal" aria-pressed="${cicloPlano === "mensal"}">Mensal</button><button data-c="anual" aria-pressed="${cicloPlano === "anual"}">Anual</button></div>

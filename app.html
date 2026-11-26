@@ -8,8 +8,8 @@
 <link rel="icon" href="icone.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital@1&family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="base.css?v=16">
-<link rel="stylesheet" href="app.css?v=16">
+<link rel="stylesheet" href="base.css?v=17">
+<link rel="stylesheet" href="app.css?v=17">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -36,6 +36,7 @@
 <symbol id="i-relatorios" viewBox="0 0 24 24"><path d="M3 20h18M5 16l5-5 4 3 6-7" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-funil" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="10" y="4" width="5" height="11" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="17" y="4" width="4" height="6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-presente" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 12v9h14v-9M12 8v13M12 8c-1-3-5-4-5-1.5S12 8 12 8zm0 0c1-3 5-4 5-1.5S12 8 12 8z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v13H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
 <symbol id="i-plano" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.6"/></symbol>
 </defs></svg>
 
@@ -93,7 +94,6 @@
       <div class="uso rot" id="uso"></div>
       <a class="mi" href="#/indique" data-r="indique" title="Indique e ganhe"><svg><use href="#i-presente"/></svg><span class="rot">Indique e ganhe</span></a>
       <a class="mi" href="mailto:brunopasseri@gmail.com?subject=Suporte%20Seleta" title="Suporte"><svg><use href="#i-ajuda"/></svg><span class="rot">Suporte</span></a>
-      <a class="mi" href="#/plano" data-r="plano" title="Plano e cobrança"><svg><use href="#i-plano"/></svg><span class="rot">Plano e cobrança</span></a>
       <a class="mi" href="#/config" data-r="config" title="Configurações"><svg><use href="#i-config"/></svg><span class="rot">Configurações</span></a>
       <span class="versao rot">v1.0 · seleta</span>
     </div>
@@ -107,7 +107,8 @@
       <div class="pop"><button class="ico" id="sino" aria-label="Notificações" aria-expanded="false"><svg><use href="#i-sino"/></svg><span class="badge hide" id="badge"></span></button>
         <div class="caixaPop hide" id="notifs" role="dialog" aria-label="Notificações"></div></div>
       <div class="pop"><button class="avatar" id="avatar" aria-label="Conta" aria-expanded="false"></button>
-        <div class="caixaPop conta hide" id="menuConta"><strong id="contaNome"></strong><span class="small mute" id="contaEmail"></span>
+        <div class="caixaPop conta hide" id="menuConta"><div class="contaTopo"><span class="fotoConta" id="contaFoto"></span><div><strong id="contaNome"></strong><span class="small mute" id="contaEmail"></span></div></div>
+          <a href="#/config/perfil"><svg><use href="#i-camera"/></svg>Foto de perfil</a>
           <a href="index.html" target="_blank" rel="noopener"><svg><use href="#i-externo"/></svg>Ver a página da Seleta</a>
           <a href="#/plano"><svg><use href="#i-plano"/></svg>Plano e cobrança</a>
           <a href="#/config"><svg><use href="#i-config"/></svg>Configurações</a>
@@ -122,7 +123,7 @@
 <div id="toast" class="toast hide" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=16"></script>
-<script src="app.js?v=16"></script>
+<script src="config.js?v=17"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
