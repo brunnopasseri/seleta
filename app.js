@@ -130,6 +130,7 @@ $("avatar").onclick = e => { e.stopPropagation(); alternarPop("avatar", "menuCon
 document.addEventListener("click", e => { if (!e.target.closest(".caixaPop")) { show("notifs", false); show("menuConta", false); } });
 $("notifs").addEventListener("click", e => { if (e.target.closest("a")) show("notifs", false); });
 $("menuConta").addEventListener("click", e => { if (e.target.closest("a")) show("menuConta", false); });
+window.addEventListener("seleta:lang", () => { if (user && !$("vPainel").classList.contains("hide")) rota(); });
 /* --- suporte (gaveta lateral) --- */
 async function abrirSuporte() {
   show("menuConta", false); $("vPainel").classList.remove("aberto");

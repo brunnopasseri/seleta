@@ -67,6 +67,7 @@ textarea{font:400 15px/1.5 Montserrat,sans-serif}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="s" viewBox="0 0 48 48"><path d="M40 7H8v17h32v17H8" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="square"/></symbol></defs></svg>
 
 <section id="vCodigo" class="codigo hide">
+  <span data-seletor-lang="flutua"></span>
   <div id="cMarca"></div>
   <h1 style="margin-top:8px">Digite o código que você recebeu</h1>
   <form id="fCodigo"><label for="cod" class="hide">Código de acesso</label><input id="cod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required><button class="btn fill" style="width:100%">Ver meu álbum</button></form>
@@ -78,6 +79,7 @@ textarea{font:400 15px/1.5 Montserrat,sans-serif}
     <div class="marca" id="aMarca"></div>
     <div><h1 id="aTitulo"></h1><span class="info" id="aInfo"></span></div>
     <span class="grow"></span>
+    <span data-seletor-lang></span>
     <span class="estado" id="aEstado"></span>
   </header>
   <div class="palco">
@@ -113,6 +115,7 @@ textarea{font:400 15px/1.5 Montserrat,sans-serif}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="i18n.js?v=1"></script>
 <script src="config.js?v=10"></script>
 <script src="aprovar.js?v=1"></script>
 </body>
