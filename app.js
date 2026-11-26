@@ -730,7 +730,7 @@ async function enviarFotos(files) {
   files = [...files].filter(f => /image\/(jpeg|png|webp)/.test(f.type));
   if (!files.length) return;
   files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-  const marca = estudio.marca_dagua ? await prepararMarca() : null;
+  const marca = (estudio.marca_dagua || !pode("marca")) ? await prepararMarca() : null;
   let feitos = 0, falhas = 0, ordem = fotos.reduce((m, f) => Math.max(m, f.ordem), 0);
   const fila = files.map(f => ({ f, ordem: ++ordem })), gid = G.id;
   const passo = () => { if ($("progresso")) $("progresso").textContent = `Enviando ${feitos} de ${files.length}…` + (falhas ? ` (${falhas} com erro)` : ""); };
@@ -1015,7 +1015,7 @@ ROTAS.config = async sub => {
             <div class="field"><span class="rotulo">Tipo</span><div class="ciclo" role="group" aria-label="Tipo de marca d'água" style="margin:6px 0 0"><button type="button" data-tipo="texto">Texto</button><button type="button" data-tipo="imagem">Minha imagem</button></div></div>
             <div id="mTexto">
               <div class="field"><label for="mTxt">Texto da marca</label><input id="mTxt" maxlength="40" value="${esc(estudio.marca_texto || "")}" placeholder="${esc(estudio.nome || "Bruno Fotografia")}"></div>
-              <div class="field"><span class="rotulo">Estilo da letra</span><div class="estilos">${Object.entries(FONTES_MARCA).map(([k, f]) => `<button type="button" class="estilo" data-fonte="${k}" style="font:${f.css(17).replace(/\d+px/, "17px")}">${f.maiuscula ? "AaBb" : "Aa Bb"}<small>${f.nome}</small></button>`).join("")}</div></div>
+              <div class="field"><span class="rotulo">Estilo da letra</span><div class="estilos">${Object.entries(FONTES_MARCA).map(([k, f]) => `<button type="button" class="estilo" data-fonte="${k}"><span class="amostra" style="font:${f.css(Math.round(15 * Math.min(f.escala, 1.6))).replace(/"/g, "'")};letter-spacing:${f.esp * 0.6}em"></span><small>${f.nome}</small></button>`).join("")}</div></div>
             </div>
             <div id="mImagem" class="hide">
               <div class="field"><span class="rotulo">Sua marca d'água</span>
@@ -1028,6 +1028,7 @@ ROTAS.config = async sub => {
           </div>
           <div><canvas class="previa" id="mPrev" width="900" height="600" aria-label="Prévia da marca d'água numa foto"></canvas>
             <p class="small mute" style="margin:10px 0 14px">Prévia numa foto. Vale para as próximas fotos enviadas.</p>
+            ${ehAdmin() ? `<div class="prevEssencial"><canvas id="mPrevE" width="450" height="300" aria-label="Prévia da marca d'água da Seleta no plano Essencial"></canvas><span class="small mute">Como fica no plano Essencial: marca d'água da Seleta, sempre ligada.</span></div>` : ""}
             <button class="btn fill">Salvar marca d'água</button></div>
         </div>
       </form>
@@ -1046,6 +1047,25 @@ ROTAS.config = async sub => {
     if (!m) return;
     x.globalAlpha = +$("mOp").value; desenharMarca(x, m, W, H, $("mPos").value); x.globalAlpha = 1;
   };
+  const amostras = () => {
+    const base = $("mTxt").value.trim() || estudio.nome || "Seu Estúdio";
+    C().querySelectorAll("[data-fonte]").forEach(b => { const f = FONTES_MARCA[b.dataset.fonte]; b.querySelector(".amostra").textContent = f.maiuscula ? base.toUpperCase() : base; });
+  };
+  amostras();
+  Promise.all(Object.values(FONTES_MARCA).map(f => document.fonts.load(f.css(20)))).then(amostras).catch(() => {});
+  if (!pode("marca")) {
+    $("mOn").checked = true; $("mOn").disabled = true; mTipo = "texto"; mFonte = "moderna";
+    C().querySelectorAll("[data-tipo],[data-fonte],#mTxt").forEach(el => el.disabled = true);
+  }
+  const desenharE = async () => {
+    const c = $("mPrevE"); if (!c) return;
+    const x = c.getContext("2d"), W = c.width, H = c.height;
+    x.fillStyle = "#333"; x.fillRect(0, 0, W, H);
+    if (fotoPrev) { const k = Math.max(W / fotoPrev.width, H / fotoPrev.height), w = fotoPrev.width * k, h = fotoPrev.height * k; x.drawImage(fotoPrev, (W - w) / 2, (H - h) * 0.3, w, h); }
+    await document.fonts.load("400 40px Montserrat").catch(() => {});
+    x.globalAlpha = .35; desenharMarca(x, { texto: "SELETA", fonte: FONTES_MARCA.moderna }, W, H, "rodape"); x.globalAlpha = 1;
+  };
+  desenharE();
   const pintarMarcaUI = () => {
     C().querySelectorAll("[data-tipo]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tipo === mTipo));
     C().querySelectorAll("[data-fonte]").forEach(b => b.classList.toggle("on", b.dataset.fonte === mFonte));
@@ -1054,7 +1074,7 @@ ROTAS.config = async sub => {
   };
   C().querySelectorAll("[data-tipo]").forEach(b => b.onclick = () => { mTipo = b.dataset.tipo; pintarMarcaUI(); });
   C().querySelectorAll("[data-fonte]").forEach(b => b.onclick = () => { mFonte = b.dataset.fonte; pintarMarcaUI(); });
-  ["mTxt", "mOp"].forEach(id => $(id).oninput = () => { $("mOpTxt").textContent = Math.round($("mOp").value * 100) + "%"; desenhar(); });
+  ["mTxt", "mOp"].forEach(id => $(id).oninput = () => { amostras(); $("mOpTxt").textContent = Math.round($("mOp").value * 100) + "%"; desenhar(); });
   ["mPos", "mOn"].forEach(id => $(id).onchange = desenhar);
   $("mArq").onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
