@@ -227,3 +227,4 @@ body{background:var(--bg)}
 .opPlano ul{margin:10px 0 0;padding-left:18px;font-size:14px;color:var(--mute)}
 .assinar{min-height:52px;font-size:16px;padding:0 26px;margin-top:10px}
 .miudo{font-size:13px;color:var(--mute);margin-top:12px}
+input[type=range]{accent-color:var(--ink)}
