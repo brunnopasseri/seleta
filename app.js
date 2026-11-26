@@ -90,6 +90,57 @@ $("fSenha").onsubmit = async e => {
 };
 $("sair").onclick = () => sb.auth.signOut();
 
+/* ============ moldura do painel ============ */
+const TITULOS = { inicio: "Painel", galerias: "Álbuns", galeria: "Álbum", clientes: "Clientes", cliente: "Cliente", trabalhos: "Trabalhos", agenda: "Agenda", financeiro: "Financeiro", tarefas: "Tarefas", config: "Configurações" };
+const celular = () => matchMedia("(max-width:860px)").matches;
+const guardar = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
+if (ler("seleta-menu") === "recolhido") $("vPainel").classList.add("recolhido");
+$("recolher").onclick = () => {
+  if (celular()) return $("vPainel").classList.toggle("aberto");
+  const r = $("vPainel").classList.toggle("recolhido"); guardar("seleta-menu", r ? "recolhido" : "aberto");
+};
+$("veu").onclick = () => $("vPainel").classList.remove("aberto");
+document.querySelectorAll(".gt").forEach((b, i) => {
+  if (ler("seleta-grupo-" + i) === "fechado") b.setAttribute("aria-expanded", "false");
+  b.onclick = () => { const ab = b.getAttribute("aria-expanded") !== "true"; b.setAttribute("aria-expanded", ab); guardar("seleta-grupo-" + i, ab ? "aberto" : "fechado"); };
+});
+const pintarTema = () => { const esc = document.documentElement.dataset.theme === "dark"; $("tema").innerHTML = `<svg><use href="#i-${esc ? "sol" : "lua"}"/></svg>`; $("tema").setAttribute("aria-label", esc ? "Usar modo claro" : "Usar modo escuro"); };
+$("tema").onclick = () => { const esc = document.documentElement.dataset.theme !== "dark"; if (esc) document.documentElement.dataset.theme = "dark"; else delete document.documentElement.dataset.theme; guardar("seleta-tema", esc ? "escuro" : "claro"); pintarTema(); };
+pintarTema();
+function alternarPop(botao, caixa) {
+  const abrir = $(caixa).classList.contains("hide");
+  ["notifs", "menuConta"].forEach(id => show(id, false)); ["sino", "avatar"].forEach(id => $(id).setAttribute("aria-expanded", "false"));
+  if (abrir) { show(caixa, true); $(botao).setAttribute("aria-expanded", "true"); }
+}
+$("sino").onclick = e => { e.stopPropagation(); alternarPop("sino", "notifs"); };
+$("avatar").onclick = e => { e.stopPropagation(); alternarPop("avatar", "menuConta"); };
+document.addEventListener("click", e => { if (!e.target.closest(".caixaPop")) { show("notifs", false); show("menuConta", false); } });
+$("notifs").addEventListener("click", e => { if (e.target.closest("a")) show("notifs", false); });
+$("menuConta").addEventListener("click", e => { if (e.target.closest("a")) show("menuConta", false); });
+function pintarConta() {
+  const n = (estudio?.nome || user?.email || "").replace(/[^\p{L}\s]/gu, " ").trim().split(/\s+/);
+  $("avatar").textContent = ((n[0]?.[0] || "") + (n.length > 1 ? n[n.length - 1][0] : "")).toUpperCase() || "S";
+  $("contaNome").textContent = estudio?.nome || ""; $("contaEmail").textContent = user?.email || "";
+}
+async function notificacoes() {
+  try {
+    const [sel, atr, tar] = await Promise.all([
+      q(sb.from("galerias").select("slug,titulo,cliente_nome,enviada_em").eq("status", "enviada").order("enviada_em", { ascending: false }).limit(8)),
+      q(sb.from("pagamentos").select("descricao,valor,vencimento").is("pago_em", null).lt("vencimento", hoje()).order("vencimento").limit(8)),
+      q(sb.from("tarefas").select("id,titulo,vencimento").eq("feita", false).lte("vencimento", hoje()).order("vencimento").limit(8))
+    ]);
+    const total = sel.length + atr.length + tar.length;
+    $("badge").textContent = total > 9 ? "9+" : total; show("badge", total > 0);
+    $("contTarefas").textContent = tar.length || "";
+    $("notifs").innerHTML = total ? `
+      ${sel.length ? `<h3>Seleções recebidas</h3>${sel.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")}${g.enviada_em ? " · " + new Date(g.enviada_em).toLocaleDateString("pt-BR") : ""}</span></div></a>`).join("")}` : ""}
+      ${atr.length ? `<h3>Pagamentos atrasados</h3>${atr.map(p => `<a class="item" href="#/financeiro"><div class="txt"><strong>${esc(p.descricao)}</strong><span>venceu ${esc(dataBR(p.vencimento))}</span></div><span class="val">${brl(p.valor)}</span></a>`).join("")}` : ""}
+      ${tar.length ? `<h3>Tarefas para hoje</h3>${tar.map(t => `<a class="item" href="#/tarefas"><div class="txt"><strong>${esc(t.titulo)}</strong><span>${t.vencimento < hoje() ? "atrasada · " : ""}${esc(dataBR(t.vencimento))}</span></div></a>`).join("")}` : ""}`
+      : `<p class="vazioP" style="padding:14px 10px">Tudo em dia por aqui.</p>`;
+  } catch (e) { console.error(e); }
+}
+
 sb.auth.onAuthStateChange((ev, session) => {
   if (ev === "PASSWORD_RECOVERY") { show("vEntrar", false); show("vPainel", false); show("vSenha", true); return; }
   const antes = user?.id;
@@ -106,7 +157,7 @@ async function entrar() {
 }
 async function carregarEstudio() {
   estudio = await q(sb.from("estudios").select("*").eq("id", user.id).maybeSingle()) || { id: user.id, nome: "Meu estúdio", marca_dagua: true, marca_opacidade: 0.35 };
-  $("nomeEstudio").textContent = estudio.nome;
+  pintarConta();
 }
 async function atualizarUso() {
   const { data } = await sb.rpc("espaco_usado");
@@ -120,7 +171,12 @@ async function rota() {
   if (!user) return;
   const [nome, arg] = location.hash.replace(/^#\/?/, "").split("/");
   const r = ROTAS[nome] ? nome : "inicio";
-  document.querySelectorAll("#menu a").forEach(a => a.classList.toggle("on", a.dataset.r === (r === "galeria" ? "galerias" : r === "cliente" ? "clientes" : r)));
+  const ativo = r === "galeria" ? "galerias" : r === "cliente" ? "clientes" : r;
+  document.querySelectorAll("#menu a, .ladoPe a[data-r]").forEach(a => a.classList.toggle("on", a.dataset.r === ativo));
+  $("tituloPag").textContent = TITULOS[r] || "";
+  document.title = (TITULOS[r] || "Painel") + " · Seleta";
+  $("vPainel").classList.remove("aberto");
+  notificacoes();
   C().innerHTML = `<p class="mute">Carregando…</p>`;
   try { await ROTAS[r](arg ? decodeURIComponent(arg) : null); } catch (e) { C().innerHTML = `<div class="msg erro">Não foi possível carregar: ${esc(e.message || e)}</div>`; console.error(e); }
   C().focus({ preventScroll: true }); window.scrollTo(0, 0);
@@ -137,11 +193,12 @@ const opcTrabalhos = ts => [["", "— nenhum —"], ...ts.map(t => [t.id, t.titu
 /* ============ INÍCIO ============ */
 ROTAS.inicio = async () => {
   const d0 = new Date(), ini = ymd(new Date(d0.getFullYear(), d0.getMonth(), 1)), fim = ymd(new Date(d0.getFullYear(), d0.getMonth() + 1, 0));
-  const [prox, gals, pagMes, atras] = await Promise.all([
+  const [prox, gals, pagMes, atras, tars] = await Promise.all([
     q(sb.from("trabalhos").select("id,titulo,data,hora,local,status,clientes(nome)").gte("data", hoje()).neq("status", "cancelado").order("data").order("hora").limit(6)),
     q(sb.from("galerias").select("id,slug,titulo,cliente_nome,status,enviada_em").neq("status", "encerrada").order("criado_em", { ascending: false })),
     q(sb.from("pagamentos").select("valor,pago_em,vencimento").gte("vencimento", ini).lte("vencimento", fim)),
-    q(sb.from("pagamentos").select("valor").is("pago_em", null).lt("vencimento", hoje()))
+    q(sb.from("pagamentos").select("valor").is("pago_em", null).lt("vencimento", hoje())),
+    q(sb.from("tarefas").select("*, clientes(nome), trabalhos(titulo)").eq("feita", false).order("vencimento", { nullsFirst: false }).limit(6))
   ]);
   const recebido = pagMes.filter(p => p.pago_em).reduce((s, p) => s + +p.valor, 0);
   const aReceber = pagMes.filter(p => !p.pago_em).reduce((s, p) => s + +p.valor, 0);
@@ -162,10 +219,13 @@ ROTAS.inicio = async () => {
         ${prox.length ? prox.map(t => `<a class="item" href="#/agenda/${t.data.slice(0, 7)}"><div class="data"><b>${dia(t.data).getDate()}</b><span>${dia(t.data).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></div>
           <div class="txt"><strong>${esc(t.titulo)}</strong><span>${[t.clientes?.nome, t.hora?.slice(0, 5), t.local].filter(Boolean).map(esc).join(" · ")}</span></div><span class="st">${STATUS_T[t.status]}</span></a>`).join("") : `<p class="vazioP">Nada marcado. Que tal cadastrar o próximo ensaio?</p>`}
       </div>
-      <div class="bloco"><h2>Galerias <a href="#/galerias">Ver todas</a></h2>
-        ${[...recebidas, ...aguardando].slice(0, 6).map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "Sem cliente")}</span></div><span class="tag ${g.status}">${STATUS_G[g.status]}</span></a>`).join("") || `<p class="vazioP">Nenhuma galeria aberta.</p>`}
+      <div class="bloco"><h2>Álbuns <a href="#/galerias">Ver todos</a></h2>
+        ${[...recebidas, ...aguardando].slice(0, 6).map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "Sem cliente")}</span></div><span class="tag ${g.status}">${STATUS_G[g.status]}</span></a>`).join("") || `<p class="vazioP">Nenhum álbum aberto.</p>`}
       </div>
-    </div>`;
+    </div>
+    <div class="bloco" style="margin-top:18px"><h2>Tarefas <span class="acoes"><button class="btn sm ghost" id="aTar">Nova tarefa</button><a href="#/tarefas">Ver todas</a></span></h2>
+      <div id="dTar">${tars.length ? tars.map(linhaTarefa).join("") : `<p class="vazioP">Nenhuma tarefa pendente.</p>`}</div></div>`;
+  ligarTarefas(tars, $("dTar")); $("aTar").onclick = () => editarTarefa();
   $("aGal").onclick = novaGaleria; $("aCli").onclick = () => editarCliente(); $("aTrab").onclick = () => editarTrabalho();
 };
 
@@ -184,7 +244,7 @@ ROTAS.galerias = async () => {
     document.querySelectorAll(".chip[data-f]").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filtroGal));
   };
   C().innerHTML = `
-    <div class="cabeca"><div><h1>Galerias</h1><p class="mute">Suba as prévias, mande o link e receba a escolha do cliente.</p></div><button class="btn fill" id="aGal">Nova galeria</button></div>
+    <div class="cabeca"><div><h1>Álbuns</h1><p class="mute">Suba as prévias, mande o link e receba a escolha do cliente.</p></div><button class="btn fill" id="aGal">Nova galeria</button></div>
     <div class="filtros">${[["todas", "Todas"], ["aberta", "Aguardando cliente"], ["enviada", "Seleção recebida"], ["encerrada", "Encerradas"]].map(([k, t]) => `<button class="chip" data-f="${k}">${t} (${gs.filter(f[k]).length})</button>`).join("")}</div>
     <div class="galerias" id="gLista"></div>`;
   document.querySelectorAll(".chip[data-f]").forEach(c => c.onclick = () => { filtroGal = c.dataset.f; pintar(); });
@@ -236,7 +296,7 @@ function pintarGaleria() {
   const capa = fotos.find(f => f.id === G.capa_foto_id) || fotos[0];
   const abas = [["fotos", `Fotos (${fotos.length})`], ["selecao", `Seleção (${marcadas.size})`], ["entrega", "Entrega"], ["ajustes", "Ajustes"]];
   C().innerHTML = `
-    <a class="volta" href="#/galerias">← Galerias</a>
+    <a class="volta" href="#/galerias">← Álbuns</a>
     <div class="banner" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}">
       <div class="sobre"><div><h1>${esc(G.titulo)}</h1><p style="margin-top:6px;opacity:.85">${[G.cliente_nome, `${G.fotos_incluidas} no pacote`, `extra ${brl(G.preco_extra)}`, G.prazo && "prazo " + dataBR(G.prazo)].filter(Boolean).map(esc).join(" · ")}</p></div><span class="tag">${STATUS_G[G.status]}</span></div>
     </div>
@@ -614,7 +674,7 @@ ROTAS.financeiro = async arg => {
     </div>
     <div class="bloco" style="margin-top:18px"><h2>Recebido em ${base.getFullYear()}<span class="small mute" style="font-weight:400">${brl(soma(ano))} no ano</span></h2>
       <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end;height:140px">
-        ${meses.map((v, m) => `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="${brl(v)}"><div style="width:100%;max-width:34px;border-radius:5px 5px 0 0;background:${m === base.getMonth() ? "var(--ink)" : "#cfcfcc"};height:${Math.max(2, v / max * 100)}%"></div><span class="small mute">${new Date(2000, m, 1).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></div>`).join("")}
+        ${meses.map((v, m) => `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="${brl(v)}"><div style="width:100%;max-width:34px;border-radius:5px 5px 0 0;background:${m === base.getMonth() ? "var(--ink)" : "var(--line)"};height:${Math.max(2, v / max * 100)}%"></div><span class="small mute">${new Date(2000, m, 1).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span></div>`).join("")}
       </div></div>
     ${atras.length ? `<div class="bloco" style="margin-top:18px"><h2>Em atraso</h2><table class="tabela stack"><tbody>${atras.map(linha).join("")}</tbody></table></div>` : ""}
     <div class="bloco" style="margin-top:18px"><h2>Lançamentos de ${esc(base.toLocaleDateString("pt-BR", { month: "long" }))}</h2>
@@ -672,7 +732,7 @@ ROTAS.config = async () => {
   $("mOn").onchange = () => { const o = estudio.marca_dagua; estudio.marca_dagua = true; desenhar().then(() => estudio.marca_dagua = o); };
   $("fEst").onsubmit = async e => {
     e.preventDefault();
-    try { Object.assign(estudio, await q(sb.from("estudios").update({ nome: $("cNome").value.trim(), whatsapp: $("cW").value.trim() || null, instagram: $("cI").value.trim() || null }).eq("id", user.id).select().single())); $("nomeEstudio").textContent = estudio.nome; toast("Estúdio salvo"); }
+    try { Object.assign(estudio, await q(sb.from("estudios").update({ nome: $("cNome").value.trim(), whatsapp: $("cW").value.trim() || null, instagram: $("cI").value.trim() || null }).eq("id", user.id).select().single())); pintarConta(); toast("Estúdio salvo"); }
     catch (err) { erro(err); }
   };
   $("fMarca").onsubmit = async e => {
@@ -694,5 +754,89 @@ ROTAS.config = async () => {
   };
   if ($("tirarLogo")) $("tirarLogo").onclick = async () => { try { Object.assign(estudio, await q(sb.from("estudios").update({ logo_url: null }).eq("id", user.id).select().single())); logoBranco = null; rota(); } catch (err) { erro(err); } };
   $("sair2").onclick = () => sb.auth.signOut();
+};
+
+/* ============ TRABALHOS ============ */
+let filtroTrab = "ativos";
+ROTAS.trabalhos = async () => {
+  const ts = await q(sb.from("trabalhos").select("*, clientes(nome), pagamentos(valor,pago_em)").order("data", { ascending: false, nullsFirst: true }));
+  const f = { ativos: t => ["orcamento", "confirmado", "realizado"].includes(t.status), orcamento: t => t.status === "orcamento", confirmado: t => t.status === "confirmado", realizado: t => t.status === "realizado", entregue: t => t.status === "entregue", todos: () => true };
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Trabalhos</h1><p class="mute">Cada ensaio, casamento ou evento, do orçamento à entrega.</p></div><button class="btn fill" id="nt">Novo trabalho</button></div>
+    <div class="filtros">${[["ativos", "Em andamento"], ["orcamento", "Orçamentos"], ["confirmado", "Confirmados"], ["realizado", "Realizados"], ["entregue", "Entregues"], ["todos", "Todos"]].map(([k, t]) => `<button class="chip" data-f="${k}">${t} (${ts.filter(f[k]).length})</button>`).join("")}</div>
+    <div class="field busca"><label for="bTrab" class="hide">Buscar</label><input id="bTrab" type="search" placeholder="Buscar por trabalho, cliente ou local"></div>
+    <div class="bloco" style="padding:6px 8px"><table class="tabela stack"><thead><tr><th>Data</th><th>Trabalho</th><th>Cliente</th><th>Situação</th><th class="r">Valor</th><th class="r">Recebido</th></tr></thead><tbody id="tTrab"></tbody></table></div>`;
+  const pintar = () => {
+    const b = $("bTrab").value.toLowerCase();
+    const l = ts.filter(f[filtroTrab]).filter(t => [t.titulo, t.clientes?.nome, t.local, t.tipo].join(" ").toLowerCase().includes(b));
+    $("tTrab").innerHTML = l.length ? l.map(t => { const rec = (t.pagamentos || []).filter(p => p.pago_em).reduce((s, p) => s + +p.valor, 0);
+      return `<tr class="clic" data-t="${t.id}"><td>${t.data ? esc(dataBR(t.data)) : "—"}${t.hora ? `<br><span class="small mute">${esc(t.hora.slice(0, 5))}</span>` : ""}</td><td><strong style="font-weight:500">${esc(t.titulo)}</strong><br><span class="small mute">${esc([t.tipo, t.local].filter(Boolean).join(" · "))}</span></td><td>${esc(t.clientes?.nome || "—")}</td><td><span class="st">${STATUS_T[t.status]}</span></td><td class="r">${brl(t.valor)}</td><td class="r">${brl(rec)}</td></tr>`; }).join("")
+      : `<tr><td colspan="6" class="mute" style="padding:22px 12px">${ts.length ? "Nada por aqui com esse filtro." : "Nenhum trabalho ainda. Cadastre o primeiro!"}</td></tr>`;
+    document.querySelectorAll(".chip[data-f]").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filtroTrab));
+  };
+  document.querySelectorAll(".chip[data-f]").forEach(c => c.onclick = () => { filtroTrab = c.dataset.f; pintar(); });
+  $("bTrab").oninput = pintar;
+  $("tTrab").onclick = e => { const tr = e.target.closest("tr[data-t]"); if (tr) editarTrabalho(ts.find(t => t.id === tr.dataset.t)); };
+  $("nt").onclick = () => editarTrabalho({});
+  pintar();
+};
+
+/* ============ TAREFAS ============ */
+async function editarTarefa(t = {}) {
+  const [cs, ts] = await Promise.all([listaClientes(), listaTrabalhos()]);
+  formulario({
+    titulo: t.id ? "Editar tarefa" : "Nova tarefa",
+    campos: [
+      { id: "titulo", rotulo: "O que fazer", req: true, largo: true, ph: "Editar fotos do ensaio da Ana", valor: t.titulo },
+      { id: "vencimento", rotulo: "Para quando", tipo: "date", valor: t.vencimento },
+      { id: "cliente_id", rotulo: "Cliente", tipo: "select", opcoes: opcClientes(cs), valor: t.cliente_id },
+      { id: "trabalho_id", rotulo: "Trabalho", tipo: "select", opcoes: opcTrabalhos(ts), valor: t.trabalho_id }
+    ],
+    aoSalvar: async v => {
+      const row = { titulo: v.titulo, vencimento: v.vencimento || null, cliente_id: v.cliente_id || null, trabalho_id: v.trabalho_id || null };
+      t.id ? await q(sb.from("tarefas").update(row).eq("id", t.id)) : await q(sb.from("tarefas").insert(row));
+      toast("Tarefa salva"); rota();
+    },
+    aoExcluir: t.id ? async () => { await q(sb.from("tarefas").delete().eq("id", t.id)); rota(); } : null
+  });
+}
+const linhaTarefa = t => {
+  const atr = !t.feita && t.vencimento && t.vencimento < hoje();
+  const sub = [t.clientes?.nome, t.trabalhos?.titulo].filter(Boolean).join(" · ");
+  return `<div class="tarefa${t.feita ? " feita" : ""}" data-id="${t.id}">
+    <input type="checkbox" ${t.feita ? "checked" : ""} aria-label="Concluir ${esc(t.titulo)}" data-ok="${t.id}">
+    <div class="tt" data-ed="${t.id}"><strong>${esc(t.titulo)}</strong>${sub ? `<span>${esc(sub)}</span>` : ""}</div>
+    ${t.vencimento ? `<span class="data${atr ? " atr" : ""}">${t.vencimento === hoje() ? "hoje" : atr ? "atrasada · " + esc(dataBR(t.vencimento).slice(0, 5)) : esc(dataBR(t.vencimento).slice(0, 5))}</span>` : ""}
+    <button class="x" data-del="${t.id}" aria-label="Excluir ${esc(t.titulo)}">×</button></div>`;
+};
+async function ligarTarefas(lista, raiz) {
+  raiz.onclick = async e => {
+    const ok = e.target.closest("[data-ok]"), ed = e.target.closest("[data-ed]"), del = e.target.closest("[data-del]");
+    try {
+      if (ok) { const v = ok.checked; await q(sb.from("tarefas").update({ feita: v, feita_em: v ? new Date().toISOString() : null }).eq("id", ok.dataset.ok)); if (v) toast("Tarefa concluída"); rota(); }
+      else if (del) { await q(sb.from("tarefas").delete().eq("id", del.dataset.del)); rota(); }
+      else if (ed) editarTarefa(lista.find(t => t.id === ed.dataset.ed));
+    } catch (err) { erro(err); }
+  };
+}
+ROTAS.tarefas = async () => {
+  const ts = await q(sb.from("tarefas").select("*, clientes(nome), trabalhos(titulo)").order("vencimento", { nullsFirst: false }).order("criado_em"));
+  const h = hoje(), pend = ts.filter(t => !t.feita);
+  const grupos = [
+    ["Atrasadas", pend.filter(t => t.vencimento && t.vencimento < h)],
+    ["Hoje", pend.filter(t => t.vencimento === h)],
+    ["Próximas", pend.filter(t => t.vencimento && t.vencimento > h)],
+    ["Sem data", pend.filter(t => !t.vencimento)],
+    ["Concluídas", ts.filter(t => t.feita).sort((a, b) => (b.feita_em || "").localeCompare(a.feita_em || "")).slice(0, 20)]
+  ];
+  C().innerHTML = `
+    <div class="cabeca"><div><h1>Tarefas</h1><p class="mute">${pend.length} ${pend.length === 1 ? "pendente" : "pendentes"}</p></div></div>
+    <form class="novaTarefa" id="fTar"><label for="tTit" class="hide">Nova tarefa</label><input id="tTit" placeholder="Nova tarefa: ex. editar fotos do casamento" required><label for="tData" class="hide">Data</label><input id="tData" type="date" value="${h}"><button class="btn fill">Adicionar</button></form>
+    <div id="tLista">${grupos.filter(g => g[1].length).map(([n, l]) => `<section class="tgrupo"><h2>${n} (${l.length})</h2>${l.map(linhaTarefa).join("")}</section>`).join("") || `<div class="vazio">Nenhuma tarefa. Anote aqui o que não pode esquecer: editar, entregar, cobrar, responder.</div>`}</div>`;
+  $("fTar").onsubmit = async e => {
+    e.preventDefault();
+    try { await q(sb.from("tarefas").insert({ titulo: $("tTit").value.trim(), vencimento: $("tData").value || null })); rota(); } catch (err) { erro(err); }
+  };
+  ligarTarefas(ts, $("tLista"));
 };
 }
