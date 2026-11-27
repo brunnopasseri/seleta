@@ -146,7 +146,17 @@ function alternarPop(botao, caixa) {
   ["notifs", "menuConta"].forEach(id => show(id, false)); ["sino", "avatar"].forEach(id => $(id).setAttribute("aria-expanded", "false"));
   if (abrir) { show(caixa, true); $(botao).setAttribute("aria-expanded", "true"); }
 }
-$("sino").onclick = e => { e.stopPropagation(); alternarPop("sino", "notifs"); };
+$("sino").onclick = e => { e.stopPropagation(); alternarPop("sino", "notifs"); if (!$("notifs").classList.contains("hide")) marcarLidas(); };
+/* notificações lidas: guardadas neste aparelho, por usuário */
+let notifAtuais = [];
+const chaveLidas = () => "seleta-lidas-" + (user?.id || "");
+const lerLidas = () => { try { return new Set(JSON.parse(localStorage.getItem(chaveLidas()) || "[]")); } catch { return new Set(); } };
+function marcarLidas() {
+  const lidas = lerLidas(); notifAtuais.forEach(k => lidas.add(k));
+  try { localStorage.setItem(chaveLidas(), JSON.stringify([...lidas].slice(-300))); } catch {}
+  show("badge", false);
+  setTimeout(() => $("notifs").querySelectorAll(".item.nova").forEach(i => i.classList.remove("nova")), 1500);
+}
 $("avatar").onclick = e => { e.stopPropagation(); alternarPop("avatar", "menuConta"); };
 document.addEventListener("click", e => { if (!e.target.closest(".caixaPop")) { show("notifs", false); show("menuConta", false); } });
 $("notifs").addEventListener("click", e => { if (e.target.closest("a")) show("notifs", false); });
@@ -195,15 +205,20 @@ async function notificacoes() {
       q(sb.from("galerias").select("slug,titulo,cliente_nome,prazo").eq("status", "aberta").eq("so_entrega", false).not("prazo", "is", null).lte("prazo", ymd(em2)).order("prazo").limit(8))
     ]);
     const total = sel.length + atr.length + tar.length + dg.length + pz.length;
-    $("badge").textContent = total > 9 ? "9+" : total; show("badge", total > 0);
+    const kS = g => "s:" + g.slug + ":" + (g.enviada_em || ""), kP = g => "p:" + g.slug + ":" + g.prazo + ":" + (g.prazo <= hoje() ? hoje() : ""), kD = d => "d:" + d.slug + ":" + (d.respondido_em || ""), kA = p => "a:" + p.descricao + ":" + p.vencimento, kT = t => "t:" + t.id + ":" + t.vencimento;
+    notifAtuais = [...sel.map(kS), ...pz.map(kP), ...dg.map(kD), ...atr.map(kA), ...tar.map(kT)];
+    const lidas = lerLidas(), nova = k => lidas.has(k) ? "" : " nova";
+    const naoLidas = notifAtuais.filter(k => !lidas.has(k)).length;
+    $("badge").textContent = naoLidas > 9 ? "9+" : naoLidas; show("badge", naoLidas > 0);
     $("contTarefas").textContent = tar.length || "";
     $("notifs").innerHTML = total ? `
-      ${sel.length ? `<h3>Seleções recebidas</h3>${sel.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")}${g.enviada_em ? " · " + new Date(g.enviada_em).toLocaleDateString("pt-BR") : ""}</span></div></a>`).join("")}` : ""}
-      ${pz.length ? `<h3>Prazos de escolha</h3>${pz.map(g => `<a class="item" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")} · ${g.prazo < hoje() ? "venceu " : g.prazo === hoje() ? "vence hoje" : "vence "}${g.prazo === hoje() ? "" : esc(dataBR(g.prazo))}</span></div><span class="small">Lembrar</span></a>`).join("")}` : ""}
-      ${dg.length ? `<h3>Álbuns diagramados com pedido de alteração</h3>${dg.map(d => `<a class="item" href="#/diagramacao/${esc(d.slug)}"><div class="txt"><strong>${esc(d.titulo)}</strong><span>${esc(d.cliente_nome || "")}</span></div></a>`).join("")}` : ""}
-      ${atr.length ? `<h3>Pagamentos atrasados</h3>${atr.map(p => `<a class="item" href="#/financeiro"><div class="txt"><strong>${esc(p.descricao)}</strong><span>venceu ${esc(dataBR(p.vencimento))}</span></div><span class="val">${brl(p.valor)}</span></a>`).join("")}` : ""}
-      ${tar.length ? `<h3>Tarefas para hoje</h3>${tar.map(t => `<a class="item" href="#/tarefas"><div class="txt"><strong>${esc(t.titulo)}</strong><span>${t.vencimento < hoje() ? "atrasada · " : ""}${esc(dataBR(t.vencimento))}</span></div></a>`).join("")}` : ""}`
+      ${sel.length ? `<h3>Seleções recebidas</h3>${sel.map(g => `<a class="item${nova(kS(g))}" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")}${g.enviada_em ? " · " + new Date(g.enviada_em).toLocaleDateString("pt-BR") : ""}</span></div></a>`).join("")}` : ""}
+      ${pz.length ? `<h3>Prazos de escolha</h3>${pz.map(g => `<a class="item${nova(kP(g))}" href="#/galeria/${esc(g.slug)}"><div class="txt"><strong>${esc(g.titulo)}</strong><span>${esc(g.cliente_nome || "")} · ${g.prazo < hoje() ? "venceu " : g.prazo === hoje() ? "vence hoje" : "vence "}${g.prazo === hoje() ? "" : esc(dataBR(g.prazo))}</span></div><span class="small">Lembrar</span></a>`).join("")}` : ""}
+      ${dg.length ? `<h3>Álbuns diagramados com pedido de alteração</h3>${dg.map(d => `<a class="item${nova(kD(d))}" href="#/diagramacao/${esc(d.slug)}"><div class="txt"><strong>${esc(d.titulo)}</strong><span>${esc(d.cliente_nome || "")}</span></div></a>`).join("")}` : ""}
+      ${atr.length ? `<h3>Pagamentos atrasados</h3>${atr.map(p => `<a class="item${nova(kA(p))}" href="#/financeiro"><div class="txt"><strong>${esc(p.descricao)}</strong><span>venceu ${esc(dataBR(p.vencimento))}</span></div><span class="val">${brl(p.valor)}</span></a>`).join("")}` : ""}
+      ${tar.length ? `<h3>Tarefas para hoje</h3>${tar.map(t => `<a class="item${nova(kT(t))}" href="#/tarefas"><div class="txt"><strong>${esc(t.titulo)}</strong><span>${t.vencimento < hoje() ? "atrasada · " : ""}${esc(dataBR(t.vencimento))}</span></div></a>`).join("")}` : ""}`
       : `<p class="vazioP" style="padding:14px 10px">Tudo em dia por aqui.</p>`;
+    if (!$("notifs").classList.contains("hide")) marcarLidas();
   } catch (e) { console.error(e); }
 }
 

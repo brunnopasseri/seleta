@@ -424,3 +424,9 @@ button.num:hover{border-color:var(--ink)}
 .senhaBox{position:relative;display:block}.senhaBox input{padding-right:46px;width:100%}
 .olho{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:transparent;color:var(--mute);cursor:pointer;display:grid;place-items:center;border-radius:8px}
 .olho:hover{color:var(--ink)}.olho svg{width:20px;height:20px}
+
+/* notificação nova x lida */
+#notifs .item{position:relative;transition:background .4s}
+#notifs .item:not(.nova) .txt strong{font-weight:500;color:var(--mute)}
+#notifs .item.nova{background:var(--soft,rgba(0,0,0,.035))}
+#notifs .item.nova::before{content:"";position:absolute;left:2px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--ink)}
