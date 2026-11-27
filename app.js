@@ -314,7 +314,7 @@ ROTAS.inicio = async () => {
   const fotoFaixa = capa.data?.capa?.caminho ? urlFoto(capa.data.capa.caminho) : "https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1600&q=70&auto=format&fit=crop";
   C().innerHTML = `${avisoPlano()}
     <div class="faixaFoto faixaPainel" style="--foto:url('${esc(fotoFaixa)}')"><div><h1>Olá${nome ? ", " + esc(nome) : ""}</h1><p>${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p></div>
-      <div class="acoes"><button class="btn" id="aTrab">Novo trabalho</button><button class="btn" id="aCli">Novo cliente</button><button class="btn fill" id="aGal">Nova galeria</button></div></div>
+      <div class="acoes"><button class="btn" id="aTrab">Novo trabalho</button><button class="btn" id="aCli">Novo cliente</button><div class="row" style="gap:8px">${gs.length ? `<button class="btn ghost" id="selG">Selecionar</button>` : ""}<button class="btn fill" id="aGal">Nova galeria</button></div></div></div>
     <div class="cards">
       <div class="num escuro"><span>Recebido em ${esc(new Date().toLocaleDateString("pt-BR", { month: "long" }))}</span><b>${brl(recebido)}</b></div>
       <div class="num"><span>A receber no mês</span><b>${brl(aReceber)}</b></div>
@@ -338,18 +338,89 @@ ROTAS.inicio = async () => {
 
 /* ============ GALERIAS ============ */
 let filtroGal = "todas";
+
+/* ============ SELEÇÃO EM LOTE (galerias e álbuns) ============ */
+function confirmarExclusao(titulo, texto) {
+  return new Promise(res => {
+    const m = document.createElement("div"); m.className = "modal";
+    m.innerHTML = `<div class="modalCaixa confirmaCaixa" role="alertdialog" aria-modal="true" aria-labelledby="cfT"><div class="cfIco"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></div><h2 id="cfT">${esc(titulo)}</h2><p class="mute">${texto}</p><div class="row" style="justify-content:flex-end;gap:10px;margin-top:22px"><button class="btn ghost" data-r="0">Cancelar</button><button class="btn perigo" data-r="1">Excluir</button></div></div>`;
+    const fim = v => { m.remove(); document.removeEventListener("keydown", tecla); res(v); };
+    const tecla = e => { if (e.key === "Escape") fim(false); };
+    m.addEventListener("click", e => { if (e.target === m) fim(false); const b = e.target.closest("[data-r]"); if (b) fim(b.dataset.r === "1"); });
+    document.addEventListener("keydown", tecla);
+    document.body.appendChild(m); m.querySelector('[data-r="0"]').focus();
+  });
+}
+function ativarLote({ lista, botao, nome, nomePlural, excluir }) {
+  const sel = new Set();
+  let ativo = false;
+  const barra = document.createElement("div"); barra.className = "barraLote hide";
+  barra.innerHTML = `<span id="loteN">0 selecionadas</span><button class="btn sm ghost" id="loteTodas">Selecionar todas</button><button class="btn sm ghost" id="loteSair">Cancelar</button><button class="btn sm perigo" id="loteEx" disabled><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Excluir</button>`;
+  C().appendChild(barra);
+  const cards = () => [...$(lista).querySelectorAll(".gcard[data-id]")];
+  const pintar = () => {
+    $(lista).classList.toggle("modoLote", ativo);
+    cards().forEach(c => { c.classList.toggle("marcada", sel.has(c.dataset.id)); c.setAttribute("aria-pressed", ativo ? String(sel.has(c.dataset.id)) : null); if (!ativo) c.removeAttribute("aria-pressed"); });
+    barra.classList.toggle("hide", !ativo);
+    $("loteN").textContent = sel.size === 1 ? `1 ${nome} selecionada` : `${sel.size} ${nomePlural} selecionadas`;
+    $("loteEx").disabled = !sel.size;
+    $(botao).textContent = ativo ? "Concluir" : "Selecionar";
+  };
+  const entrar = () => { ativo = true; pintar(); };
+  const sair = () => { ativo = false; sel.clear(); pintar(); };
+  $(lista).addEventListener("click", e => {
+    const card = e.target.closest(".gcard[data-id]"); if (!card) return;
+    const marcar = e.target.closest(".marca");
+    if (!ativo && !marcar) return;
+    e.preventDefault();
+    if (!ativo) ativo = true;
+    sel.has(card.dataset.id) ? sel.delete(card.dataset.id) : sel.add(card.dataset.id);
+    pintar();
+  });
+  $(botao).onclick = () => ativo ? sair() : entrar();
+  $("loteSair").onclick = sair;
+  $("loteTodas").onclick = () => { const cs = cards(); const todas = cs.every(c => sel.has(c.dataset.id)); cs.forEach(c => todas ? sel.delete(c.dataset.id) : sel.add(c.dataset.id)); pintar(); };
+  $("loteEx").onclick = async () => {
+    const n = sel.size; if (!n) return;
+    const ok = await confirmarExclusao(n === 1 ? `Excluir 1 ${nome}?` : `Excluir ${n} ${nomePlural}?`, `As fotos e os links dos clientes param de funcionar. <b>Isso não pode ser desfeito.</b>`);
+    if (!ok) return;
+    $("loteEx").disabled = true; $("loteEx").textContent = "Excluindo…";
+    try { await excluir([...sel]); atualizarUso(); toast(n === 1 ? "Excluída" : `${n} excluídas`); } catch (e) { erro(e); }
+    rota();
+  };
+  return { atualizar: pintar };
+}
+async function removerArquivos(bucket, caminhos) { for (let i = 0; i < caminhos.length; i += 100) await sb.storage.from(bucket).remove(caminhos.slice(i, i + 100)); }
+async function excluirGalerias(ids) {
+  for (const id of ids) {
+    const f = (await q(sb.from("fotos").select("caminho").eq("galeria_id", id))).map(x => x.caminho);
+    const e = (await q(sb.from("entregas").select("caminho").eq("galeria_id", id))).map(x => x.caminho);
+    await removerArquivos("fotos", f); await removerArquivos("entregas", e);
+    await q(sb.from("galerias").delete().eq("id", id));
+  }
+}
+async function excluirAlbuns(ids) {
+  for (const id of ids) {
+    const l = (await q(sb.from("laminas").select("caminho").eq("diagramacao_id", id))).map(x => x.caminho);
+    await removerArquivos("fotos", l);
+    await q(sb.from("diagramacoes").delete().eq("id", id));
+  }
+}
+const MARCA = `<span class="marca" role="checkbox" aria-label="Selecionar"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
 ROTAS.galerias = async () => {
   const gs = await q(sb.from("galerias").select("id,slug,titulo,cliente_nome,status,criado_em,capa:fotos!galerias_capa_foto_id_fkey(caminho),qtd:fotos!fotos_galeria_id_fkey(count)").eq("so_entrega", false).order("criado_em", { ascending: false }));
   const f = { todas: () => true, aberta: g => g.status === "aberta", enviada: g => g.status === "enviada", encerrada: g => g.status === "encerrada" };
   const pintar = () => {
     const lista = gs.filter(f[filtroGal]);
     $("gLista").innerHTML = lista.length ? lista.map(g => `
-      <a class="gcard st-${g.status}" href="#/galeria/${esc(g.slug)}">
-        <div class="capa" style="${g.capa?.caminho ? `background-image:url('${esc(urlFoto(g.capa.caminho))}')` : ""}">${tagG(g.status)}</div>
+      <a class="gcard st-${g.status}" href="#/galeria/${esc(g.slug)}" data-id="${g.id}">
+        <div class="capa" style="${g.capa?.caminho ? `background-image:url('${esc(urlFoto(g.capa.caminho))}')` : ""}">${tagG(g.status)}${MARCA}</div>
         <div class="info"><h3>${esc(g.titulo)}</h3><span class="small mute">${esc(g.cliente_nome || "Sem cliente")} · ${g.qtd?.[0]?.count || 0} fotos · ${new Date(g.criado_em).toLocaleDateString("pt-BR")}</span></div>
       </a>`).join("") : `<div class="vazio" style="grid-column:1/-1">Nenhuma galeria aqui.</div>`;
     document.querySelectorAll(".chip[data-f]").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === filtroGal));
+    lote?.atualizar();
   };
+  let lote;
   C().innerHTML = `
     <div class="cabeca"><div><h1>Galerias</h1><p class="mute">Suba as prévias, mande o link e receba a escolha do cliente.</p></div><button class="btn fill" id="aGal">Nova galeria</button></div>
     <div class="filtros">${[["todas", "Todas"], ["aberta", "Aguardando cliente"], ["enviada", "Seleção recebida"], ["encerrada", "Encerradas"]].map(([k, t]) => `<button class="chip" data-f="${k}">${t} (${gs.filter(f[k]).length})</button>`).join("")}</div>
@@ -357,6 +428,7 @@ ROTAS.galerias = async () => {
   document.querySelectorAll(".chip[data-f]").forEach(c => c.onclick = () => { filtroGal = c.dataset.f; pintar(); });
   $("aGal").onclick = novaGaleria;
   pintar();
+  if (gs.length) lote = ativarLote({ lista: "gLista", botao: "selG", nome: "galeria", nomePlural: "galerias", excluir: excluirGalerias });
 };
 
 /* ============ ENTREGAS (fotos tratadas) ============ */
@@ -1602,14 +1674,15 @@ const linkDiag = d => raizSite() + (estudio.slug || "") + "/album/" + d.slug;
 ROTAS.diagramacoes = async () => {
   const ds = await q(sb.from("diagramacoes").select("id,slug,titulo,cliente_nome,status,versao,prazo,criado_em,laminas(caminho,versao,ordem),lamina_comentarios(id,versao)").order("criado_em", { ascending: false }));
   C().innerHTML = `
-    <div class="cabeca"><div><h1>Aprovação de álbum</h1><p class="mute">Envie as lâminas diagramadas. O cliente folheia, comenta nas páginas e aprova.</p></div><button class="btn fill" id="nd">Novo álbum para aprovar</button></div>
-    <div class="galerias">${ds.length ? ds.map(d => {
+    <div class="cabeca"><div><h1>Aprovação de álbum</h1><p class="mute">Envie as lâminas diagramadas. O cliente folheia, comenta nas páginas e aprova.</p></div><div class="row" style="gap:8px">${ds.length ? `<button class="btn ghost" id="selD">Selecionar</button>` : ""}<button class="btn fill" id="nd">Novo álbum para aprovar</button></div></div>
+    <div class="galerias" id="dLista">${ds.length ? ds.map(d => {
       const capa = (d.laminas || []).filter(l => l.versao === d.versao).sort((a, b) => a.ordem - b.ordem)[0];
       const nc = (d.lamina_comentarios || []).filter(c => c.versao === d.versao).length;
-      return `<a class="gcard" href="#/diagramacao/${esc(d.slug)}"><div class="capa capaLarga" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}"><span class="tag ${STATUS_D[d.status][1]}">${STATUS_D[d.status][0]}</span></div>
+      return `<a class="gcard" href="#/diagramacao/${esc(d.slug)}" data-id="${d.id}"><div class="capa capaLarga" style="${capa ? `background-image:url('${esc(urlFoto(capa.caminho))}')` : ""}"><span class="tag ${STATUS_D[d.status][1]}">${STATUS_D[d.status][0]}</span>${MARCA}</div>
         <div class="info"><h3>${esc(d.titulo)}</h3><span class="small mute">${esc(d.cliente_nome || "Sem cliente")} · versão ${d.versao}${nc ? ` · ${nc} ${nc === 1 ? "comentário" : "comentários"}` : ""}</span></div></a>`; }).join("")
       : `<div class="vazio" style="grid-column:1/-1">Nenhum álbum ainda. Exporte as lâminas do seu programa de diagramação em JPG e envie aqui.</div>`}</div>`;
   $("nd").onclick = novaDiagramacao;
+  if (ds.length) ativarLote({ lista: "dLista", botao: "selD", nome: "álbum", nomePlural: "álbuns", excluir: excluirAlbuns }).atualizar();
 };
 async function novaDiagramacao() {
   const [cs, ts] = await Promise.all([listaClientes(), listaTrabalhos()]);

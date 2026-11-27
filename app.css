@@ -430,3 +430,21 @@ button.num:hover{border-color:var(--ink)}
 #notifs .item:not(.nova) .txt strong{font-weight:500;color:var(--mute)}
 #notifs .item.nova{background:var(--soft,rgba(0,0,0,.035))}
 #notifs .item.nova::before{content:"";position:absolute;left:2px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--ink)}
+
+/* seleção em lote */
+.gcard .marca{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.25);backdrop-filter:blur(4px);color:transparent;display:grid;place-items:center;opacity:0;transform:scale(.85);transition:opacity .2s,transform .2s,background .2s;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.gcard .marca svg{width:16px;height:16px}
+.gcard:hover .marca,.modoLote .gcard .marca{opacity:1;transform:none}
+@media (hover:none){.gcard .marca{opacity:.9;transform:none}}
+.gcard.marcada .marca{background:#fff;color:#111}
+.modoLote .gcard{cursor:pointer}
+.gcard.marcada{outline:3px solid var(--ink);outline-offset:2px}
+.gcard.marcada .capa{filter:brightness(.82)}
+.barraLote{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px 10px 18px;box-shadow:0 20px 50px -20px rgba(0,0,0,.45);font-size:14px;max-width:calc(100vw - 24px)}
+.barraLote #loteN{font-weight:500;margin-right:4px}
+.btn.perigo{background:#c4382f;border-color:#c4382f;color:#fff;display:inline-flex;align-items:center;gap:6px}
+.btn.perigo:hover{background:#a92e26}.btn.perigo:disabled{opacity:.45;cursor:not-allowed}
+.confirmaCaixa{max-width:420px;text-align:left}
+.confirmaCaixa h2{margin:10px 0 8px}
+.cfIco{width:44px;height:44px;border-radius:12px;background:#fde8e6;color:#c4382f;display:grid;place-items:center}.cfIco svg{width:22px;height:22px}
+[data-theme=dark] .cfIco{background:#45201c;color:#ffaba3}
