@@ -314,7 +314,7 @@ ROTAS.inicio = async () => {
   const fotoFaixa = capa.data?.capa?.caminho ? urlFoto(capa.data.capa.caminho) : "https://images.unsplash.com/photo-1724690336308-02af024b76ab?w=1600&q=70&auto=format&fit=crop";
   C().innerHTML = `${avisoPlano()}
     <div class="faixaFoto faixaPainel" style="--foto:url('${esc(fotoFaixa)}')"><div><h1>Olá${nome ? ", " + esc(nome) : ""}</h1><p>${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p></div>
-      <div class="acoes"><button class="btn" id="aTrab">Novo trabalho</button><button class="btn" id="aCli">Novo cliente</button><div class="row" style="gap:8px">${gs.length ? `<button class="btn ghost" id="selG">Selecionar</button>` : ""}<button class="btn fill" id="aGal">Nova galeria</button></div></div></div>
+      <div class="acoes"><button class="btn" id="aTrab">Novo trabalho</button><button class="btn" id="aCli">Novo cliente</button><button class="btn fill" id="aGal">Nova galeria</button></div></div>
     <div class="cards">
       <div class="num escuro"><span>Recebido em ${esc(new Date().toLocaleDateString("pt-BR", { month: "long" }))}</span><b>${brl(recebido)}</b></div>
       <div class="num"><span>A receber no mês</span><b>${brl(aReceber)}</b></div>
@@ -422,7 +422,7 @@ ROTAS.galerias = async () => {
   };
   let lote;
   C().innerHTML = `
-    <div class="cabeca"><div><h1>Galerias</h1><p class="mute">Suba as prévias, mande o link e receba a escolha do cliente.</p></div><button class="btn fill" id="aGal">Nova galeria</button></div>
+    <div class="cabeca"><div><h1>Galerias</h1><p class="mute">Suba as prévias, mande o link e receba a escolha do cliente.</p></div><div class="row" style="gap:8px">${gs.length ? `<button class="btn ghost" id="selG">Selecionar</button>` : ""}<button class="btn fill" id="aGal">Nova galeria</button></div></div>
     <div class="filtros">${[["todas", "Todas"], ["aberta", "Aguardando cliente"], ["enviada", "Seleção recebida"], ["encerrada", "Encerradas"]].map(([k, t]) => `<button class="chip" data-f="${k}">${t} (${gs.filter(f[k]).length})</button>`).join("")}</div>
     <div class="galerias" id="gLista"></div>`;
   document.querySelectorAll(".chip[data-f]").forEach(c => c.onclick = () => { filtroGal = c.dataset.f; pintar(); });
